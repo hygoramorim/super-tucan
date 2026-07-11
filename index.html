@@ -369,6 +369,8 @@ const sfx = {
   flap()    { tone(420, 0.09, 'triangle', 0.10, 180); },                     // batida de asa
   egg()     { tone(880, 0.09, 'sine', 0.18); setTimeout(() => tone(1318, 0.14, 'sine', 0.18), 70); }, // "plim" de coleta
   gold()    { [880, 1108, 1318, 1760].forEach((f, i) => setTimeout(() => tone(f, 0.12, 'sine', 0.16), i * 65)); },
+  jewel()   { [1318, 1568, 2093, 2637, 3136].forEach((f, i) => setTimeout(() => tone(f, 0.2, 'sine', 0.15), i * 70)); }, // cristalino
+
   crash()   { noiseBurst(0.35, 0.35); tone(160, 0.4, 'sawtooth', 0.2, 40); }, // impacto no galho
   phase()   { [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => tone(f, 0.16, 'square', 0.08), i * 110)); },
   chirp()   { tone(2200 + Math.random() * 600, 0.07, 'sine', 0.05, 2900); setTimeout(() => tone(2600, 0.06, 'sine', 0.04, 3200), 90); }
@@ -653,8 +655,25 @@ function spawnObstacle() {
     ? gapY + (rng() < 0.5 ? -1 : 1) * (d.gap / 2 - 26)
     : gapY + (rng() * 40 - 20);
   eggs.push({ x: ob.x + ob.w / 2, y: eggY, golden, taken: false, bob: Math.random() * 6.28, age: 0 });
+  // OVO-JOIA azul (15%): vale 10 pontos e SEMPRE nasce em lugar muito
+  // desafiador — borda apertadíssima da abertura, colado no teto (que mata)
+  // ou rente ao chão. Brilha com um halo enorme para ser visto de longe.
+  let jewelBetween = false;
+  if (rng() < 0.15) {
+    const slot = Math.floor(rng() * 3);
+    let jx, jy;
+    if (slot === 0) {
+      jx = ob.x + ob.w / 2;
+      jy = gapY + (rng() < 0.5 ? -1 : 1) * (d.gap / 2 - 16);
+    } else if (slot === 1) {
+      jx = ob.x + d.spacing / 2; jy = 44; jewelBetween = true;      // rente ao teto letal
+    } else {
+      jx = ob.x + d.spacing / 2; jy = H - GROUND_H - 42; jewelBetween = true; // rente ao chão
+    }
+    eggs.push({ x: jx, y: jy, jewel: true, golden: false, taken: false, bob: Math.random() * 6.28, age: 0 });
+  }
   // Ovo bônus entre obstáculos, sempre perto da linha de voo plausível
-  if (rng() < 0.35) {
+  if (rng() < 0.35 && !jewelBetween) {
     const by = Math.max(120, Math.min(H - GROUND_H - 60, gapY + (rng() * 140 - 70)));
     eggs.push({ x: ob.x + d.spacing / 2, y: by, golden: false, taken: false, bob: Math.random() * 6.28, age: 0 });
   }
@@ -879,9 +898,9 @@ function update() {
       e.taken = true;
       combo++;
       const mult = combo >= 5 ? 2 : 1; // combo: 5 seguidos = ovos valem x2
-      score += (e.golden ? 5 : 1) * mult;
-      burst(e.x, ey, e.golden ? '#ffd23f' : '#ffffff', e.golden ? 16 : 8);
-      if (e.golden) sfx.gold(); else sfx.egg();
+      score += (e.jewel ? 10 : e.golden ? 5 : 1) * mult;
+      burst(e.x, ey, e.jewel ? '#7dd3fc' : e.golden ? '#ffd23f' : '#ffffff', e.jewel ? 30 : e.golden ? 16 : 8);
+      if (e.jewel) sfx.jewel(); else if (e.golden) sfx.gold(); else sfx.egg();
     }
   }
 }
@@ -1093,8 +1112,77 @@ function drawBranch(o, p) {
   ctx.restore();
 }
 
+// Halo radiante do ovo-joia: enorme, pulsante, visível de longe.
+// Desenhado atrás dos galhos para não esconder o jogo.
+function drawJewelGlow(e) {
+  const bob = Math.sin(frames * 0.08 + e.bob) * 4;
+  const pulse = 0.55 + 0.3 * Math.sin(frames * 0.12 + e.bob);
+  const R = H * 0.5; // "ofusca meia tela"
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.globalAlpha = Math.min(1, (e.age === undefined ? 30 : e.age) / 15) * pulse;
+  const g = ctx.createRadialGradient(e.x, e.y + bob, 0, e.x, e.y + bob, R);
+  g.addColorStop(0, 'rgba(190,235,255,.9)');
+  g.addColorStop(0.12, 'rgba(125,211,252,.5)');
+  g.addColorStop(0.4, 'rgba(56,189,248,.16)');
+  g.addColorStop(1, 'rgba(56,189,248,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(e.x - R, e.y + bob - R, R * 2, R * 2);
+  // raios de luz girando
+  ctx.translate(e.x, e.y + bob);
+  ctx.rotate(frames * 0.02);
+  ctx.fillStyle = 'rgba(190,235,255,.22)';
+  for (let i = 0; i < 4; i++) {
+    ctx.rotate(Math.PI / 2);
+    ctx.beginPath();
+    ctx.moveTo(0, 0); ctx.lineTo(-7, -R * 0.55); ctx.lineTo(7, -R * 0.55);
+    ctx.closePath();
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
 function drawEgg(e) {
   const bob = Math.sin(frames * 0.08 + e.bob) * 4;
+  if (e.jewel) {
+    // OVO-JOIA: casca azul facetada como pedra preciosa
+    ctx.save();
+    ctx.globalAlpha = Math.min(1, (e.age === undefined ? 30 : e.age) / 15);
+    ctx.translate(e.x, e.y + bob);
+    const g = ctx.createLinearGradient(-8, -11, 8, 12);
+    g.addColorStop(0, '#d4f1ff');
+    g.addColorStop(0.45, '#38bdf8');
+    g.addColorStop(1, '#075985');
+    ctx.fillStyle = g;
+    ctx.strokeStyle = '#e8f9ff';
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 10, 13, 0, 0, 7);
+    ctx.fill();
+    ctx.stroke();
+    // facetas de joia
+    ctx.strokeStyle = 'rgba(255,255,255,.55)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(-6, -7); ctx.lineTo(6, 8);
+    ctx.moveTo(6, -7); ctx.lineTo(-6, 8);
+    ctx.moveTo(0, -12); ctx.lineTo(0, 12);
+    ctx.stroke();
+    // estrela cintilante girando
+    ctx.save();
+    ctx.translate(-3, -5);
+    ctx.rotate(frames * 0.1 + e.bob);
+    ctx.fillStyle = 'rgba(255,255,255,.95)';
+    ctx.fillRect(-1, -7, 2, 14);
+    ctx.fillRect(-7, -1, 14, 2);
+    ctx.restore();
+    ctx.fillStyle = '#fff';
+    ctx.font = "8px Bungee, 'Courier New', monospace";
+    ctx.textAlign = 'center';
+    ctx.fillText('10', 0, 3);
+    ctx.restore();
+    return;
+  }
   ctx.save();
   ctx.globalAlpha = Math.min(1, (e.age === undefined ? 30 : e.age) / 15); // surge em fade
   ctx.translate(e.x, e.y + bob);
@@ -1349,6 +1437,7 @@ function draw() {
   if (shake > 0) ctx.translate((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake);
 
   drawBackground(p);
+  eggs.forEach(e => { if (!e.taken && e.jewel) drawJewelGlow(e); });
   obstacles.forEach(o => drawBranch(o, p));
   eggs.forEach(e => { if (!e.taken) drawEgg(e); });
   enemies.forEach(drawEnemy);
@@ -1586,7 +1675,7 @@ if (document.fonts && document.fonts.load) {
     document.fonts.load(f).catch(() => {});
   });
 }
-const GAME_VERSION = '1.6';
+const GAME_VERSION = '1.7';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 resetGame();
