@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>SUPER TUCAN REMASTERED</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -21,6 +21,7 @@
     position: relative;
     width: 100vw;
     height: 100vh;
+    height: 100dvh;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -163,7 +164,7 @@
         <ol id="rankList"></ol>
       </div>
       <p class="hint">ESPAÇO / CLIQUE / TOQUE para voar</p>
-      <p class="credit">version 1.0 &middot; &copy; 2026 CISCO GAMES &middot; Todos os direitos reservados</p>
+      <p class="credit">version 1.1 &middot; &copy; 2026 CISCO GAMES &middot; Todos os direitos reservados</p>
     </div>
 
     <!-- TELA DE FIM DE JOGO -->
@@ -187,17 +188,30 @@
 // SUPER TUCAN REMASTERED
 // ============================================================
 
-const W = 480, H = 640, GROUND_H = 70;
+const W = 480, GROUND_H = 70;
+let H = 640; // altura lógica: acompanha a proporção da tela no celular
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 
-// ---------- Escala responsiva ----------
+// ---------- Escala responsiva (mobile ocupa 100% da tela) ----------
 function fitCanvas() {
-  const s = Math.min(window.innerWidth / W, window.innerHeight / H) * 0.97;
-  canvas.style.width = (W * s) + 'px';
-  canvas.style.height = (H * s) + 'px';
+  const vw = window.innerWidth, vh = window.innerHeight;
+  // Em telas verticais (celular), a altura lógica é recalculada para casar com a
+  // proporção exata da tela; em telas largas (desktop), mantém o formato 480x640.
+  const newH = Math.round(Math.min(1100, Math.max(640, W * vh / vw)));
+  if (newH !== H) {
+    H = newH;
+    canvas.height = H;
+  }
+  const s = Math.min(vw / W, vh / H);
+  const fills = s * W > vw - 8 && s * H > vh - 8; // ocupa a tela inteira?
+  const k = fills ? 1 : 0.97;
+  canvas.style.width = (W * s * k) + 'px';
+  canvas.style.height = (H * s * k) + 'px';
+  canvas.style.borderRadius = fills ? '0' : '12px';
 }
 window.addEventListener('resize', fitCanvas);
+window.addEventListener('orientationchange', () => setTimeout(fitCanvas, 250));
 fitCanvas();
 
 // ---------- Configuração das fases ----------
