@@ -65,18 +65,18 @@
   h1 small { display: block; font-family: 'Grandstander', sans-serif; font-weight: 700; font-size: 15px; color: #7ee08a; letter-spacing: 6px; margin-top: 4px; }
   .sub { color: #b8d8c0; font-size: 13px; max-width: 340px; }
   #initials {
-    width: 120px;
+    width: 230px;
     text-align: center;
-    font-size: 28px;
+    font-size: 24px;
     font-family: inherit;
-    font-weight: bold;
-    letter-spacing: 8px;
+    font-weight: 700;
+    letter-spacing: 3px;
     text-transform: uppercase;
     background: #10281a;
     color: #ffd23f;
     border: 3px solid #7ee08a;
     border-radius: 8px;
-    padding: 8px 4px 8px 12px;
+    padding: 8px 6px;
     outline: none;
   }
   button {
@@ -170,7 +170,7 @@
     h1 { font-size: 24px; }
     h1 small { font-size: 12px; letter-spacing: 4px; }
     .sub { font-size: 11px; max-width: 300px; }
-    #initials { font-size: 22px; padding: 6px 2px 6px 10px; letter-spacing: 6px; width: 104px; }
+    #initials { font-size: 19px; padding: 6px 4px; letter-spacing: 2px; width: 190px; }
     button { font-size: 16px; padding: 10px 26px; }
     button.sec { font-size: 13px; padding: 8px 18px; }
     #ranking { padding: 8px 14px; min-width: 220px; font-size: 12px; }
@@ -202,8 +202,8 @@
       <h1>SUPER TUCAN<small>REMASTERED</small></h1>
       <p class="sub">Bata as asas, desvie dos GALHOS e colete OVOS pelos 6 biomas do Brasil: Amazônia, Cerrado, Mata Atlântica, Caatinga, Pampas e o PANTANAL INFINITO, que acelera a cada 15 segundos!</p>
       <div>
-        <div class="hint" style="margin-bottom:6px">SUAS INICIAIS (3 LETRAS)</div>
-        <input id="initials" maxlength="3" autocomplete="off" spellcheck="false" placeholder="AAA">
+        <div class="hint" style="margin-bottom:6px">SEU NOME (ATÉ 9 LETRAS)</div>
+        <input id="initials" maxlength="9" autocomplete="off" spellcheck="false" placeholder="TUCANO">
         <div class="hint" id="menuPB"></div>
       </div>
       <button id="btnPlay">JOGAR</button>
@@ -216,7 +216,7 @@
         </div>
         <ol id="rankList"></ol>
       </div>
-      <p class="hint">ESPAÇO / CLIQUE / TOQUE para voar</p>
+      <p class="hint">ESPAÇO / CLIQUE / TOQUE para voar &middot; E ou P pausa</p>
       <p class="credit"><span id="menuVer"></span> &middot; &copy; 2026 CISCO GAMES &middot; Todos os direitos reservados</p>
     </div>
 
@@ -531,16 +531,26 @@ async function renderRanking() {
   ol.innerHTML = rankHTML(res.list);
 }
 
-// ---------- Recorde pessoal (por iniciais, no aparelho) ----------
-function getPB(name) {
-  try { return (JSON.parse(localStorage.getItem('superTucan_pbs')) || {})[name] || 0; }
-  catch (e) { return 0; }
-}
-function setPB(name, s) {
+// ---------- Status do jogador (por nome, no aparelho) ----------
+// { pb: recorde de ovos, phase: maior bioma alcançado (índice), level: maior nível no Pantanal }
+function getStats(name) {
   let m = {};
-  try { m = JSON.parse(localStorage.getItem('superTucan_pbs')) || {}; } catch (e) { /* corrompido */ }
-  m[name] = s;
-  localStorage.setItem('superTucan_pbs', JSON.stringify(m));
+  try { m = JSON.parse(localStorage.getItem('superTucan_stats')) || {}; } catch (e) { /* corrompido */ }
+  const s = m[name] || {};
+  if (s.pb === undefined) {
+    // migra o recorde antigo salvo por iniciais (formato pré-v1.6)
+    try {
+      const old = JSON.parse(localStorage.getItem('superTucan_pbs')) || {};
+      if (old[name]) s.pb = old[name];
+    } catch (e) { /* sem dados antigos */ }
+  }
+  return { pb: s.pb || 0, phase: s.phase === undefined ? -1 : s.phase, level: s.level || 0 };
+}
+function saveStats(name, st) {
+  let m = {};
+  try { m = JSON.parse(localStorage.getItem('superTucan_stats')) || {}; } catch (e) { /* corrompido */ }
+  m[name] = st;
+  localStorage.setItem('superTucan_stats', JSON.stringify(m));
 }
 
 // ---------- RNG com seed (desafio diário: mesma sequência para todos) ----------
@@ -564,6 +574,11 @@ let score, totalDist, phaseIdx, phaseDist, bannerTimer, deathTimer, shake;
 let p3Level, p3Timer, bannerText, bannerSub;
 let celebrateTimer = 0, celebrateColors = ['#ffd23f'];
 let combo = 0; // ovos coletados em sequência sem deixar nenhum passar
+// Pássaros inimigos da fase final: voam em sentido contrário com velocidade
+// própria FIXA (igual à velocidade do jogador no começo do jogo), sem escalar.
+let enemies = [];
+let enemyTimer = 0;
+const ENEMY_SPEED = 2.5;
 let chirpTimer = 0;
 
 function resetGame() {
@@ -582,6 +597,8 @@ function resetGame() {
   p3Level = 0;
   p3Timer = 0;
   combo = 0;
+  enemies = [];
+  enemyTimer = 180;
   lastGapY = H / 2;
   deathTimer = 0;
   shake = 0;
@@ -623,9 +640,11 @@ function spawnObstacle() {
   // Clamp de justiça: a próxima abertura fica a uma altura que um humano
   // consegue alcançar no tempo entre obstáculos (~60% da subida máxima teórica)
   const maxD = 0.6 * 7.2 * (d.spacing / d.speed);
-  const gapY = Math.max(lo, Math.min(hi, Math.max(lastGapY - maxD, Math.min(lastGapY + maxD, raw))));
+  // na fase final o galho oscila: reserva a amplitude dentro dos limites
+  const amp = phaseIdx === LAST ? 14 : 0;
+  const gapY = Math.max(lo + amp, Math.min(hi - amp, Math.max(lastGapY - maxD, Math.min(lastGapY + maxD, raw))));
   lastGapY = gapY;
-  const ob = { x: bird.x + SPAWN_AHEAD, gapY, gap: d.gap, w: 30, seed: rng() * 1000, age: 0 };
+  const ob = { x: bird.x + SPAWN_AHEAD, gapY, baseY: gapY, amp, oscPhase: rng() * 6.28, gap: d.gap, w: 30, seed: rng() * 1000, age: 0 };
   obstacles.push(ob);
   // Ovo da abertura: 8% de chance de dourado (vale 5) — que nasce na BORDA
   // arriscada da abertura, não no centro: risco e recompensa de verdade.
@@ -740,7 +759,12 @@ function update() {
   bird.rot = Math.max(-0.45, Math.min(1.2, bird.vy * 0.09));
   if (bird.flapAnim > 0) bird.flapAnim--;
   bird.wing = bird.flapAnim > 0 ? Math.sin(frames * 1.1) * 1.2 : Math.sin(frames * 0.25) * 0.4;
-  if (bird.y < bird.r) { bird.y = bird.r; bird.vy = 0; }
+  // tocar o teto agora é fatal (como o chão)
+  if (bird.y < bird.r) {
+    bird.y = bird.r;
+    die();
+    return;
+  }
 
   // deslocamento horizontal (velocidade cresce nos níveis do Pantanal)
   const d = currentDiff();
@@ -780,6 +804,36 @@ function update() {
   // gera obstáculos a distância fixa do tucano
   const last = obstacles[obstacles.length - 1];
   if (!last || last.x < bird.x + SPAWN_AHEAD - d.spacing) spawnObstacle();
+
+  // fase final: pássaros de outras espécies cruzando em sentido contrário
+  if (phaseIdx === LAST) {
+    if (--enemyTimer <= 0) {
+      enemyTimer = 130 + Math.floor(rng() * 160); // ~2,2 a 4,8 s
+      enemies.push({
+        x: bird.x + SPAWN_AHEAD + 60,
+        y: 110 + rng() * (H - GROUND_H - 230),
+        species: Math.floor(rng() * 3),
+        wing: rng() * 6.28
+      });
+    }
+    enemies.forEach(en => { en.x -= d.speed + ENEMY_SPEED; });
+    enemies = enemies.filter(en => en.x > -50);
+    for (const en of enemies) {
+      const ex = bird.x - en.x, eyd = bird.y - en.y;
+      if (ex * ex + eyd * eyd < (bird.r - 2 + 10) * (bird.r - 2 + 10)) {
+        die();
+        return;
+      }
+    }
+  }
+
+  // fase final: galhos oscilam devagar, acelerando um pouco a cada nível
+  if (phaseIdx === LAST) {
+    const oscSpeed = 0.006 + p3Level * 0.0015;
+    obstacles.forEach(o => {
+      if (o.amp) o.gapY = o.baseY + Math.sin(frames * oscSpeed + o.oscPhase) * o.amp;
+    });
+  }
 
   // move obstáculos e ovos; ovo que passa sem ser coletado zera o combo
   obstacles.forEach(o => { o.x -= d.speed; o.age++; });
@@ -1071,6 +1125,45 @@ function drawEgg(e) {
   ctx.restore();
 }
 
+// Pássaros inimigos: silhuetas simples, 3 espécies, voando para a esquerda
+function drawEnemy(en) {
+  const s = en.species === 1 ? 1.3 : en.species === 2 ? 1.1 : 0.85;
+  const col = ['#1d3557', '#d62828', '#f1faee'][en.species]; // andorinha, arara, garça
+  const wing = Math.sin(frames * 0.35 + en.wing);
+  ctx.save();
+  ctx.translate(en.x, en.y + Math.sin(frames * 0.06 + en.wing) * 3);
+  ctx.scale(s, s);
+  ctx.fillStyle = col;
+  ctx.strokeStyle = 'rgba(0,0,0,.35)';
+  ctx.lineWidth = 1;
+  // corpo
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 13, 8, 0, 0, 7);
+  ctx.fill();
+  if (en.species === 2) ctx.stroke(); // garça branca ganha contorno
+  // cauda (atrás — elas voam para a esquerda)
+  ctx.beginPath();
+  ctx.moveTo(10, -2); ctx.lineTo(21, -7); ctx.lineTo(19, 4); ctx.closePath();
+  ctx.fill();
+  if (en.species === 2) ctx.stroke();
+  // asa batendo
+  ctx.fillStyle = 'rgba(0,0,0,.28)';
+  ctx.beginPath();
+  ctx.ellipse(0, -3 - wing * 5, 8, 4, wing * 0.5, 0, 7);
+  ctx.fill();
+  // bico
+  ctx.fillStyle = '#f5a623';
+  ctx.beginPath();
+  ctx.moveTo(-12, -1); ctx.lineTo(-20, 1); ctx.lineTo(-12, 3); ctx.closePath();
+  ctx.fill();
+  // olho
+  ctx.fillStyle = en.species === 2 ? '#333' : '#fff';
+  ctx.beginPath();
+  ctx.arc(-7, -2, 1.8, 0, 7);
+  ctx.fill();
+  ctx.restore();
+}
+
 function drawToucan(p) {
   ctx.save();
   ctx.translate(bird.x, bird.y);
@@ -1258,6 +1351,7 @@ function draw() {
   drawBackground(p);
   obstacles.forEach(o => drawBranch(o, p));
   eggs.forEach(e => { if (!e.taken) drawEgg(e); });
+  enemies.forEach(drawEnemy);
   drawGround(p);
 
   // partículas e confetes
@@ -1365,7 +1459,8 @@ document.getElementById('btnQuit').addEventListener('click', () => {
   elMenu.classList.remove('hidden');
 });
 document.addEventListener('keydown', e => {
-  if (e.code === 'Escape' || e.code === 'KeyP') {
+  if (e.code === 'Escape' || e.code === 'KeyP' || e.code === 'KeyE') {
+    if (document.activeElement && document.activeElement.id === 'initials') return;
     if (state === 'play') pauseGame();
     else if (state === 'paused') resumeGame();
   }
@@ -1378,7 +1473,7 @@ elInitials.addEventListener('input', () => {
 });
 
 function startGame(mode) {
-  const name = (elInitials.value || 'AAA').padEnd(3, 'A').slice(0, 3);
+  const name = (elInitials.value.trim() || 'TUCANO').slice(0, 9);
   playerName = name;
   localStorage.setItem(LS_NAME, name);
   gameMode = mode || 'normal';
@@ -1403,16 +1498,24 @@ function showGameOver() {
   document.getElementById('goTitle').textContent = 'FIM DE JOGO';
   document.getElementById('goScore').textContent = score;
 
-  // recorde pessoal (por iniciais, neste aparelho)
-  const pb = getPB(playerName);
+  // status do jogador: recorde e maior distância (neste aparelho)
+  const st = getStats(playerName);
+  const pb = st.pb;
   const elPB = document.getElementById('goPB');
   if (score > pb) {
-    setPB(playerName, score);
+    st.pb = score;
     elPB.textContent = '🎉 NOVO RECORDE PESSOAL' + (pb > 0 ? ' (antes: ' + pb + ')' : '') + '!';
     celebrate(['#ffd23f', '#ffffff', '#f5a623'], 50);
   } else {
     elPB.textContent = 'Seu recorde: ' + pb + (pb > score ? ' · faltaram ' + (pb - score) + ' 🥚' : '');
   }
+  if (phaseIdx > st.phase) {
+    st.phase = phaseIdx;
+    st.level = phaseIdx === LAST ? p3Level : 0;
+  } else if (phaseIdx === st.phase && phaseIdx === LAST && p3Level > st.level) {
+    st.level = p3Level;
+  }
+  saveStats(playerName, st);
 
   const rec = document.getElementById('goRecord');
   rec.classList.add('hidden');
@@ -1463,11 +1566,17 @@ elBtnMute.addEventListener('click', () => {
 });
 refreshMute();
 
-// recorde pessoal exibido no menu, conforme as iniciais digitadas
+// status do jogador exibido no menu, conforme o nome digitado
 function updateMenuPB() {
-  const name = (elInitials.value || '').padEnd(3, 'A').slice(0, 3);
-  const pb = elInitials.value ? getPB(name) : 0;
-  document.getElementById('menuPB').textContent = pb > 0 ? 'SEU RECORDE: ' + pb + ' 🥚' : '';
+  const el = document.getElementById('menuPB');
+  const name = elInitials.value.trim();
+  if (!name) { el.textContent = ''; return; }
+  const st = getStats(name);
+  if (!st.pb && st.phase < 0) { el.textContent = ''; return; }
+  const dist = st.phase >= 0
+    ? PHASES[st.phase].name + (st.phase === LAST && st.level > 0 ? ' NV ' + (st.level + 1) : '')
+    : '—';
+  el.textContent = 'RECORDE: ' + st.pb + ' 🥚 · MAIOR DISTÂNCIA: ' + dist;
 }
 
 // ---------- Início ----------
@@ -1477,7 +1586,7 @@ if (document.fonts && document.fonts.load) {
     document.fonts.load(f).catch(() => {});
   });
 }
-const GAME_VERSION = '1.5';
+const GAME_VERSION = '1.6';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 resetGame();
