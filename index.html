@@ -221,17 +221,12 @@ const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 
 // ---------- Escala responsiva: retrato e paisagem, 100% da tela ----------
+// A altura lógica é SEMPRE 640: o mundo tem o mesmo tamanho visual (e a mesma
+// velocidade percebida) em qualquer aparelho; só a largura visível muda.
 function fitCanvas() {
   const vw = window.innerWidth, vh = window.innerHeight;
-  if (vh >= vw) {
-    // retrato (celular em pé): largura fixa, altura casa com a proporção
-    W = 480;
-    H = Math.round(Math.min(1100, Math.max(640, 480 * vh / vw)));
-  } else {
-    // paisagem (celular deitado / desktop): altura fixa, largura casa
-    H = 640;
-    W = Math.round(Math.min(1280, Math.max(480, 640 * vw / vh)));
-  }
+  H = 640;
+  W = Math.round(Math.min(1280, Math.max(270, 640 * vw / vh)));
   canvas.width = W * DPR;
   canvas.height = H * DPR;
   const s = Math.min(vw / W, vh / H);
@@ -249,42 +244,42 @@ fitCanvas();
 // 6 biomas brasileiros — cada paleta em forte contraste com a anterior
 const PHASES = [
   { // verde profundo e úmido
-    name: 'AMAZÔNIA', dist: 2200, speed: 2.2, gap: 175, spacing: 265,
+    name: 'AMAZÔNIA', dist: 2200, speed: 2.5, gap: 175, spacing: 265,
     body: '#16161a', wing: '#2e2e2e', beak: ['#ff9f1c', '#e0532f'], eye: '#ffd23f',
     skyTop: '#bfe8c0', skyBot: '#e9f7d3', far: '#1f5e34', mid: '#2f7a45',
     branch: '#5b3a21', leaf: '#2f8f46', ground: '#2e6b33', groundTop: '#3f8f4a',
     deco: 'jungle'
   },
   { // dourado quente (contraste com o verde)
-    name: 'CERRADO', dist: 2600, speed: 2.5, gap: 162, spacing: 245,
+    name: 'CERRADO', dist: 2600, speed: 2.9, gap: 162, spacing: 245,
     body: '#241435', wing: '#3a2452', beak: ['#0ea5e9', '#075985'], eye: '#ffd23f',
     skyTop: '#ff9e3d', skyBot: '#ffe3ad', far: '#b26a1e', mid: '#8a4d17',
     branch: '#7d5a3c', leaf: '#d9a441', ground: '#b8813f', groundTop: '#d9a55c',
     deco: 'cerrado'
   },
   { // névoa fria azul-esverdeada (contraste com o dourado)
-    name: 'MATA ATLÂNTICA', dist: 3000, speed: 2.8, gap: 150, spacing: 230,
+    name: 'MATA ATLÂNTICA', dist: 3000, speed: 3.2, gap: 150, spacing: 230,
     body: '#101820', wing: '#22303c', beak: ['#ffd23f', '#f59e0b'], eye: '#ff5c8a',
     skyTop: '#5fb8c9', skyBot: '#dcf2ee', far: '#1d6a5e', mid: '#2a8a74',
     branch: '#4c3a2b', leaf: '#37a06b', ground: '#2d7a58', groundTop: '#3f9a6e',
     deco: 'mata'
   },
   { // seco, pálido, sol de osso (contraste com a névoa fria)
-    name: 'CAATINGA', dist: 3400, speed: 3.1, gap: 140, spacing: 215,
+    name: 'CAATINGA', dist: 3400, speed: 3.6, gap: 140, spacing: 215,
     body: '#262019', wing: '#3d342a', beak: ['#2e9e5b', '#1b6e3d'], eye: '#e63946',
     skyTop: '#f7e7c6', skyBot: '#fdf6e3', far: '#b09a72', mid: '#8a7050',
     branch: '#6e5a3f', leaf: '#7ca24a', ground: '#c9a86a', groundTop: '#dcc07f',
     deco: 'caatinga'
   },
   { // crepúsculo violeta sobre campo verde (contraste com o pálido)
-    name: 'PAMPAS', dist: 3800, speed: 3.4, gap: 130, spacing: 205,
+    name: 'PAMPAS', dist: 3800, speed: 3.9, gap: 130, spacing: 205,
     body: '#22333b', wing: '#35494f', beak: ['#ff2e93', '#a3125e'], eye: '#a7f432',
     skyTop: '#7b4fb5', skyBot: '#f2a4c4', far: '#4a3a72', mid: '#2f5d3a',
     branch: '#4a3a2a', leaf: '#5aa864', ground: '#3f7a3f', groundTop: '#57a05a',
     deco: 'pampas'
   },
   { // azul de água e céu aberto (contraste com o violeta) — INFINITA
-    name: 'PANTANAL', dist: Infinity, speed: 3.7, gap: 124, spacing: 198,
+    name: 'PANTANAL', dist: Infinity, speed: 4.2, gap: 124, spacing: 198,
     body: '#101418', wing: '#25313a', beak: ['#06b6d4', '#0e7490'], eye: '#22c55e',
     skyTop: '#4aa8e8', skyBot: '#eaf6ff', far: '#2f6a9e', mid: '#2a7a5e',
     branch: '#5c4a36', leaf: '#4a9e6e', ground: '#2f6e5a', groundTop: '#3f8f6e',
@@ -299,7 +294,7 @@ function currentDiff() {
   const p = PHASES[phaseIdx];
   if (phaseIdx < LAST) return { speed: p.speed, gap: p.gap, spacing: p.spacing };
   return {
-    speed: Math.min(5.6, p.speed + p3Level * 0.18),
+    speed: Math.min(6.2, p.speed + p3Level * 0.2),
     gap: Math.max(108, p.gap - p3Level * 3),
     spacing: Math.max(182, p.spacing - p3Level * 3)
   };
@@ -506,7 +501,8 @@ let celebrateTimer = 0, celebrateColors = ['#ffd23f'];
 let chirpTimer = 0;
 
 function resetGame() {
-  bird = { x: 120, y: H / 2, vy: 0, rot: 0, wing: 0, flapAnim: 0, r: 15 };
+  // em telas estreitas (celular em pé) o tucano fica mais à esquerda
+  bird = { x: Math.min(120, Math.round(W * 0.32)), y: H / 2, vy: 0, rot: 0, wing: 0, flapAnim: 0, r: 15 };
   obstacles = [];
   eggs = [];
   particles = [];
@@ -1096,22 +1092,28 @@ function drawHUD(p) {
   ctx.textAlign = 'left';
   ctx.fillText(String(score), 52, 41);
 
-  // fase + barra de progresso (deslocada para baixo: o canto fica com a versão)
+  // fase + barra de progresso — encolhe em telas estreitas (celular em pé)
+  const narrow = W < 460;
+  const boxW = narrow ? Math.max(120, W - 152) : 180;
+  const bx = W - boxW - 12;
   ctx.fillStyle = 'rgba(0,0,0,.35)';
   if (ctx.roundRect) {
-    ctx.beginPath(); ctx.roundRect(W - 192, 22, 180, 40, 10); ctx.fill();
+    ctx.beginPath(); ctx.roundRect(bx, 22, boxW, 40, 10); ctx.fill();
   } else {
-    ctx.fillRect(W - 192, 22, 180, 40);
+    ctx.fillRect(bx, 22, boxW, 40);
   }
   ctx.fillStyle = '#fff';
-  ctx.font = 'bold 11px Courier New';
+  ctx.font = 'bold ' + (narrow ? 9 : 11) + 'px Courier New';
   ctx.textAlign = 'left';
   const infinite = phaseIdx === LAST;
-  ctx.fillText(infinite ? 'PANTANAL ∞ · NÍVEL ' + (p3Level + 1) : 'FASE ' + (phaseIdx + 1) + ' · ' + p.name, W - 182, 38);
+  const label = infinite
+    ? (narrow ? '∞ NÍVEL ' + (p3Level + 1) : 'PANTANAL ∞ · NÍVEL ' + (p3Level + 1))
+    : (narrow ? 'F' + (phaseIdx + 1) + ' · ' + p.name : 'FASE ' + (phaseIdx + 1) + ' · ' + p.name);
+  ctx.fillText(label, bx + 10, 38);
   ctx.fillStyle = 'rgba(255,255,255,.25)';
-  ctx.fillRect(W - 182, 45, 160, 9);
+  ctx.fillRect(bx + 10, 45, boxW - 20, 9);
   ctx.fillStyle = p.beak[0];
-  ctx.fillRect(W - 182, 45, 160 * Math.min(1, infinite ? p3Timer / P3_LEVEL_FRAMES : phaseDist / p.dist), 9);
+  ctx.fillRect(bx + 10, 45, (boxW - 20) * Math.min(1, infinite ? p3Timer / P3_LEVEL_FRAMES : phaseDist / p.dist), 9);
   ctx.restore();
 }
 
@@ -1185,9 +1187,18 @@ function draw() {
   ctx.restore();
 }
 
-// ---------- Loop ----------
-function loop() {
-  update();
+// ---------- Loop com passo de tempo fixo ----------
+// A lógica roda a exatos 60 ticks/segundo em qualquer monitor (60 Hz, 120 Hz…):
+// mesma velocidade de jogo em todo aparelho.
+const STEP = 1 / 60;
+let lastT = 0, acc = 0;
+function loop(t) {
+  if (!lastT) lastT = t;
+  let dt = (t - lastT) / 1000;
+  lastT = t;
+  if (dt > 0.25) dt = 0.25; // aba voltou do segundo plano
+  acc += dt;
+  while (acc >= STEP) { update(); acc -= STEP; }
   draw();
   requestAnimationFrame(loop);
 }
@@ -1279,12 +1290,12 @@ elInitials.addEventListener('keydown', e => {
 });
 
 // ---------- Início ----------
-const GAME_VERSION = '1.2';
+const GAME_VERSION = '1.3';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 resetGame();
 renderRanking();
-loop();
+requestAnimationFrame(loop);
 </script>
 </body>
 </html>
