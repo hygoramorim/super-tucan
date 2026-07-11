@@ -152,7 +152,7 @@
     <div id="menu" class="overlay">
       <div class="studio">&#10022; CISCO GAMES &#10022;<small>APRESENTA</small></div>
       <h1>SUPER TUCAN<small>REMASTERED</small></h1>
-      <p class="sub">Bata as asas, desvie dos GALHOS e colete o máximo de OVOS pelas 3 fases: Floresta Tropical, Cerrado e Pantanal!</p>
+      <p class="sub">Bata as asas, desvie dos GALHOS e colete o máximo de OVOS por 3 fases: Floresta Tropical, Cerrado e o PANTANAL INFINITO, que fica mais difícil a cada 15 segundos!</p>
       <div>
         <div class="hint" style="margin-bottom:6px">SUAS INICIAIS (3 LETRAS)</div>
         <input id="initials" maxlength="3" autocomplete="off" spellcheck="false" placeholder="AAA">
@@ -163,7 +163,7 @@
         <ol id="rankList"></ol>
       </div>
       <p class="hint">ESPAÇO / CLIQUE / TOQUE para voar</p>
-      <p class="credit">&copy; 2026 CISCO GAMES &middot; Todos os direitos reservados</p>
+      <p class="credit">version 1.0 &middot; &copy; 2026 CISCO GAMES &middot; Todos os direitos reservados</p>
     </div>
 
     <!-- TELA DE FIM DE JOGO -->
@@ -226,7 +226,17 @@ const PHASES = [
     deco: 'pantanal'
   }
 ];
-const VICTORY_BONUS = 15;
+// Fase final (Pantanal) é infinita: a dificuldade sobe 1 nível a cada 15 s (~900 frames)
+const P3_LEVEL_FRAMES = 900;
+function currentDiff() {
+  const p = PHASES[phaseIdx];
+  if (phaseIdx < 2) return { speed: p.speed, gap: p.gap, spacing: p.spacing };
+  return {
+    speed: Math.min(7, p.speed + p3Level * 0.25),
+    gap: Math.max(92, p.gap - p3Level * 4),
+    spacing: Math.max(168, p.spacing - p3Level * 4)
+  };
+}
 
 // ---------- Áudio (efeitos sintetizados) ----------
 let actx = null;
@@ -266,9 +276,85 @@ const sfx = {
   gold()    { [880, 1108, 1318, 1760].forEach((f, i) => setTimeout(() => tone(f, 0.12, 'sine', 0.16), i * 65)); },
   crash()   { noiseBurst(0.35, 0.35); tone(160, 0.4, 'sawtooth', 0.2, 40); }, // impacto no galho
   phase()   { [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => tone(f, 0.16, 'square', 0.08), i * 110)); },
-  victory() { [523, 659, 784, 1046, 784, 1046, 1318].forEach((f, i) => setTimeout(() => tone(f, 0.2, 'triangle', 0.13), i * 130)); },
   chirp()   { tone(2200 + Math.random() * 600, 0.07, 'sine', 0.05, 2900); setTimeout(() => tone(2600, 0.06, 'sine', 0.04, 3200), 90); }
 };
+
+// ---------- Música de fundo (chiptune sintetizado, 1 tema por fase) ----------
+function mtone(freq, t, dur, type, vol) {
+  const a = audio(), o = a.createOscillator(), g = a.createGain();
+  o.type = type; o.frequency.value = freq;
+  g.gain.setValueAtTime(vol, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  o.connect(g).connect(a.destination);
+  o.start(t); o.stop(t + dur + 0.02);
+}
+let hatBuf = null;
+function mhat(t, vol) {
+  const a = audio();
+  if (!hatBuf) {
+    hatBuf = a.createBuffer(1, a.sampleRate * 0.05, a.sampleRate);
+    const d = hatBuf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+  }
+  const s = a.createBufferSource(); s.buffer = hatBuf;
+  const f = a.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 6000;
+  const g = a.createGain(); g.gain.value = vol;
+  s.connect(f).connect(g).connect(a.destination); s.start(t);
+}
+function mkick(t) {
+  const a = audio(), o = a.createOscillator(), g = a.createGain();
+  o.type = 'sine';
+  o.frequency.setValueAtTime(150, t);
+  o.frequency.exponentialRampToValueAtTime(45, t + 0.12);
+  g.gain.setValueAtTime(0.16, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 0.14);
+  o.connect(g).connect(a.destination); o.start(t); o.stop(t + 0.16);
+}
+const noteFreq = m => 440 * Math.pow(2, (m - 69) / 12);
+// Cada tema: 32 passos de colcheia (4 compassos). 0 = pausa. Notas em número MIDI.
+const MUSIC = [
+  { // FASE 1 — Floresta: tranquila e leve, marimba pentatônica
+    bpm: 96, leadType: 'triangle', leadVol: 0.07, bassVol: 0.09,
+    bass: [36,0,0,0, 43,0,0,0, 45,0,0,0, 41,0,0,0, 36,0,0,0, 43,0,0,0, 45,0,0,0, 43,0,0,0],
+    lead: [72,0,76,0, 79,0,0,0, 81,0,79,0, 76,0,0,0, 74,0,76,0, 79,0,72,0, 0,0,74,0, 72,0,0,0],
+    kick: [], hatEvery: 4, hatOff: 2, hatVol: 0.02
+  },
+  { // FASE 2 — Cerrado: animada, balanço dançante
+    bpm: 120, leadType: 'square', leadVol: 0.035, bassVol: 0.10,
+    bass: [43,0,43,0, 50,0,0,0, 48,0,48,0, 50,0,0,0, 43,0,43,0, 52,0,0,0, 50,0,48,0, 45,0,0,0],
+    lead: [67,0,71,74, 0,76,0,74, 71,0,67,0, 74,0,0,0, 76,0,74,76, 79,0,76,74, 71,0,74,0, 67,0,0,0],
+    kick: [0,8,16,24], hatEvery: 2, hatOff: 1, hatVol: 0.025
+  },
+  { // FASE 3 — Pantanal: acelerada, arpejos energéticos
+    bpm: 142, leadType: 'square', leadVol: 0.03, bassVol: 0.11,
+    bass: [45,45,0,45, 0,45,52,0, 41,41,0,41, 0,41,48,0, 43,43,0,43, 0,43,50,0, 45,45,0,45, 52,0,55,0],
+    lead: [69,72,76,72, 81,76,72,76, 65,69,72,69, 77,72,69,72, 67,71,74,71, 79,74,71,74, 69,72,76,81, 76,72,76,81],
+    kick: [0,4,8,12,16,20,24,28], hatEvery: 2, hatOff: 1, hatVol: 0.03
+  }
+];
+let musOn = false, musPhase = 0, musStep = 0, musNext = 0;
+function startMusic(pi) {
+  musPhase = pi; musStep = 0; musOn = true;
+  musNext = audio().currentTime + 0.1;
+}
+function stopMusic() { musOn = false; }
+setInterval(() => {
+  if (!musOn) return;
+  try {
+    const a = audio();
+    if (document.hidden) { musNext = a.currentTime + 0.1; return; }
+    const M = MUSIC[musPhase];
+    const spb = 60 / M.bpm / 2; // duração de uma colcheia
+    while (musNext < a.currentTime + 0.25) {
+      const t = musNext, s = musStep;
+      if (M.bass[s]) mtone(noteFreq(M.bass[s]), t, spb * 1.8, 'triangle', M.bassVol);
+      if (M.lead[s]) mtone(noteFreq(M.lead[s]), t, spb * 0.9, M.leadType, M.leadVol);
+      if (M.kick.includes(s)) mkick(t);
+      if (s % M.hatEvery === M.hatOff) mhat(t, M.hatVol);
+      musNext += spb; musStep = (musStep + 1) % 32;
+    }
+  } catch (e) { /* áudio indisponível */ }
+}, 80);
 
 // ---------- Ranking GLOBAL (Firebase) com cache local ----------
 const DB_URL = 'https://super-tucan-ranking-2026-default-rtdb.firebaseio.com';
@@ -325,11 +411,12 @@ async function renderRanking() {
 }
 
 // ---------- Estado do jogo ----------
-let state = 'menu'; // menu | play | dead | victory
+let state = 'menu'; // menu | play | dead
 let playerName = 'AAA';
 let frames = 0;
 let bird, obstacles, eggs, particles, clouds;
 let score, totalDist, phaseIdx, phaseDist, bannerTimer, deathTimer, shake;
+let p3Level, p3Timer, bannerText, bannerSub;
 let chirpTimer = 0;
 
 function resetGame() {
@@ -342,6 +429,10 @@ function resetGame() {
   phaseIdx = 0;
   phaseDist = 0;
   bannerTimer = 120; // banner da fase 1
+  bannerText = 'FASE 1';
+  bannerSub = PHASES[0].name;
+  p3Level = 0;
+  p3Timer = 0;
   deathTimer = 0;
   shake = 0;
   frames = 0;
@@ -369,17 +460,17 @@ canvas.addEventListener('pointerdown', () => { audio(); flap(); });
 
 // ---------- Obstáculos (galhos) e ovos ----------
 function spawnObstacle() {
-  const p = phase();
+  const d = currentDiff();
   const margin = 90;
-  const gapY = margin + Math.random() * (H - GROUND_H - margin * 2 - p.gap) + p.gap / 2;
-  const ob = { x: W + 60, gapY, gap: p.gap, w: 30, seed: Math.random() * 1000 };
+  const gapY = margin + Math.random() * (H - GROUND_H - margin * 2 - d.gap) + d.gap / 2;
+  const ob = { x: W + 60, gapY, gap: d.gap, w: 30, seed: Math.random() * 1000 };
   obstacles.push(ob);
   // Ovo no centro da abertura (10% de chance de ovo dourado = 3 pts)
   const golden = Math.random() < 0.10;
   eggs.push({ x: ob.x + ob.w / 2, y: gapY + (Math.random() * 40 - 20), golden, taken: false, bob: Math.random() * 6.28 });
   // Ovo bônus entre obstáculos, às vezes
   if (Math.random() < 0.35) {
-    eggs.push({ x: ob.x + p.spacing / 2, y: margin + 40 + Math.random() * (H - GROUND_H - margin - 120), golden: false, taken: false, bob: Math.random() * 6.28 });
+    eggs.push({ x: ob.x + d.spacing / 2, y: margin + 40 + Math.random() * (H - GROUND_H - margin - 120), golden: false, taken: false, bob: Math.random() * 6.28 });
   }
 }
 
@@ -419,9 +510,9 @@ function update() {
     return;
   }
 
-  if (state === 'dead' || state === 'victory') {
+  if (state === 'dead') {
     // tucano cai após colisão
-    if (state === 'dead' && bird.y < H - GROUND_H - 14) {
+    if (bird.y < H - GROUND_H - 14) {
       bird.vy += 0.5;
       bird.y += bird.vy;
       bird.rot = Math.min(bird.rot + 0.08, Math.PI / 2);
@@ -443,35 +534,41 @@ function update() {
   bird.wing = bird.flapAnim > 0 ? Math.sin(frames * 1.1) * 1.2 : Math.sin(frames * 0.25) * 0.4;
   if (bird.y < bird.r) { bird.y = bird.r; bird.vy = 0; }
 
-  // deslocamento horizontal
-  totalDist += p.speed;
-  phaseDist += p.speed;
+  // deslocamento horizontal (velocidade cresce nos níveis do Pantanal)
+  const d = currentDiff();
+  totalDist += d.speed;
+  phaseDist += d.speed;
 
-  // transição de fase
-  if (phaseDist >= p.dist) {
-    if (phaseIdx < PHASES.length - 1) {
-      phaseIdx++;
-      phaseDist = 0;
-      bannerTimer = 130;
-      sfx.phase();
-      burst(bird.x, bird.y, '#ffd23f', 20);
-    } else {
-      // venceu as 3 fases!
-      score += VICTORY_BONUS;
-      state = 'victory';
-      sfx.victory();
-      burst(bird.x, bird.y, '#ffd23f', 40);
-      return;
-    }
+  // transição de fase (a fase final é infinita)
+  if (phaseIdx < PHASES.length - 1 && phaseDist >= p.dist) {
+    phaseIdx++;
+    phaseDist = 0;
+    bannerTimer = 130;
+    bannerText = 'FASE ' + (phaseIdx + 1);
+    bannerSub = PHASES[phaseIdx].name;
+    sfx.phase();
+    startMusic(phaseIdx);
+    burst(bird.x, bird.y, '#ffd23f', 20);
+  }
+
+  // Pantanal infinito: sobe 1 nível de dificuldade a cada 15 segundos
+  if (phaseIdx === 2 && ++p3Timer >= P3_LEVEL_FRAMES) {
+    p3Timer = 0;
+    p3Level++;
+    bannerTimer = 90;
+    bannerText = 'NÍVEL ' + (p3Level + 1);
+    bannerSub = 'MAIS RÁPIDO!';
+    sfx.phase();
+    burst(bird.x, bird.y, '#06b6d4', 14);
   }
 
   // gera obstáculos
   const last = obstacles[obstacles.length - 1];
-  if (!last || last.x < W - p.spacing) spawnObstacle();
+  if (!last || last.x < W - d.spacing) spawnObstacle();
 
   // move obstáculos e ovos
-  obstacles.forEach(o => o.x -= p.speed);
-  eggs.forEach(e => e.x -= p.speed);
+  obstacles.forEach(o => o.x -= d.speed);
+  eggs.forEach(e => e.x -= d.speed);
   obstacles = obstacles.filter(o => o.x > -80);
   eggs = eggs.filter(e => e.x > -30 && !e.taken);
 
@@ -509,6 +606,7 @@ function update() {
 function die() {
   state = 'dead';
   shake = 14;
+  stopMusic();
   sfx.crash();
   burst(bird.x, bird.y, '#e0532f', 18);
 }
@@ -847,11 +945,12 @@ function drawHUD(p) {
   ctx.fillStyle = '#fff';
   ctx.font = 'bold 11px Courier New';
   ctx.textAlign = 'left';
-  ctx.fillText('FASE ' + (phaseIdx + 1) + ' · ' + p.name, W - 182, 28);
+  const infinite = phaseIdx === 2;
+  ctx.fillText(infinite ? 'PANTANAL ∞ · NÍVEL ' + (p3Level + 1) : 'FASE ' + (phaseIdx + 1) + ' · ' + p.name, W - 182, 28);
   ctx.fillStyle = 'rgba(255,255,255,.25)';
   ctx.fillRect(W - 182, 35, 160, 9);
   ctx.fillStyle = p.beak[0];
-  ctx.fillRect(W - 182, 35, 160 * Math.min(1, phaseDist / p.dist), 9);
+  ctx.fillRect(W - 182, 35, 160 * Math.min(1, infinite ? p3Timer / P3_LEVEL_FRAMES : phaseDist / p.dist), 9);
   ctx.restore();
 }
 
@@ -865,10 +964,10 @@ function drawBanner(p) {
   ctx.fillStyle = '#ffd23f';
   ctx.font = 'bold 30px Courier New';
   ctx.textAlign = 'center';
-  ctx.fillText('FASE ' + (phaseIdx + 1), W / 2, H / 2 - 18);
+  ctx.fillText(bannerText, W / 2, H / 2 - 18);
   ctx.fillStyle = '#fff';
   ctx.font = 'bold 20px Courier New';
-  ctx.fillText(p.name, W / 2, H / 2 + 14);
+  ctx.fillText(bannerSub, W / 2, H / 2 + 14);
   ctx.restore();
 }
 
@@ -892,7 +991,7 @@ function draw() {
 
   drawToucan(p);
 
-  if (state === 'play' || state === 'dead' || state === 'victory') {
+  if (state !== 'menu') {
     drawHUD(p);
     drawBanner(p);
   }
@@ -926,24 +1025,24 @@ function startGame() {
   elMenu.classList.add('hidden');
   elGO.classList.add('hidden');
   sfx.phase();
+  startMusic(0);
 }
 
 function showGameOver() {
-  const won = state === 'victory';
-  const bonus = won ? 'Você atravessou os 3 biomas! (+' + VICTORY_BONUS + ' ovos de bônus) · ' : '';
-  document.getElementById('goTitle').textContent = won ? '🏆 VITÓRIA!' : 'FIM DE JOGO';
+  const level = phaseIdx === 2 ? ' · Chegou ao NÍVEL ' + (p3Level + 1) + ' do Pantanal ∞' : '';
+  document.getElementById('goTitle').textContent = 'FIM DE JOGO';
   document.getElementById('goScore').textContent = score;
   const rec = document.getElementById('goRecord');
   rec.classList.add('hidden');
-  document.getElementById('goRank').textContent = bonus + 'Enviando ao ranking mundial...';
+  document.getElementById('goRank').textContent = 'Enviando ao ranking mundial...' + level;
   elGO.classList.remove('hidden');
   submitScore(playerName, score).then(res => {
     rec.classList.toggle('hidden', res.pos !== 1);
-    document.getElementById('goRank').textContent = bonus + (!res.online
+    document.getElementById('goRank').textContent = (!res.online
       ? 'Sem conexão — pontuação não entrou no ranking mundial.'
       : res.pos > 0
         ? playerName + ' entrou no TOP 10 MUNDIAL em ' + res.pos + 'º lugar!'
-        : 'Não entrou no TOP 10 mundial desta vez.');
+        : 'Não entrou no TOP 10 mundial desta vez.') + level;
   });
 }
 
