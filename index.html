@@ -128,6 +128,20 @@
     margin-top: 3px;
   }
   .credit { font-size: 10px; color: #5a7a62; letter-spacing: 2px; }
+  #ver {
+    position: absolute; top: 4px; right: 8px; z-index: 6;
+    font-size: 10px; letter-spacing: 1px;
+    color: rgba(255,255,255,.7);
+    text-shadow: 1px 1px 2px rgba(0,0,0,.8);
+    pointer-events: none;
+  }
+  #btnPause {
+    position: absolute; bottom: 16px; right: 14px; z-index: 5;
+    width: 48px; height: 48px; border-radius: 50%; padding: 0;
+    font-size: 15px; line-height: 1; display: none;
+    background: rgba(0,0,0,.35); color: #fff;
+    border: 2px solid rgba(255,255,255,.5); box-shadow: none;
+  }
   /* ---- Ajustes para telas pequenas (mobile) ---- */
   @media (max-width: 520px), (max-height: 700px) {
     .overlay { gap: 9px; padding: 12px; overflow-y: auto; justify-content: flex-start; padding-top: 26px; }
@@ -148,12 +162,22 @@
 <div id="wrap">
   <div id="stage">
     <canvas id="game" width="480" height="640"></canvas>
+    <div id="ver"></div>
+    <button id="btnPause" aria-label="Pausar">&#10074;&#10074;</button>
+
+    <!-- TELA DE PAUSA -->
+    <div id="pause" class="overlay hidden">
+      <h1 style="font-size:28px">PAUSADO</h1>
+      <button id="btnResume">CONTINUAR</button>
+      <button id="btnQuit" class="sec">SAIR PARA O MENU</button>
+      <p class="credit">&copy; 2026 CISCO GAMES</p>
+    </div>
 
     <!-- TELA DE ABERTURA -->
     <div id="menu" class="overlay">
       <div class="studio">&#10022; CISCO GAMES &#10022;<small>APRESENTA</small></div>
       <h1>SUPER TUCAN<small>REMASTERED</small></h1>
-      <p class="sub">Bata as asas, desvie dos GALHOS e colete o máximo de OVOS por 3 fases: Floresta Tropical, Cerrado e o PANTANAL INFINITO, que fica mais difícil a cada 15 segundos!</p>
+      <p class="sub">Bata as asas, desvie dos GALHOS e colete OVOS pelos 6 biomas do Brasil: Amazônia, Cerrado, Mata Atlântica, Caatinga, Pampas e o PANTANAL INFINITO, que acelera a cada 15 segundos!</p>
       <div>
         <div class="hint" style="margin-bottom:6px">SUAS INICIAIS (3 LETRAS)</div>
         <input id="initials" maxlength="3" autocomplete="off" spellcheck="false" placeholder="AAA">
@@ -164,7 +188,7 @@
         <ol id="rankList"></ol>
       </div>
       <p class="hint">ESPAÇO / CLIQUE / TOQUE para voar</p>
-      <p class="credit">version 1.1 &middot; &copy; 2026 CISCO GAMES &middot; Todos os direitos reservados</p>
+      <p class="credit"><span id="menuVer"></span> &middot; &copy; 2026 CISCO GAMES &middot; Todos os direitos reservados</p>
     </div>
 
     <!-- TELA DE FIM DE JOGO -->
@@ -188,27 +212,32 @@
 // SUPER TUCAN REMASTERED
 // ============================================================
 
-const W = 480, GROUND_H = 70;
-let H = 640; // altura lógica: acompanha a proporção da tela no celular
+const GROUND_H = 70;
+let W = 480, H = 640; // dimensões lógicas: acompanham a proporção da tela
+// Renderiza na densidade real do aparelho (retina) — elimina o tremor/serrilhado
+// dos sprites em movimento rápido causado pelo esticamento do canvas.
+const DPR = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 
-// ---------- Escala responsiva (mobile ocupa 100% da tela) ----------
+// ---------- Escala responsiva: retrato e paisagem, 100% da tela ----------
 function fitCanvas() {
   const vw = window.innerWidth, vh = window.innerHeight;
-  // Em telas verticais (celular), a altura lógica é recalculada para casar com a
-  // proporção exata da tela; em telas largas (desktop), mantém o formato 480x640.
-  const newH = Math.round(Math.min(1100, Math.max(640, W * vh / vw)));
-  if (newH !== H) {
-    H = newH;
-    canvas.height = H;
+  if (vh >= vw) {
+    // retrato (celular em pé): largura fixa, altura casa com a proporção
+    W = 480;
+    H = Math.round(Math.min(1100, Math.max(640, 480 * vh / vw)));
+  } else {
+    // paisagem (celular deitado / desktop): altura fixa, largura casa
+    H = 640;
+    W = Math.round(Math.min(1280, Math.max(480, 640 * vw / vh)));
   }
+  canvas.width = W * DPR;
+  canvas.height = H * DPR;
   const s = Math.min(vw / W, vh / H);
-  const fills = s * W > vw - 8 && s * H > vh - 8; // ocupa a tela inteira?
-  const k = fills ? 1 : 0.97;
-  canvas.style.width = (W * s * k) + 'px';
-  canvas.style.height = (H * s * k) + 'px';
-  canvas.style.borderRadius = fills ? '0' : '12px';
+  canvas.style.width = (W * s) + 'px';
+  canvas.style.height = (H * s) + 'px';
+  canvas.style.borderRadius = s * W > vw - 8 ? '0' : '12px';
 }
 window.addEventListener('resize', fitCanvas);
 window.addEventListener('orientationchange', () => setTimeout(fitCanvas, 250));
@@ -217,38 +246,62 @@ fitCanvas();
 // ---------- Configuração das fases ----------
 // dist = deslocamento horizontal necessário p/ concluir a fase (cresce a cada fase)
 // speed = velocidade horizontal | gap = abertura entre galhos | spacing = distância entre obstáculos
+// 6 biomas brasileiros — cada paleta em forte contraste com a anterior
 const PHASES = [
-  {
-    name: 'FLORESTA TROPICAL', dist: 2600, speed: 2.3, gap: 175, spacing: 265,
-    beak: ['#ff9f1c', '#e0532f'], eye: '#ffd23f',
-    skyTop: '#7ec8e3', skyBot: '#cdeccd', far: '#4e8d5b', mid: '#2f6e42',
-    branch: '#6b4226', leaf: '#3a8f4d', ground: '#3c7a3c', groundTop: '#57a05a',
+  { // verde profundo e úmido
+    name: 'AMAZÔNIA', dist: 2200, speed: 2.2, gap: 175, spacing: 265,
+    body: '#16161a', wing: '#2e2e2e', beak: ['#ff9f1c', '#e0532f'], eye: '#ffd23f',
+    skyTop: '#bfe8c0', skyBot: '#e9f7d3', far: '#1f5e34', mid: '#2f7a45',
+    branch: '#5b3a21', leaf: '#2f8f46', ground: '#2e6b33', groundTop: '#3f8f4a',
     deco: 'jungle'
   },
-  {
-    name: 'CERRADO', dist: 3400, speed: 2.9, gap: 148, spacing: 235,
-    beak: ['#e63946', '#8d1d2c'], eye: '#ff7b00',
-    skyTop: '#ffce6b', skyBot: '#ffe9c2', far: '#c98f3d', mid: '#9c6b2f',
+  { // dourado quente (contraste com o verde)
+    name: 'CERRADO', dist: 2600, speed: 2.5, gap: 162, spacing: 245,
+    body: '#241435', wing: '#3a2452', beak: ['#0ea5e9', '#075985'], eye: '#ffd23f',
+    skyTop: '#ff9e3d', skyBot: '#ffe3ad', far: '#b26a1e', mid: '#8a4d17',
     branch: '#7d5a3c', leaf: '#d9a441', ground: '#b8813f', groundTop: '#d9a55c',
     deco: 'cerrado'
   },
-  {
-    name: 'PANTANAL', dist: 4400, speed: 3.5, gap: 126, spacing: 208,
-    beak: ['#06b6d4', '#0e7490'], eye: '#22c55e',
-    skyTop: '#8ecbef', skyBot: '#e6f4ff', far: '#5e97b8', mid: '#3d7a5e',
+  { // névoa fria azul-esverdeada (contraste com o dourado)
+    name: 'MATA ATLÂNTICA', dist: 3000, speed: 2.8, gap: 150, spacing: 230,
+    body: '#101820', wing: '#22303c', beak: ['#ffd23f', '#f59e0b'], eye: '#ff5c8a',
+    skyTop: '#5fb8c9', skyBot: '#dcf2ee', far: '#1d6a5e', mid: '#2a8a74',
+    branch: '#4c3a2b', leaf: '#37a06b', ground: '#2d7a58', groundTop: '#3f9a6e',
+    deco: 'mata'
+  },
+  { // seco, pálido, sol de osso (contraste com a névoa fria)
+    name: 'CAATINGA', dist: 3400, speed: 3.1, gap: 140, spacing: 215,
+    body: '#262019', wing: '#3d342a', beak: ['#2e9e5b', '#1b6e3d'], eye: '#e63946',
+    skyTop: '#f7e7c6', skyBot: '#fdf6e3', far: '#b09a72', mid: '#8a7050',
+    branch: '#6e5a3f', leaf: '#7ca24a', ground: '#c9a86a', groundTop: '#dcc07f',
+    deco: 'caatinga'
+  },
+  { // crepúsculo violeta sobre campo verde (contraste com o pálido)
+    name: 'PAMPAS', dist: 3800, speed: 3.4, gap: 130, spacing: 205,
+    body: '#22333b', wing: '#35494f', beak: ['#ff2e93', '#a3125e'], eye: '#a7f432',
+    skyTop: '#7b4fb5', skyBot: '#f2a4c4', far: '#4a3a72', mid: '#2f5d3a',
+    branch: '#4a3a2a', leaf: '#5aa864', ground: '#3f7a3f', groundTop: '#57a05a',
+    deco: 'pampas'
+  },
+  { // azul de água e céu aberto (contraste com o violeta) — INFINITA
+    name: 'PANTANAL', dist: Infinity, speed: 3.7, gap: 124, spacing: 198,
+    body: '#101418', wing: '#25313a', beak: ['#06b6d4', '#0e7490'], eye: '#22c55e',
+    skyTop: '#4aa8e8', skyBot: '#eaf6ff', far: '#2f6a9e', mid: '#2a7a5e',
     branch: '#5c4a36', leaf: '#4a9e6e', ground: '#2f6e5a', groundTop: '#3f8f6e',
     deco: 'pantanal'
   }
 ];
-// Fase final (Pantanal) é infinita: a dificuldade sobe 1 nível a cada 15 s (~900 frames)
+const LAST = PHASES.length - 1;
+// Fase final infinita: +1 nível a cada 15 s, com teto calibrado para ser
+// difícil porém vencível por um jogador de alto nível (nunca impossível)
 const P3_LEVEL_FRAMES = 900;
 function currentDiff() {
   const p = PHASES[phaseIdx];
-  if (phaseIdx < 2) return { speed: p.speed, gap: p.gap, spacing: p.spacing };
+  if (phaseIdx < LAST) return { speed: p.speed, gap: p.gap, spacing: p.spacing };
   return {
-    speed: Math.min(7, p.speed + p3Level * 0.25),
-    gap: Math.max(92, p.gap - p3Level * 4),
-    spacing: Math.max(168, p.spacing - p3Level * 4)
+    speed: Math.min(5.6, p.speed + p3Level * 0.18),
+    gap: Math.max(108, p.gap - p3Level * 3),
+    spacing: Math.max(182, p.spacing - p3Level * 3)
   };
 }
 
@@ -327,19 +380,37 @@ function mkick(t) {
 const noteFreq = m => 440 * Math.pow(2, (m - 69) / 12);
 // Cada tema: 32 passos de colcheia (4 compassos). 0 = pausa. Notas em número MIDI.
 const MUSIC = [
-  { // FASE 1 — Floresta: tranquila e leve, marimba pentatônica
-    bpm: 96, leadType: 'triangle', leadVol: 0.07, bassVol: 0.09,
+  { // AMAZÔNIA: tranquila e leve, marimba pentatônica
+    bpm: 92, leadType: 'triangle', leadVol: 0.07, bassVol: 0.09,
     bass: [36,0,0,0, 43,0,0,0, 45,0,0,0, 41,0,0,0, 36,0,0,0, 43,0,0,0, 45,0,0,0, 43,0,0,0],
     lead: [72,0,76,0, 79,0,0,0, 81,0,79,0, 76,0,0,0, 74,0,76,0, 79,0,72,0, 0,0,74,0, 72,0,0,0],
     kick: [], hatEvery: 4, hatOff: 2, hatVol: 0.02
   },
-  { // FASE 2 — Cerrado: animada, balanço dançante
-    bpm: 120, leadType: 'square', leadVol: 0.035, bassVol: 0.10,
+  { // CERRADO: animada, balanço dançante
+    bpm: 106, leadType: 'square', leadVol: 0.035, bassVol: 0.10,
     bass: [43,0,43,0, 50,0,0,0, 48,0,48,0, 50,0,0,0, 43,0,43,0, 52,0,0,0, 50,0,48,0, 45,0,0,0],
     lead: [67,0,71,74, 0,76,0,74, 71,0,67,0, 74,0,0,0, 76,0,74,76, 79,0,76,74, 71,0,74,0, 67,0,0,0],
     kick: [0,8,16,24], hatEvery: 2, hatOff: 1, hatVol: 0.025
   },
-  { // FASE 3 — Pantanal: acelerada, arpejos energéticos
+  { // MATA ATLÂNTICA: fluida e fresca
+    bpm: 114, leadType: 'triangle', leadVol: 0.065, bassVol: 0.09,
+    bass: [38,0,0,0, 45,0,0,0, 47,0,0,0, 43,0,0,0, 38,0,0,0, 45,0,0,0, 43,0,0,0, 45,0,0,0],
+    lead: [74,0,78,0, 81,0,78,0, 83,0,81,0, 78,0,74,0, 76,0,78,0, 81,0,83,0, 81,0,78,0, 74,0,0,0],
+    kick: [0,16], hatEvery: 2, hatOff: 1, hatVol: 0.02
+  },
+  { // CAATINGA: groove seco com sotaque de baião
+    bpm: 122, leadType: 'square', leadVol: 0.033, bassVol: 0.10,
+    bass: [40,0,0,40, 0,0,47,0, 40,0,0,40, 0,0,45,0, 40,0,0,40, 0,0,47,0, 43,0,0,43, 0,0,45,0],
+    lead: [64,0,67,0, 71,0,67,0, 74,0,71,0, 67,0,64,0, 64,0,67,0, 71,0,74,0, 76,0,74,0, 71,0,0,0],
+    kick: [0,6,8,16,22,24], hatEvery: 2, hatOff: 1, hatVol: 0.025
+  },
+  { // PAMPAS: galope crescente de campo aberto
+    bpm: 132, leadType: 'square', leadVol: 0.032, bassVol: 0.10,
+    bass: [41,41,0,41, 0,41,48,0, 46,46,0,46, 0,46,48,0, 41,41,0,41, 0,41,48,0, 43,43,0,43, 0,43,50,0],
+    lead: [69,0,72,0, 77,0,72,0, 79,0,77,0, 72,0,69,0, 70,0,72,0, 77,0,79,0, 81,0,79,0, 77,0,0,0],
+    kick: [0,8,16,24], hatEvery: 2, hatOff: 1, hatVol: 0.028
+  },
+  { // PANTANAL: acelerada, arpejos energéticos
     bpm: 142, leadType: 'square', leadVol: 0.03, bassVol: 0.11,
     bass: [45,45,0,45, 0,45,52,0, 41,41,0,41, 0,41,48,0, 43,43,0,43, 0,43,50,0, 45,45,0,45, 52,0,55,0],
     lead: [69,72,76,72, 81,76,72,76, 65,69,72,69, 77,72,69,72, 67,71,74,71, 79,74,71,74, 69,72,76,81, 76,72,76,81],
@@ -356,7 +427,7 @@ setInterval(() => {
   if (!musOn) return;
   try {
     const a = audio();
-    if (document.hidden) { musNext = a.currentTime + 0.1; return; }
+    if (document.hidden || state === 'paused') { musNext = a.currentTime + 0.1; return; }
     const M = MUSIC[musPhase];
     const spb = 60 / M.bpm / 2; // duração de uma colcheia
     while (musNext < a.currentTime + 0.25) {
@@ -425,12 +496,13 @@ async function renderRanking() {
 }
 
 // ---------- Estado do jogo ----------
-let state = 'menu'; // menu | play | dead
+let state = 'menu'; // menu | play | paused | dead
 let playerName = 'AAA';
 let frames = 0;
 let bird, obstacles, eggs, particles, clouds;
 let score, totalDist, phaseIdx, phaseDist, bannerTimer, deathTimer, shake;
 let p3Level, p3Timer, bannerText, bannerSub;
+let celebrateTimer = 0, celebrateColors = ['#ffd23f'];
 let chirpTimer = 0;
 
 function resetGame() {
@@ -495,10 +567,40 @@ function burst(x, y, color, n) {
   }
 }
 
+// Pirotecnia de troca de fase: confetes entram pelas bordas + brilho nas laterais
+function celebrate(colors, n) {
+  celebrateTimer = 80;
+  celebrateColors = colors;
+  for (let i = 0; i < (n || 70); i++) {
+    const left = Math.random() < 0.5;
+    particles.push({
+      x: left ? -8 : W + 8,
+      y: Math.random() * (H - GROUND_H),
+      vx: (left ? 1 : -1) * (2 + Math.random() * 5),
+      vy: -2 + Math.random() * 3,
+      life: 60 + Math.random() * 50,
+      color: colors[i % colors.length],
+      confetti: true,
+      rot: Math.random() * 6.28,
+      vr: (Math.random() - 0.5) * 0.4
+    });
+  }
+}
+
+// Colisão círculo vs retângulo pelo ponto mais próximo (hitbox justa)
+function circleRect(cx, cy, r, rx, ry, rw, rh) {
+  const nx = Math.max(rx, Math.min(cx, rx + rw));
+  const ny = Math.max(ry, Math.min(cy, ry + rh));
+  const dx = cx - nx, dy = cy - ny;
+  return dx * dx + dy * dy < r * r;
+}
+
 // ---------- Lógica ----------
 function update() {
+  if (state === 'paused') return;
   frames++;
   const p = phase();
+  if (celebrateTimer > 0) celebrateTimer--;
 
   // pios de pássaros ambiente
   if (--chirpTimer <= 0) {
@@ -510,9 +612,12 @@ function update() {
   const cloudSpeed = state === 'play' ? p.speed * 0.25 : 0.3;
   clouds.forEach(c => { c.x -= cloudSpeed * c.s; if (c.x < -90) { c.x = W + 90; c.y = 30 + Math.random() * 160; } });
 
-  // partículas
+  // partículas (confetes flutuam mais devagar e giram)
   particles = particles.filter(pt => {
-    pt.x += pt.vx; pt.y += pt.vy; pt.vy += 0.12; pt.life--;
+    pt.x += pt.vx; pt.y += pt.vy;
+    pt.vy += pt.confetti ? 0.05 : 0.12;
+    if (pt.confetti) { pt.vx *= 0.99; pt.rot += pt.vr; }
+    pt.life--;
     return pt.life > 0;
   });
 
@@ -554,26 +659,27 @@ function update() {
   phaseDist += d.speed;
 
   // transição de fase (a fase final é infinita)
-  if (phaseIdx < PHASES.length - 1 && phaseDist >= p.dist) {
+  if (phaseIdx < LAST && phaseDist >= p.dist) {
     phaseIdx++;
     phaseDist = 0;
+    const np = PHASES[phaseIdx];
     bannerTimer = 130;
     bannerText = 'FASE ' + (phaseIdx + 1);
-    bannerSub = PHASES[phaseIdx].name;
+    bannerSub = np.name;
     sfx.phase();
     startMusic(phaseIdx);
-    burst(bird.x, bird.y, '#ffd23f', 20);
+    celebrate([np.beak[0], np.leaf, '#ffffff', '#ffd23f']);
   }
 
   // Pantanal infinito: sobe 1 nível de dificuldade a cada 15 segundos
-  if (phaseIdx === 2 && ++p3Timer >= P3_LEVEL_FRAMES) {
+  if (phaseIdx === LAST && ++p3Timer >= P3_LEVEL_FRAMES) {
     p3Timer = 0;
     p3Level++;
     bannerTimer = 90;
     bannerText = 'NÍVEL ' + (p3Level + 1);
     bannerSub = 'MAIS RÁPIDO!';
     sfx.phase();
-    burst(bird.x, bird.y, '#06b6d4', 14);
+    celebrate(['#06b6d4', '#ffd23f', '#ffffff'], 30);
   }
 
   // gera obstáculos
@@ -593,21 +699,27 @@ function update() {
     return;
   }
 
-  // colisão com galhos (retângulos superior e inferior)
+  // colisão com galhos: círculo do corpo vs retângulo do tronco (justa e previsível)
+  const hitR = bird.r - 4;
   for (const o of obstacles) {
-    const bx = bird.x, by = bird.y, r = bird.r - 2;
-    if (bx + r > o.x - o.w / 2 && bx - r < o.x + o.w / 2) {
-      if (by - r < o.gapY - o.gap / 2 || by + r > o.gapY + o.gap / 2) {
-        die();
-        return;
-      }
+    const rx = o.x - o.w / 2;
+    const topH = o.gapY - o.gap / 2;
+    const botY = o.gapY + o.gap / 2;
+    if (circleRect(bird.x, bird.y, hitR, rx, 0, o.w, topH) ||
+        circleRect(bird.x, bird.y, hitR, rx, botY, o.w, H - GROUND_H - botY)) {
+      die();
+      return;
     }
   }
 
-  // coleta de ovos
+  // coleta de ovos: considera a oscilação do ovo e também a ponta do bico
+  const tipX = bird.x + 32 * Math.cos(bird.rot) + 7 * Math.sin(bird.rot);
+  const tipY = bird.y + 32 * Math.sin(bird.rot) - 7 * Math.cos(bird.rot);
   for (const e of eggs) {
-    const dx = bird.x - e.x, dy = bird.y - e.y;
-    if (dx * dx + dy * dy < (bird.r + 11) * (bird.r + 11)) {
+    const ey = e.y + Math.sin(frames * 0.08 + e.bob) * 4; // mesma posição do desenho
+    const dx = bird.x - e.x, dy = bird.y - ey;
+    const tx = tipX - e.x, ty = tipY - ey;
+    if (dx * dx + dy * dy < (bird.r + 11) * (bird.r + 11) || tx * tx + ty * ty < 18 * 18) {
       e.taken = true;
       const pts = e.golden ? 3 : 1;
       score += pts;
@@ -620,6 +732,7 @@ function update() {
 function die() {
   state = 'dead';
   shake = 14;
+  elBtnPause.style.display = 'none';
   stopMusic();
   sfx.crash();
   burst(bird.x, bird.y, '#e0532f', 18);
@@ -634,10 +747,14 @@ function drawBackground(p) {
   ctx.fillStyle = sky;
   ctx.fillRect(0, 0, W, H);
 
-  // sol
-  ctx.fillStyle = p.deco === 'cerrado' ? 'rgba(255,120,40,.85)' : 'rgba(255,240,180,.8)';
+  // sol (cada bioma tem o seu)
+  const sun = p.deco === 'cerrado' ? ['rgba(255,120,40,.85)', 46]
+    : p.deco === 'pampas' ? ['rgba(255,110,160,.9)', 52]
+    : p.deco === 'caatinga' ? ['rgba(255,252,230,.95)', 40]
+    : ['rgba(255,240,180,.8)', 34];
+  ctx.fillStyle = sun[0];
   ctx.beginPath();
-  ctx.arc(W - 90, 85, p.deco === 'cerrado' ? 46 : 34, 0, 7);
+  ctx.arc(W - 90, 85, sun[1], 0, 7);
   ctx.fill();
 
   // nuvens
@@ -655,18 +772,21 @@ function drawBackground(p) {
   ctx.fillStyle = p.far;
   ctx.globalAlpha = 0.55;
   for (let x = -off1 - 220; x < W + 220; x += 220) {
-    if (p.deco === 'jungle') {
+    if (p.deco === 'jungle' || p.deco === 'mata') {
       // morros arredondados de mata
       ctx.beginPath();
       ctx.arc(x + 70, H - GROUND_H + 40, 120, Math.PI, 0);
       ctx.arc(x + 190, H - GROUND_H + 60, 100, Math.PI, 0);
       ctx.fill();
-    } else if (p.deco === 'cerrado') {
+    } else if (p.deco === 'cerrado' || p.deco === 'caatinga') {
       // chapadas retas
       ctx.fillRect(x, H - GROUND_H - 90, 150, 90);
       ctx.beginPath();
       ctx.moveTo(x + 150, H - GROUND_H); ctx.lineTo(x + 150, H - GROUND_H - 90); ctx.lineTo(x + 185, H - GROUND_H);
       ctx.fill();
+    } else if (p.deco === 'pampas') {
+      // horizonte plano de campo aberto
+      ctx.fillRect(x, H - GROUND_H - 24, 220, 24);
     } else {
       // linha d'água distante com vegetação baixa
       ctx.beginPath();
@@ -701,6 +821,32 @@ function drawBackground(p) {
       ctx.restore();
       ctx.beginPath();
       ctx.ellipse(x + 58, baseY - 92, 38, 16, 0, 0, 7);
+      ctx.fill();
+    } else if (p.deco === 'mata') {
+      // araucária: tronco alto com copa em taça
+      ctx.fillRect(x + 58, baseY - 100, 7, 100);
+      ctx.beginPath();
+      ctx.moveTo(x + 61, baseY - 126);
+      ctx.lineTo(x + 22, baseY - 92);
+      ctx.lineTo(x + 100, baseY - 92);
+      ctx.closePath();
+      ctx.fill();
+    } else if (p.deco === 'caatinga') {
+      // mandacaru: tronco com braços erguidos
+      ctx.fillRect(x + 56, baseY - 78, 10, 78);
+      ctx.fillRect(x + 40, baseY - 60, 8, 24);
+      ctx.fillRect(x + 40, baseY - 44, 20, 8);
+      ctx.fillRect(x + 74, baseY - 52, 8, 18);
+      ctx.fillRect(x + 60, baseY - 42, 22, 8);
+      ctx.beginPath();
+      ctx.ellipse(x + 130, baseY - 8, 18, 8, 0, 0, 7);
+      ctx.fill();
+    } else if (p.deco === 'pampas') {
+      // capim alto e árvore solitária do campo
+      for (let g = 0; g < 8; g++) ctx.fillRect(x + 20 + g * 9, baseY - 18 - (g % 3) * 7, 2, 18 + (g % 3) * 7);
+      ctx.fillRect(x + 130, baseY - 46, 5, 46);
+      ctx.beginPath();
+      ctx.ellipse(x + 132, baseY - 54, 22, 12, 0, 0, 7);
       ctx.fill();
     } else {
       // vitória-régia e capim do pantanal
@@ -779,11 +925,12 @@ function drawBranch(o, p) {
   if (H - GROUND_H - botY > 70) twig(o.x, H - GROUND_H - 35 - (s % 25), (s % 2 ? -1 : 1), true);
   if (H - GROUND_H - botY > 150) twig(o.x, botY + 55, (s % 2 ? 1 : -1), true);
 
-  // tufos de folhas nas extremidades da abertura
+  // tufos de folhas nas pontas, recuados para fora da abertura (hitbox honesta:
+  // o que parece livre está livre — a colisão é só com o tronco)
   ctx.fillStyle = p.leaf;
   ctx.beginPath();
-  ctx.ellipse(o.x, topLen, 24, 12, 0, 0, 7);
-  ctx.ellipse(o.x, botY, 24, 12, 0, 0, 7);
+  ctx.ellipse(o.x, topLen - 5, 24, 9, 0, 0, 7);
+  ctx.ellipse(o.x, botY + 5, 24, 9, 0, 0, 7);
   ctx.fill();
   ctx.restore();
 }
@@ -825,14 +972,14 @@ function drawToucan(p) {
   ctx.rotate(bird.rot);
 
   // cauda
-  ctx.fillStyle = '#1a1a1a';
+  ctx.fillStyle = p.body;
   ctx.beginPath();
   ctx.moveTo(-14, -4);
   ctx.lineTo(-30, -10);
   ctx.lineTo(-28, 4);
   ctx.closePath();
   ctx.fill();
-  ctx.fillStyle = '#e0532f';
+  ctx.fillStyle = p.beak[1];
   ctx.beginPath();
   ctx.moveTo(-26, -8);
   ctx.lineTo(-31, -10);
@@ -841,7 +988,7 @@ function drawToucan(p) {
   ctx.fill();
 
   // corpo
-  ctx.fillStyle = '#1a1a1a';
+  ctx.fillStyle = p.body;
   ctx.beginPath();
   ctx.ellipse(0, 0, 19, 15, -0.1, 0, 7);
   ctx.fill();
@@ -856,7 +1003,7 @@ function drawToucan(p) {
   ctx.save();
   ctx.translate(-4, -2);
   ctx.rotate(bird.wing * 0.55);
-  ctx.fillStyle = '#2e2e2e';
+  ctx.fillStyle = p.wing;
   ctx.beginPath();
   ctx.ellipse(-3, 4, 13, 7, 0.35, 0, 7);
   ctx.fill();
@@ -867,7 +1014,7 @@ function drawToucan(p) {
   ctx.restore();
 
   // cabeça
-  ctx.fillStyle = '#1a1a1a';
+  ctx.fillStyle = p.body;
   ctx.beginPath();
   ctx.arc(12, -8, 10, 0, 7);
   ctx.fill();
@@ -949,44 +1096,43 @@ function drawHUD(p) {
   ctx.textAlign = 'left';
   ctx.fillText(String(score), 52, 41);
 
-  // fase + barra de progresso
+  // fase + barra de progresso (deslocada para baixo: o canto fica com a versão)
   ctx.fillStyle = 'rgba(0,0,0,.35)';
   if (ctx.roundRect) {
-    ctx.beginPath(); ctx.roundRect(W - 192, 12, 180, 40, 10); ctx.fill();
+    ctx.beginPath(); ctx.roundRect(W - 192, 22, 180, 40, 10); ctx.fill();
   } else {
-    ctx.fillRect(W - 192, 12, 180, 40);
+    ctx.fillRect(W - 192, 22, 180, 40);
   }
   ctx.fillStyle = '#fff';
   ctx.font = 'bold 11px Courier New';
   ctx.textAlign = 'left';
-  const infinite = phaseIdx === 2;
-  ctx.fillText(infinite ? 'PANTANAL ∞ · NÍVEL ' + (p3Level + 1) : 'FASE ' + (phaseIdx + 1) + ' · ' + p.name, W - 182, 28);
+  const infinite = phaseIdx === LAST;
+  ctx.fillText(infinite ? 'PANTANAL ∞ · NÍVEL ' + (p3Level + 1) : 'FASE ' + (phaseIdx + 1) + ' · ' + p.name, W - 182, 38);
   ctx.fillStyle = 'rgba(255,255,255,.25)';
-  ctx.fillRect(W - 182, 35, 160, 9);
+  ctx.fillRect(W - 182, 45, 160, 9);
   ctx.fillStyle = p.beak[0];
-  ctx.fillRect(W - 182, 35, 160 * Math.min(1, infinite ? p3Timer / P3_LEVEL_FRAMES : phaseDist / p.dist), 9);
+  ctx.fillRect(W - 182, 45, 160 * Math.min(1, infinite ? p3Timer / P3_LEVEL_FRAMES : phaseDist / p.dist), 9);
   ctx.restore();
 }
 
 function drawBanner(p) {
   if (bannerTimer <= 0) return;
-  const a = bannerTimer > 110 ? (130 - bannerTimer) / 20 : Math.min(1, bannerTimer / 30);
+  // faixa discreta na borda superior — não atrapalha a área de jogo
+  const a = Math.min(1, bannerTimer / 25);
   ctx.save();
-  ctx.globalAlpha = a;
-  ctx.fillStyle = 'rgba(0,0,0,.55)';
-  ctx.fillRect(0, H / 2 - 58, W, 96);
+  ctx.globalAlpha = a * 0.9;
+  ctx.fillStyle = 'rgba(0,0,0,.5)';
+  ctx.fillRect(0, 66, W, 26);
   ctx.fillStyle = '#ffd23f';
-  ctx.font = 'bold 30px Courier New';
+  ctx.font = 'bold 14px Courier New';
   ctx.textAlign = 'center';
-  ctx.fillText(bannerText, W / 2, H / 2 - 18);
-  ctx.fillStyle = '#fff';
-  ctx.font = 'bold 20px Courier New';
-  ctx.fillText(bannerSub, W / 2, H / 2 + 14);
+  ctx.fillText(bannerText + ' · ' + bannerSub, W / 2, 84);
   ctx.restore();
 }
 
 function draw() {
   const p = phase();
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0); // desenha na densidade nativa (nítido)
   ctx.save();
   if (shake > 0) ctx.translate((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake);
 
@@ -995,15 +1141,42 @@ function draw() {
   eggs.forEach(e => { if (!e.taken) drawEgg(e); });
   drawGround(p);
 
-  // partículas
+  // partículas e confetes
   particles.forEach(pt => {
     ctx.globalAlpha = Math.min(1, pt.life / 25);
     ctx.fillStyle = pt.color;
-    ctx.fillRect(pt.x - 2, pt.y - 2, 4, 4);
+    if (pt.confetti) {
+      ctx.save();
+      ctx.translate(pt.x, pt.y);
+      ctx.rotate(pt.rot);
+      ctx.fillRect(-3, -1.5, 6, 3);
+      ctx.restore();
+    } else {
+      ctx.fillRect(pt.x - 2, pt.y - 2, 4, 4);
+    }
   });
   ctx.globalAlpha = 1;
 
   drawToucan(p);
+
+  // brilho pirotécnico nas bordas ao ultrapassar uma fase
+  if (celebrateTimer > 0) {
+    const c = celebrateColors[0];
+    ctx.globalAlpha = Math.min(0.5, celebrateTimer / 80 * 0.5);
+    let g = ctx.createLinearGradient(0, 0, 0, 80);
+    g.addColorStop(0, c); g.addColorStop(1, c + '00');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, 80);
+    g = ctx.createLinearGradient(0, H, 0, H - 80);
+    g.addColorStop(0, c); g.addColorStop(1, c + '00');
+    ctx.fillStyle = g; ctx.fillRect(0, H - 80, W, 80);
+    g = ctx.createLinearGradient(0, 0, 80, 0);
+    g.addColorStop(0, c); g.addColorStop(1, c + '00');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, 80, H);
+    g = ctx.createLinearGradient(W, 0, W - 80, 0);
+    g.addColorStop(0, c); g.addColorStop(1, c + '00');
+    ctx.fillStyle = g; ctx.fillRect(W - 80, 0, 80, H);
+    ctx.globalAlpha = 1;
+  }
 
   if (state !== 'menu') {
     drawHUD(p);
@@ -1022,7 +1195,38 @@ function loop() {
 // ---------- Telas / UI ----------
 const elMenu = document.getElementById('menu');
 const elGO = document.getElementById('gameover');
+const elPause = document.getElementById('pause');
+const elBtnPause = document.getElementById('btnPause');
 const elInitials = document.getElementById('initials');
+
+// ---------- Pausa ----------
+function pauseGame() {
+  if (state !== 'play') return;
+  state = 'paused';
+  elPause.classList.remove('hidden');
+}
+function resumeGame() {
+  if (state !== 'paused') return;
+  state = 'play';
+  elPause.classList.add('hidden');
+}
+elBtnPause.addEventListener('click', pauseGame);
+document.getElementById('btnResume').addEventListener('click', resumeGame);
+document.getElementById('btnQuit').addEventListener('click', () => {
+  stopMusic();
+  state = 'menu';
+  resetGame();
+  renderRanking();
+  elPause.classList.add('hidden');
+  elBtnPause.style.display = 'none';
+  elMenu.classList.remove('hidden');
+});
+document.addEventListener('keydown', e => {
+  if (e.code === 'Escape' || e.code === 'KeyP') {
+    if (state === 'play') pauseGame();
+    else if (state === 'paused') resumeGame();
+  }
+});
 
 elInitials.value = localStorage.getItem(LS_NAME) || '';
 elInitials.addEventListener('input', () => {
@@ -1038,12 +1242,13 @@ function startGame() {
   state = 'play';
   elMenu.classList.add('hidden');
   elGO.classList.add('hidden');
+  elBtnPause.style.display = 'block';
   sfx.phase();
   startMusic(0);
 }
 
 function showGameOver() {
-  const level = phaseIdx === 2 ? ' · Chegou ao NÍVEL ' + (p3Level + 1) + ' do Pantanal ∞' : '';
+  const level = phaseIdx === LAST ? ' · Chegou ao NÍVEL ' + (p3Level + 1) + ' do Pantanal ∞' : '';
   document.getElementById('goTitle').textContent = 'FIM DE JOGO';
   document.getElementById('goScore').textContent = score;
   const rec = document.getElementById('goRecord');
@@ -1074,6 +1279,9 @@ elInitials.addEventListener('keydown', e => {
 });
 
 // ---------- Início ----------
+const GAME_VERSION = '1.2';
+document.getElementById('ver').textContent = 'v' + GAME_VERSION;
+document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 resetGame();
 renderRanking();
 loop();
