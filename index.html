@@ -159,7 +159,7 @@
       </div>
       <button id="btnPlay">JOGAR</button>
       <div id="ranking">
-        <h2>&#127942; TOP 10 PONTUAÇÕES</h2>
+        <h2>&#127942; TOP 10 MUNDIAL</h2>
         <ol id="rankList"></ol>
       </div>
       <p class="hint">ESPAÇO / CLIQUE / TOQUE para voar</p>
@@ -270,31 +270,58 @@ const sfx = {
   chirp()   { tone(2200 + Math.random() * 600, 0.07, 'sine', 0.05, 2900); setTimeout(() => tone(2600, 0.06, 'sine', 0.04, 3200), 90); }
 };
 
-// ---------- Ranking (localStorage) ----------
-const LS_SCORES = 'superTucan_top10';
+// ---------- Ranking GLOBAL (Firebase) com cache local ----------
+const DB_URL = 'https://super-tucan-ranking-2026-default-rtdb.firebaseio.com';
+const LS_SCORES = 'superTucan_top10'; // cache local do ranking global (fallback offline)
 const LS_NAME = 'superTucan_lastName';
-function loadScores() {
+function cachedScores() {
   try { return JSON.parse(localStorage.getItem(LS_SCORES)) || []; }
   catch (e) { return []; }
 }
-function saveScore(name, score) {
-  const list = loadScores();
-  list.push({ name, score, date: new Date().toISOString().slice(0, 10) });
-  list.sort((a, b) => b.score - a.score);
-  const top = list.slice(0, 10);
-  localStorage.setItem(LS_SCORES, JSON.stringify(top));
-  return top.findIndex(e => e.name === name && e.score === score) + 1; // posição (1-based) ou 0
-}
-function renderRanking() {
-  const ol = document.getElementById('rankList');
-  const list = loadScores();
-  if (!list.length) {
-    ol.innerHTML = '<li class="empty">Nenhuma pontuação ainda. Seja o primeiro!</li>';
-    return;
+async function fetchScores() {
+  try {
+    const r = await fetch(DB_URL + '/scores.json?orderBy=%22score%22&limitToLast=10');
+    if (!r.ok) throw new Error(r.status);
+    const data = await r.json();
+    const list = data ? Object.values(data) : [];
+    list.sort((a, b) => b.score - a.score);
+    const top = list.slice(0, 10);
+    localStorage.setItem(LS_SCORES, JSON.stringify(top));
+    return { list: top, online: true };
+  } catch (e) {
+    return { list: cachedScores(), online: false };
   }
-  ol.innerHTML = list.map((e, i) =>
+}
+async function submitScore(name, score) {
+  let online = true;
+  try {
+    const r = await fetch(DB_URL + '/scores.json', {
+      method: 'POST',
+      body: JSON.stringify({ name, score, date: new Date().toISOString().slice(0, 10) })
+    });
+    if (!r.ok) throw new Error(r.status);
+  } catch (e) { online = false; }
+  const res = await fetchScores();
+  const pos = res.list.findIndex(e => e.name === name && e.score === score) + 1; // posição (1-based) ou 0
+  return { pos, online: online && res.online };
+}
+function rankHTML(list) {
+  return list.map((e, i) =>
     `<li><span>${String(i + 1).padStart(2, '0')}. ${e.name}</span><span class="pts">${e.score} &#129370;</span></li>`
   ).join('');
+}
+async function renderRanking() {
+  const ol = document.getElementById('rankList');
+  const cached = cachedScores();
+  ol.innerHTML = cached.length ? rankHTML(cached) : '<li class="empty">Carregando ranking mundial...</li>';
+  const res = await fetchScores();
+  if (!res.list.length) {
+    ol.innerHTML = '<li class="empty">' + (res.online
+      ? 'Nenhuma pontuação ainda. Seja o primeiro do mundo!'
+      : 'Sem conexão — ranking indisponível.') + '</li>';
+    return;
+  }
+  ol.innerHTML = rankHTML(res.list);
 }
 
 // ---------- Estado do jogo ----------
@@ -903,15 +930,21 @@ function startGame() {
 
 function showGameOver() {
   const won = state === 'victory';
-  const pos = saveScore(playerName, score);
+  const bonus = won ? 'Você atravessou os 3 biomas! (+' + VICTORY_BONUS + ' ovos de bônus) · ' : '';
   document.getElementById('goTitle').textContent = won ? '🏆 VITÓRIA!' : 'FIM DE JOGO';
   document.getElementById('goScore').textContent = score;
   const rec = document.getElementById('goRecord');
-  rec.classList.toggle('hidden', pos !== 1);
-  document.getElementById('goRank').textContent =
-    (won ? 'Você atravessou os 3 biomas! (+' + VICTORY_BONUS + ' ovos de bônus) · ' : '') +
-    (pos > 0 ? playerName + ' entrou no TOP 10 em ' + pos + 'º lugar!' : 'Não entrou no TOP 10 desta vez.');
+  rec.classList.add('hidden');
+  document.getElementById('goRank').textContent = bonus + 'Enviando ao ranking mundial...';
   elGO.classList.remove('hidden');
+  submitScore(playerName, score).then(res => {
+    rec.classList.toggle('hidden', res.pos !== 1);
+    document.getElementById('goRank').textContent = bonus + (!res.online
+      ? 'Sem conexão — pontuação não entrou no ranking mundial.'
+      : res.pos > 0
+        ? playerName + ' entrou no TOP 10 MUNDIAL em ' + res.pos + 'º lugar!'
+        : 'Não entrou no TOP 10 mundial desta vez.');
+  });
 }
 
 document.getElementById('btnPlay').addEventListener('click', startGame);
