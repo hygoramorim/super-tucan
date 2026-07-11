@@ -147,6 +147,23 @@
     background: rgba(0,0,0,.35); color: #fff;
     border: 2px solid rgba(255,255,255,.5); box-shadow: none;
   }
+  #btnMute {
+    position: absolute; bottom: 16px; left: 14px; z-index: 7;
+    width: 42px; height: 42px; border-radius: 50%; padding: 0;
+    font-size: 16px; line-height: 1;
+    background: rgba(0,0,0,.35); color: #fff;
+    border: 2px solid rgba(255,255,255,.4); box-shadow: none;
+    letter-spacing: 0;
+  }
+  .tabs { display: flex; gap: 6px; justify-content: center; margin-bottom: 7px; }
+  .tab {
+    font-size: 11px; padding: 4px 14px; border-radius: 6px;
+    background: #16331f; color: #7ee08a; box-shadow: none;
+    letter-spacing: 1px; font-weight: 700;
+  }
+  .tab.active { background: linear-gradient(180deg, #ffd23f, #f5a623); color: #10281a; }
+  #menuPB { color: #f5a623; margin-top: 4px; }
+  #goPB { font-size: 12px; color: #f5a623; }
   /* ---- Ajustes para telas pequenas (mobile) ---- */
   @media (max-width: 520px), (max-height: 700px) {
     .overlay { gap: 9px; padding: 12px; overflow-y: auto; justify-content: flex-start; padding-top: 26px; }
@@ -169,6 +186,7 @@
     <canvas id="game" width="480" height="640"></canvas>
     <div id="ver"></div>
     <button id="btnPause" aria-label="Pausar">&#10074;&#10074;</button>
+    <button id="btnMute" aria-label="Som">&#128266;</button>
 
     <!-- TELA DE PAUSA -->
     <div id="pause" class="overlay hidden">
@@ -186,10 +204,16 @@
       <div>
         <div class="hint" style="margin-bottom:6px">SUAS INICIAIS (3 LETRAS)</div>
         <input id="initials" maxlength="3" autocomplete="off" spellcheck="false" placeholder="AAA">
+        <div class="hint" id="menuPB"></div>
       </div>
       <button id="btnPlay">JOGAR</button>
+      <button id="btnDaily" class="sec">&#128197; DESAFIO DO DIA</button>
       <div id="ranking">
         <h2>&#127942; TOP 10 MUNDIAL</h2>
+        <div class="tabs">
+          <button class="tab active" id="tabAll">GERAL</button>
+          <button class="tab" id="tabDaily">HOJE</button>
+        </div>
         <ol id="rankList"></ol>
       </div>
       <p class="hint">ESPAÇO / CLIQUE / TOQUE para voar</p>
@@ -202,6 +226,7 @@
       <div class="hint">OVOS COLETADOS</div>
       <div class="bigscore" id="goScore">0</div>
       <div id="goRecord" class="newrec hidden">&#11088; NOVO RECORDE! &#11088;</div>
+      <div id="goPB"></div>
       <div id="goRank" class="sub"></div>
       <button id="btnAgain">JOGAR DE NOVO</button>
       <button id="btnMenu" class="sec">MENU / RANKING</button>
@@ -249,14 +274,14 @@ fitCanvas();
 // 6 biomas brasileiros — cada paleta em forte contraste com a anterior
 const PHASES = [
   { // verde profundo e úmido
-    name: 'AMAZÔNIA', dist: 2200, speed: 2.5, gap: 175, spacing: 265,
+    name: 'AMAZÔNIA', dist: 1600, speed: 2.5, gap: 175, spacing: 265,
     body: '#16161a', wing: '#2e2e2e', beak: ['#ff9f1c', '#e0532f'], eye: '#ffd23f',
     skyTop: '#bfe8c0', skyBot: '#e9f7d3', far: '#1f5e34', mid: '#2f7a45',
     branch: '#5b3a21', leaf: '#2f8f46', ground: '#2e6b33', groundTop: '#3f8f4a',
     deco: 'jungle'
   },
   { // dourado quente (contraste com o verde)
-    name: 'CERRADO', dist: 2600, speed: 2.9, gap: 162, spacing: 245,
+    name: 'CERRADO', dist: 2000, speed: 2.9, gap: 162, spacing: 245,
     body: '#241435', wing: '#3a2452', beak: ['#0ea5e9', '#075985'], eye: '#ffd23f',
     skyTop: '#ff9e3d', skyBot: '#ffe3ad', far: '#b26a1e', mid: '#8a4d17',
     branch: '#7d5a3c', leaf: '#d9a441', ground: '#b8813f', groundTop: '#d9a55c',
@@ -306,6 +331,7 @@ function currentDiff() {
 }
 
 // ---------- Áudio (efeitos sintetizados) ----------
+let muted = localStorage.getItem('superTucan_mute') === '1';
 let actx = null;
 function audio() {
   if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
@@ -313,6 +339,7 @@ function audio() {
   return actx;
 }
 function tone(freq, dur, type, vol, endFreq) {
+  if (muted) return;
   try {
     const a = audio(), o = a.createOscillator(), g = a.createGain(), t = a.currentTime;
     o.type = type || 'sine';
@@ -325,6 +352,7 @@ function tone(freq, dur, type, vol, endFreq) {
   } catch (e) { /* áudio indisponível */ }
 }
 function noiseBurst(dur, vol) {
+  if (muted) return;
   try {
     const a = audio(), t = a.currentTime;
     const buf = a.createBuffer(1, a.sampleRate * dur, a.sampleRate);
@@ -427,7 +455,7 @@ setInterval(() => {
   if (!musOn) return;
   try {
     const a = audio();
-    if (document.hidden || state === 'paused') { musNext = a.currentTime + 0.1; return; }
+    if (document.hidden || state === 'paused' || muted) { musNext = a.currentTime + 0.1; return; }
     const M = MUSIC[musPhase];
     const spb = 60 / M.bpm / 2; // duração de uma colcheia
     while (musNext < a.currentTime + 0.25) {
@@ -441,38 +469,43 @@ setInterval(() => {
   } catch (e) { /* áudio indisponível */ }
 }, 80);
 
-// ---------- Ranking GLOBAL (Firebase) com cache local ----------
+// ---------- Ranking GLOBAL (Firebase) com cache local + modo diário ----------
 const DB_URL = 'https://super-tucan-ranking-2026-default-rtdb.firebaseio.com';
-const LS_SCORES = 'superTucan_top10'; // cache local do ranking global (fallback offline)
 const LS_NAME = 'superTucan_lastName';
-function cachedScores() {
-  try { return JSON.parse(localStorage.getItem(LS_SCORES)) || []; }
+function dayKey() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function dbNode(mode) { return mode === 'daily' ? '/daily/' + dayKey() : '/scores'; }
+function cacheKey(mode) { return mode === 'daily' ? 'superTucan_top10_daily_' + dayKey() : 'superTucan_top10'; }
+function cachedScores(mode) {
+  try { return JSON.parse(localStorage.getItem(cacheKey(mode))) || []; }
   catch (e) { return []; }
 }
-async function fetchScores() {
+async function fetchScores(mode) {
   try {
-    const r = await fetch(DB_URL + '/scores.json?orderBy=%22score%22&limitToLast=10');
+    const r = await fetch(DB_URL + dbNode(mode) + '.json?orderBy=%22score%22&limitToLast=10');
     if (!r.ok) throw new Error(r.status);
     const data = await r.json();
     const list = data ? Object.values(data) : [];
     list.sort((a, b) => b.score - a.score);
     const top = list.slice(0, 10);
-    localStorage.setItem(LS_SCORES, JSON.stringify(top));
+    localStorage.setItem(cacheKey(mode), JSON.stringify(top));
     return { list: top, online: true };
   } catch (e) {
-    return { list: cachedScores(), online: false };
+    return { list: cachedScores(mode), online: false };
   }
 }
-async function submitScore(name, score) {
+async function submitScore(name, score, mode) {
   let online = true;
   try {
-    const r = await fetch(DB_URL + '/scores.json', {
+    const r = await fetch(DB_URL + dbNode(mode) + '.json', {
       method: 'POST',
       body: JSON.stringify({ name, score, date: new Date().toISOString().slice(0, 10) })
     });
     if (!r.ok) throw new Error(r.status);
   } catch (e) { online = false; }
-  const res = await fetchScores();
+  const res = await fetchScores(mode);
   const pos = res.list.findIndex(e => e.name === name && e.score === score) + 1; // posição (1-based) ou 0
   return { pos, online: online && res.online };
 }
@@ -481,19 +514,46 @@ function rankHTML(list) {
     `<li><span>${String(i + 1).padStart(2, '0')}. ${e.name}</span><span class="pts">${e.score} &#129370;</span></li>`
   ).join('');
 }
+let rankTab = 'normal';
 async function renderRanking() {
   const ol = document.getElementById('rankList');
-  const cached = cachedScores();
-  ol.innerHTML = cached.length ? rankHTML(cached) : '<li class="empty">Carregando ranking mundial...</li>';
-  const res = await fetchScores();
+  const mode = rankTab;
+  const cached = cachedScores(mode);
+  ol.innerHTML = cached.length ? rankHTML(cached) : '<li class="empty">Carregando ranking...</li>';
+  const res = await fetchScores(mode);
+  if (mode !== rankTab) return; // usuário trocou de aba durante o fetch
   if (!res.list.length) {
     ol.innerHTML = '<li class="empty">' + (res.online
-      ? 'Nenhuma pontuação ainda. Seja o primeiro do mundo!'
+      ? (mode === 'daily' ? 'Ninguém jogou o desafio de hoje. Seja o primeiro!' : 'Nenhuma pontuação ainda. Seja o primeiro do mundo!')
       : 'Sem conexão — ranking indisponível.') + '</li>';
     return;
   }
   ol.innerHTML = rankHTML(res.list);
 }
+
+// ---------- Recorde pessoal (por iniciais, no aparelho) ----------
+function getPB(name) {
+  try { return (JSON.parse(localStorage.getItem('superTucan_pbs')) || {})[name] || 0; }
+  catch (e) { return 0; }
+}
+function setPB(name, s) {
+  let m = {};
+  try { m = JSON.parse(localStorage.getItem('superTucan_pbs')) || {}; } catch (e) { /* corrompido */ }
+  m[name] = s;
+  localStorage.setItem('superTucan_pbs', JSON.stringify(m));
+}
+
+// ---------- RNG com seed (desafio diário: mesma sequência para todos) ----------
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+let rng = Math.random;    // modo normal usa aleatório de verdade
+let gameMode = 'normal';  // 'normal' | 'daily'
 
 // ---------- Estado do jogo ----------
 let state = 'menu'; // menu | play | paused | dead
@@ -503,6 +563,7 @@ let bird, obstacles, eggs, particles, clouds;
 let score, totalDist, phaseIdx, phaseDist, bannerTimer, deathTimer, shake;
 let p3Level, p3Timer, bannerText, bannerSub;
 let celebrateTimer = 0, celebrateColors = ['#ffd23f'];
+let combo = 0; // ovos coletados em sequência sem deixar nenhum passar
 let chirpTimer = 0;
 
 function resetGame() {
@@ -520,6 +581,8 @@ function resetGame() {
   bannerSub = PHASES[0].name;
   p3Level = 0;
   p3Timer = 0;
+  combo = 0;
+  lastGapY = H / 2;
   deathTimer = 0;
   shake = 0;
   frames = 0;
@@ -531,6 +594,7 @@ function phase() { return PHASES[phaseIdx]; }
 
 // ---------- Entrada ----------
 function flap() {
+  if (state === 'ready') state = 'play'; // 1º toque inicia a física
   if (state !== 'play') return;
   bird.vy = -7.2;
   bird.flapAnim = 10;
@@ -546,18 +610,34 @@ document.addEventListener('keydown', e => {
 canvas.addEventListener('pointerdown', () => { audio(); flap(); });
 
 // ---------- Obstáculos (galhos) e ovos ----------
+// Obstáculos surgem a distância FIXA do tucano (não da borda da tela):
+// telas largas deixam de dar segundos extras de antecipação no ranking.
+const SPAWN_AHEAD = 460;
+let lastGapY = 320;
 function spawnObstacle() {
   const d = currentDiff();
   const margin = 90;
-  const gapY = margin + Math.random() * (H - GROUND_H - margin * 2 - d.gap) + d.gap / 2;
-  const ob = { x: W + 60, gapY, gap: d.gap, w: 30, seed: Math.random() * 1000 };
+  const lo = margin + d.gap / 2;
+  const hi = H - GROUND_H - margin - d.gap / 2 + margin; // = 480 - gap/2 com H=640
+  const raw = lo + rng() * (hi - lo);
+  // Clamp de justiça: a próxima abertura fica a uma altura que um humano
+  // consegue alcançar no tempo entre obstáculos (~60% da subida máxima teórica)
+  const maxD = 0.6 * 7.2 * (d.spacing / d.speed);
+  const gapY = Math.max(lo, Math.min(hi, Math.max(lastGapY - maxD, Math.min(lastGapY + maxD, raw))));
+  lastGapY = gapY;
+  const ob = { x: bird.x + SPAWN_AHEAD, gapY, gap: d.gap, w: 30, seed: rng() * 1000, age: 0 };
   obstacles.push(ob);
-  // Ovo no centro da abertura (10% de chance de ovo dourado = 3 pts)
-  const golden = Math.random() < 0.10;
-  eggs.push({ x: ob.x + ob.w / 2, y: gapY + (Math.random() * 40 - 20), golden, taken: false, bob: Math.random() * 6.28 });
-  // Ovo bônus entre obstáculos, às vezes
-  if (Math.random() < 0.35) {
-    eggs.push({ x: ob.x + d.spacing / 2, y: margin + 40 + Math.random() * (H - GROUND_H - margin - 120), golden: false, taken: false, bob: Math.random() * 6.28 });
+  // Ovo da abertura: 8% de chance de dourado (vale 5) — que nasce na BORDA
+  // arriscada da abertura, não no centro: risco e recompensa de verdade.
+  const golden = rng() < 0.08;
+  const eggY = golden
+    ? gapY + (rng() < 0.5 ? -1 : 1) * (d.gap / 2 - 26)
+    : gapY + (rng() * 40 - 20);
+  eggs.push({ x: ob.x + ob.w / 2, y: eggY, golden, taken: false, bob: Math.random() * 6.28, age: 0 });
+  // Ovo bônus entre obstáculos, sempre perto da linha de voo plausível
+  if (rng() < 0.35) {
+    const by = Math.max(120, Math.min(H - GROUND_H - 60, gapY + (rng() * 140 - 70)));
+    eggs.push({ x: ob.x + d.spacing / 2, y: by, golden: false, taken: false, bob: Math.random() * 6.28, age: 0 });
   }
 }
 
@@ -630,6 +710,14 @@ function update() {
     return;
   }
 
+  if (state === 'ready') {
+    // "prepare-se": física congelada até o primeiro toque
+    bird.y = H / 2 + Math.sin(frames / 25) * 12;
+    bird.wing = Math.sin(frames / 7) * 0.8;
+    bird.rot = 0;
+    return;
+  }
+
   if (state === 'dead') {
     // tucano cai após colisão
     if (bird.y < H - GROUND_H - 14) {
@@ -672,24 +760,37 @@ function update() {
     celebrate([np.beak[0], np.leaf, '#ffffff', '#ffd23f']);
   }
 
-  // Pantanal infinito: sobe 1 nível de dificuldade a cada 15 segundos
-  if (phaseIdx === LAST && ++p3Timer >= P3_LEVEL_FRAMES) {
+  // Pantanal infinito: +1 nível a cada 15 s até o teto (nível 10 = tudo no máximo);
+  // depois disso o jogo é honesto e para de anunciar níveis que não mudam nada
+  if (phaseIdx === LAST && p3Level < 10 && ++p3Timer >= P3_LEVEL_FRAMES) {
     p3Timer = 0;
     p3Level++;
     bannerTimer = 90;
-    bannerText = 'NÍVEL ' + (p3Level + 1);
-    bannerSub = 'MAIS RÁPIDO!';
+    if (p3Level >= 10) {
+      bannerText = 'NÍVEL MÁXIMO';
+      bannerSub = 'SOBREVIVA!';
+    } else {
+      bannerText = 'NÍVEL ' + (p3Level + 1);
+      bannerSub = 'MAIS RÁPIDO!';
+    }
     sfx.phase();
     celebrate(['#06b6d4', '#ffd23f', '#ffffff'], 30);
   }
 
-  // gera obstáculos
+  // gera obstáculos a distância fixa do tucano
   const last = obstacles[obstacles.length - 1];
-  if (!last || last.x < W - d.spacing) spawnObstacle();
+  if (!last || last.x < bird.x + SPAWN_AHEAD - d.spacing) spawnObstacle();
 
-  // move obstáculos e ovos
-  obstacles.forEach(o => o.x -= d.speed);
-  eggs.forEach(e => e.x -= d.speed);
+  // move obstáculos e ovos; ovo que passa sem ser coletado zera o combo
+  obstacles.forEach(o => { o.x -= d.speed; o.age++; });
+  eggs.forEach(e => {
+    e.x -= d.speed;
+    e.age++;
+    if (!e.taken && !e.missed && e.x < bird.x - 40) {
+      e.missed = true;
+      combo = 0;
+    }
+  });
   obstacles = obstacles.filter(o => o.x > -80);
   eggs = eggs.filter(e => e.x > -30 && !e.taken);
 
@@ -722,9 +823,10 @@ function update() {
     const tx = tipX - e.x, ty = tipY - ey;
     if (dx * dx + dy * dy < (bird.r + 11) * (bird.r + 11) || tx * tx + ty * ty < 18 * 18) {
       e.taken = true;
-      const pts = e.golden ? 3 : 1;
-      score += pts;
-      burst(e.x, e.y, e.golden ? '#ffd23f' : '#ffffff', e.golden ? 16 : 8);
+      combo++;
+      const mult = combo >= 5 ? 2 : 1; // combo: 5 seguidos = ovos valem x2
+      score += (e.golden ? 5 : 1) * mult;
+      burst(e.x, ey, e.golden ? '#ffd23f' : '#ffffff', e.golden ? 16 : 8);
       if (e.golden) sfx.gold(); else sfx.egg();
     }
   }
@@ -894,6 +996,7 @@ function drawBranch(o, p) {
   const topLen = o.gapY - o.gap / 2;
   const botY = o.gapY + o.gap / 2;
   ctx.save();
+  ctx.globalAlpha = Math.min(1, (o.age === undefined ? 30 : o.age) / 15); // surge em fade
   // galho superior (desce do dossel)
   ctx.fillStyle = p.branch;
   ctx.fillRect(o.x - o.w / 2, 0, o.w, topLen);
@@ -939,6 +1042,7 @@ function drawBranch(o, p) {
 function drawEgg(e) {
   const bob = Math.sin(frames * 0.08 + e.bob) * 4;
   ctx.save();
+  ctx.globalAlpha = Math.min(1, (e.age === undefined ? 30 : e.age) / 15); // surge em fade
   ctx.translate(e.x, e.y + bob);
   // brilho
   ctx.fillStyle = e.golden ? 'rgba(255,210,63,.25)' : 'rgba(255,255,255,.18)';
@@ -962,7 +1066,7 @@ function drawEgg(e) {
     ctx.fillStyle = '#fff';
     ctx.font = "9px Bungee, 'Courier New', monospace";
     ctx.textAlign = 'center';
-    ctx.fillText('3', 0, 3);
+    ctx.fillText('5', 0, 3);
   }
   ctx.restore();
 }
@@ -1096,6 +1200,11 @@ function drawHUD(p) {
   ctx.font = "24px Bungee, 'Courier New', monospace";
   ctx.textAlign = 'left';
   ctx.fillText(String(score), 52, 41);
+  if (combo >= 5) {
+    ctx.fillStyle = '#ff2e93';
+    ctx.font = "10px Bungee, 'Courier New', monospace";
+    ctx.fillText('COMBO ×2', 14, 64);
+  }
 
   // fase + barra de progresso — encolhe em telas estreitas (celular em pé)
   const narrow = W < 460;
@@ -1111,14 +1220,17 @@ function drawHUD(p) {
   ctx.font = '700 ' + (narrow ? 9 : 11) + 'px Grandstander, sans-serif';
   ctx.textAlign = 'left';
   const infinite = phaseIdx === LAST;
+  const maxed = infinite && p3Level >= 10;
   const label = infinite
-    ? (narrow ? '∞ NÍVEL ' + (p3Level + 1) : 'PANTANAL ∞ · NÍVEL ' + (p3Level + 1))
+    ? (maxed
+      ? (narrow ? '∞ NÍVEL MÁX' : 'PANTANAL ∞ · NÍVEL MÁXIMO')
+      : (narrow ? '∞ NÍVEL ' + (p3Level + 1) : 'PANTANAL ∞ · NÍVEL ' + (p3Level + 1)))
     : (narrow ? 'F' + (phaseIdx + 1) + ' · ' + p.name : 'FASE ' + (phaseIdx + 1) + ' · ' + p.name);
   ctx.fillText(label, bx + 10, 38);
   ctx.fillStyle = 'rgba(255,255,255,.25)';
   ctx.fillRect(bx + 10, 45, boxW - 20, 9);
   ctx.fillStyle = p.beak[0];
-  ctx.fillRect(bx + 10, 45, (boxW - 20) * Math.min(1, infinite ? p3Timer / P3_LEVEL_FRAMES : phaseDist / p.dist), 9);
+  ctx.fillRect(bx + 10, 45, (boxW - 20) * Math.min(1, maxed ? 1 : infinite ? p3Timer / P3_LEVEL_FRAMES : phaseDist / p.dist), 9);
   ctx.restore();
 }
 
@@ -1189,6 +1301,21 @@ function draw() {
     drawHUD(p);
     drawBanner(p);
   }
+
+  // "prepare-se": pisca até o primeiro toque
+  if (state === 'ready') {
+    ctx.globalAlpha = 0.6 + 0.4 * Math.sin(frames / 10);
+    ctx.fillStyle = '#fff';
+    ctx.font = '800 20px Grandstander, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('TOQUE PARA VOAR', W / 2, H / 2 - 90);
+    if (gameMode === 'daily') {
+      ctx.fillStyle = '#ffd23f';
+      ctx.font = "12px Bungee, 'Courier New', monospace";
+      ctx.fillText('DESAFIO DO DIA · ' + dayKey(), W / 2, H / 2 - 120);
+    }
+    ctx.globalAlpha = 1;
+  }
   ctx.restore();
 }
 
@@ -1247,15 +1374,21 @@ document.addEventListener('keydown', e => {
 elInitials.value = localStorage.getItem(LS_NAME) || '';
 elInitials.addEventListener('input', () => {
   elInitials.value = elInitials.value.toUpperCase().replace(/[^A-Z]/g, '');
+  updateMenuPB();
 });
 
-function startGame() {
+function startGame(mode) {
   const name = (elInitials.value || 'AAA').padEnd(3, 'A').slice(0, 3);
   playerName = name;
   localStorage.setItem(LS_NAME, name);
+  gameMode = mode || 'normal';
+  // desafio diário: RNG semeado pela data — todos enfrentam a mesma sequência
+  rng = gameMode === 'daily'
+    ? mulberry32(parseInt(dayKey().replace(/-/g, ''), 10))
+    : Math.random;
   audio();
   resetGame();
-  state = 'play';
+  state = 'ready'; // física só começa no primeiro toque
   elMenu.classList.add('hidden');
   elGO.classList.add('hidden');
   elBtnPause.style.display = 'block';
@@ -1264,35 +1397,78 @@ function startGame() {
 }
 
 function showGameOver() {
-  const level = phaseIdx === LAST ? ' · Chegou ao NÍVEL ' + (p3Level + 1) + ' do Pantanal ∞' : '';
+  const level = phaseIdx === LAST
+    ? ' · Chegou ao NÍVEL ' + (p3Level >= 10 ? 'MÁXIMO' : (p3Level + 1)) + ' do Pantanal ∞' : '';
+  const modeLabel = gameMode === 'daily' ? 'TOP DE HOJE' : 'TOP 10 MUNDIAL';
   document.getElementById('goTitle').textContent = 'FIM DE JOGO';
   document.getElementById('goScore').textContent = score;
+
+  // recorde pessoal (por iniciais, neste aparelho)
+  const pb = getPB(playerName);
+  const elPB = document.getElementById('goPB');
+  if (score > pb) {
+    setPB(playerName, score);
+    elPB.textContent = '🎉 NOVO RECORDE PESSOAL' + (pb > 0 ? ' (antes: ' + pb + ')' : '') + '!';
+    celebrate(['#ffd23f', '#ffffff', '#f5a623'], 50);
+  } else {
+    elPB.textContent = 'Seu recorde: ' + pb + (pb > score ? ' · faltaram ' + (pb - score) + ' 🥚' : '');
+  }
+
   const rec = document.getElementById('goRecord');
   rec.classList.add('hidden');
-  document.getElementById('goRank').textContent = 'Enviando ao ranking mundial...' + level;
+  document.getElementById('goRank').textContent = 'Enviando ao ranking (' + modeLabel + ')...' + level;
   elGO.classList.remove('hidden');
-  submitScore(playerName, score).then(res => {
+  submitScore(playerName, score, gameMode).then(res => {
     rec.classList.toggle('hidden', res.pos !== 1);
     document.getElementById('goRank').textContent = (!res.online
-      ? 'Sem conexão — pontuação não entrou no ranking mundial.'
+      ? 'Sem conexão — pontuação não entrou no ranking.'
       : res.pos > 0
-        ? playerName + ' entrou no TOP 10 MUNDIAL em ' + res.pos + 'º lugar!'
-        : 'Não entrou no TOP 10 mundial desta vez.') + level;
+        ? playerName + ' entrou no ' + modeLabel + ' em ' + res.pos + 'º lugar!'
+        : 'Não entrou no ' + modeLabel + ' desta vez.') + level;
   });
 }
 
-document.getElementById('btnPlay').addEventListener('click', startGame);
-document.getElementById('btnAgain').addEventListener('click', startGame);
+document.getElementById('btnPlay').addEventListener('click', () => startGame('normal'));
+document.getElementById('btnDaily').addEventListener('click', () => startGame('daily'));
+document.getElementById('btnAgain').addEventListener('click', () => startGame(gameMode));
 document.getElementById('btnMenu').addEventListener('click', () => {
   state = 'menu';
   resetGame();
   renderRanking();
+  updateMenuPB();
   elGO.classList.add('hidden');
   elMenu.classList.remove('hidden');
 });
 elInitials.addEventListener('keydown', e => {
-  if (e.key === 'Enter') startGame();
+  if (e.key === 'Enter') startGame('normal');
 });
+
+// abas do ranking (geral / desafio de hoje)
+function setRankTab(t) {
+  rankTab = t;
+  document.getElementById('tabAll').classList.toggle('active', t === 'normal');
+  document.getElementById('tabDaily').classList.toggle('active', t === 'daily');
+  renderRanking();
+}
+document.getElementById('tabAll').addEventListener('click', () => setRankTab('normal'));
+document.getElementById('tabDaily').addEventListener('click', () => setRankTab('daily'));
+
+// mudo (persiste entre sessões)
+const elBtnMute = document.getElementById('btnMute');
+function refreshMute() { elBtnMute.innerHTML = muted ? '&#128263;' : '&#128266;'; }
+elBtnMute.addEventListener('click', () => {
+  muted = !muted;
+  localStorage.setItem('superTucan_mute', muted ? '1' : '0');
+  refreshMute();
+});
+refreshMute();
+
+// recorde pessoal exibido no menu, conforme as iniciais digitadas
+function updateMenuPB() {
+  const name = (elInitials.value || '').padEnd(3, 'A').slice(0, 3);
+  const pb = elInitials.value ? getPB(name) : 0;
+  document.getElementById('menuPB').textContent = pb > 0 ? 'SEU RECORDE: ' + pb + ' 🥚' : '';
+}
 
 // ---------- Início ----------
 // Pré-carrega as fontes usadas no canvas (senão o 1º frame cai no fallback)
@@ -1301,11 +1477,12 @@ if (document.fonts && document.fonts.load) {
     document.fonts.load(f).catch(() => {});
   });
 }
-const GAME_VERSION = '1.4';
+const GAME_VERSION = '1.5';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 resetGame();
 renderRanking();
+updateMenuPB();
 requestAnimationFrame(loop);
 </script>
 </body>
