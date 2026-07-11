@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>SUPER TUCAN REMASTERED</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    height: 100%;
+    background: #0b1a12;
+    font-family: 'Courier New', monospace;
+    overflow: hidden;
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+  }
+  #wrap {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #stage {
+    position: relative;
+  }
+  canvas {
+    display: block;
+    border-radius: 12px;
+    box-shadow: 0 0 60px rgba(0,0,0,.6);
+    background: #87ceeb;
+  }
+  .overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    background: rgba(6, 20, 12, 0.82);
+    border-radius: 12px;
+    color: #fff;
+    text-align: center;
+    padding: 20px;
+  }
+  .hidden { display: none !important; }
+  h1 {
+    font-size: 34px;
+    line-height: 1.1;
+    color: #ffd23f;
+    text-shadow: 3px 3px 0 #e0532f, 6px 6px 0 rgba(0,0,0,.4);
+    letter-spacing: 2px;
+  }
+  h1 small { display: block; font-size: 16px; color: #7ee08a; letter-spacing: 6px; margin-top: 4px; }
+  .sub { color: #b8d8c0; font-size: 13px; max-width: 340px; }
+  #initials {
+    width: 120px;
+    text-align: center;
+    font-size: 28px;
+    font-family: inherit;
+    font-weight: bold;
+    letter-spacing: 8px;
+    text-transform: uppercase;
+    background: #10281a;
+    color: #ffd23f;
+    border: 3px solid #7ee08a;
+    border-radius: 8px;
+    padding: 8px 4px 8px 12px;
+    outline: none;
+  }
+  button {
+    font-family: inherit;
+    font-size: 18px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    padding: 12px 34px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    color: #10281a;
+    background: linear-gradient(180deg, #ffd23f, #f5a623);
+    box-shadow: 0 4px 0 #b06a10;
+    transition: transform .08s;
+  }
+  button:active { transform: translateY(3px); box-shadow: 0 1px 0 #b06a10; }
+  button.sec { background: linear-gradient(180deg, #9adfa8, #5cb870); box-shadow: 0 4px 0 #2e6e3e; font-size: 14px; padding: 9px 22px; }
+  #ranking {
+    background: rgba(16, 40, 26, 0.9);
+    border: 2px solid #2e6e3e;
+    border-radius: 10px;
+    padding: 12px 20px;
+    min-width: 260px;
+    font-size: 14px;
+  }
+  #ranking h2 { font-size: 14px; color: #7ee08a; letter-spacing: 3px; margin-bottom: 8px; }
+  #ranking ol { list-style: none; }
+  #ranking li {
+    display: flex; justify-content: space-between; gap: 20px;
+    padding: 2px 0; color: #e8f5ea;
+  }
+  #ranking li:first-child { color: #ffd23f; font-weight: bold; }
+  #ranking li .pts { color: #f5a623; }
+  #ranking .empty { color: #5a7a62; font-style: italic; }
+  .bigscore { font-size: 44px; color: #ffd23f; font-weight: bold; text-shadow: 3px 3px 0 rgba(0,0,0,.5); }
+  .newrec { color: #ff5c5c; font-weight: bold; font-size: 15px; animation: blink 0.6s infinite alternate; }
+  @keyframes blink { from { opacity: 1; } to { opacity: 0.3; } }
+  #goTitle { font-size: 30px; }
+  .hint { font-size: 11px; color: #6a8a72; }
+  .studio {
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 7px;
+    color: #f5a623;
+    text-shadow: 1px 1px 0 rgba(0,0,0,.5);
+  }
+  .studio small {
+    display: block;
+    font-size: 9px;
+    font-weight: normal;
+    letter-spacing: 5px;
+    color: #7ee08a;
+    margin-top: 3px;
+  }
+  .credit { font-size: 10px; color: #5a7a62; letter-spacing: 2px; }
+  /* ---- Ajustes para telas pequenas (mobile) ---- */
+  @media (max-width: 520px), (max-height: 700px) {
+    .overlay { gap: 9px; padding: 12px; overflow-y: auto; justify-content: flex-start; padding-top: 26px; }
+    h1 { font-size: 24px; }
+    h1 small { font-size: 12px; letter-spacing: 4px; }
+    .sub { font-size: 11px; max-width: 300px; }
+    #initials { font-size: 22px; padding: 6px 2px 6px 10px; letter-spacing: 6px; width: 104px; }
+    button { font-size: 16px; padding: 10px 26px; }
+    button.sec { font-size: 13px; padding: 8px 18px; }
+    #ranking { padding: 8px 14px; min-width: 220px; font-size: 12px; }
+    #ranking h2 { font-size: 12px; }
+    .bigscore { font-size: 34px; }
+    #goTitle { font-size: 24px; }
+  }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="stage">
+    <canvas id="game" width="480" height="640"></canvas>
+
+    <!-- TELA DE ABERTURA -->
+    <div id="menu" class="overlay">
+      <div class="studio">&#10022; CISCO GAMES &#10022;<small>APRESENTA</small></div>
+      <h1>SUPER TUCAN<small>REMASTERED</small></h1>
+      <p class="sub">Bata as asas, desvie dos GALHOS e colete o máximo de OVOS pelas 3 fases: Floresta Tropical, Cerrado e Pantanal!</p>
+      <div>
+        <div class="hint" style="margin-bottom:6px">SUAS INICIAIS (3 LETRAS)</div>
+        <input id="initials" maxlength="3" autocomplete="off" spellcheck="false" placeholder="AAA">
+      </div>
+      <button id="btnPlay">JOGAR</button>
+      <div id="ranking">
+        <h2>&#127942; TOP 10 PONTUAÇÕES</h2>
+        <ol id="rankList"></ol>
+      </div>
+      <p class="hint">ESPAÇO / CLIQUE / TOQUE para voar</p>
+      <p class="credit">&copy; 2026 CISCO GAMES &middot; Todos os direitos reservados</p>
+    </div>
+
+    <!-- TELA DE FIM DE JOGO -->
+    <div id="gameover" class="overlay hidden">
+      <h1 id="goTitle">FIM DE JOGO</h1>
+      <div class="hint">OVOS COLETADOS</div>
+      <div class="bigscore" id="goScore">0</div>
+      <div id="goRecord" class="newrec hidden">&#11088; NOVO RECORDE! &#11088;</div>
+      <div id="goRank" class="sub"></div>
+      <button id="btnAgain">JOGAR DE NOVO</button>
+      <button id="btnMenu" class="sec">MENU / RANKING</button>
+      <p class="credit">&copy; 2026 CISCO GAMES</p>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// ============================================================
+// SUPER TUCAN REMASTERED
+// ============================================================
+
+const W = 480, H = 640, GROUND_H = 70;
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+
+// ---------- Escala responsiva ----------
+function fitCanvas() {
+  const s = Math.min(window.innerWidth / W, window.innerHeight / H) * 0.97;
+  canvas.style.width = (W * s) + 'px';
+  canvas.style.height = (H * s) + 'px';
+}
+window.addEventListener('resize', fitCanvas);
+fitCanvas();
+
+// ---------- Configuração das fases ----------
+// dist = deslocamento horizontal necessário p/ concluir a fase (cresce a cada fase)
+// speed = velocidade horizontal | gap = abertura entre galhos | spacing = distância entre obstáculos
+const PHASES = [
+  {
+    name: 'FLORESTA TROPICAL', dist: 2600, speed: 2.3, gap: 175, spacing: 265,
+    beak: ['#ff9f1c', '#e0532f'], eye: '#ffd23f',
+    skyTop: '#7ec8e3', skyBot: '#cdeccd', far: '#4e8d5b', mid: '#2f6e42',
+    branch: '#6b4226', leaf: '#3a8f4d', ground: '#3c7a3c', groundTop: '#57a05a',
+    deco: 'jungle'
+  },
+  {
+    name: 'CERRADO', dist: 3400, speed: 2.9, gap: 148, spacing: 235,
+    beak: ['#e63946', '#8d1d2c'], eye: '#ff7b00',
+    skyTop: '#ffce6b', skyBot: '#ffe9c2', far: '#c98f3d', mid: '#9c6b2f',
+    branch: '#7d5a3c', leaf: '#d9a441', ground: '#b8813f', groundTop: '#d9a55c',
+    deco: 'cerrado'
+  },
+  {
+    name: 'PANTANAL', dist: 4400, speed: 3.5, gap: 126, spacing: 208,
+    beak: ['#06b6d4', '#0e7490'], eye: '#22c55e',
+    skyTop: '#8ecbef', skyBot: '#e6f4ff', far: '#5e97b8', mid: '#3d7a5e',
+    branch: '#5c4a36', leaf: '#4a9e6e', ground: '#2f6e5a', groundTop: '#3f8f6e',
+    deco: 'pantanal'
+  }
+];
+const VICTORY_BONUS = 15;
+
+// ---------- Áudio (efeitos sintetizados) ----------
+let actx = null;
+function audio() {
+  if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+  if (actx.state === 'suspended') actx.resume();
+  return actx;
+}
+function tone(freq, dur, type, vol, endFreq) {
+  try {
+    const a = audio(), o = a.createOscillator(), g = a.createGain(), t = a.currentTime;
+    o.type = type || 'sine';
+    o.frequency.setValueAtTime(freq, t);
+    if (endFreq) o.frequency.exponentialRampToValueAtTime(endFreq, t + dur);
+    g.gain.setValueAtTime(vol || 0.15, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    o.connect(g).connect(a.destination);
+    o.start(t); o.stop(t + dur + 0.02);
+  } catch (e) { /* áudio indisponível */ }
+}
+function noiseBurst(dur, vol) {
+  try {
+    const a = audio(), t = a.currentTime;
+    const buf = a.createBuffer(1, a.sampleRate * dur, a.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+    const src = a.createBufferSource(); src.buffer = buf;
+    const g = a.createGain(); g.gain.value = vol;
+    const f = a.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 800;
+    src.connect(f).connect(g).connect(a.destination);
+    src.start(t);
+  } catch (e) { /* áudio indisponível */ }
+}
+const sfx = {
+  flap()    { tone(420, 0.09, 'triangle', 0.10, 180); },                     // batida de asa
+  egg()     { tone(880, 0.09, 'sine', 0.18); setTimeout(() => tone(1318, 0.14, 'sine', 0.18), 70); }, // "plim" de coleta
+  gold()    { [880, 1108, 1318, 1760].forEach((f, i) => setTimeout(() => tone(f, 0.12, 'sine', 0.16), i * 65)); },
+  crash()   { noiseBurst(0.35, 0.35); tone(160, 0.4, 'sawtooth', 0.2, 40); }, // impacto no galho
+  phase()   { [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => tone(f, 0.16, 'square', 0.08), i * 110)); },
+  victory() { [523, 659, 784, 1046, 784, 1046, 1318].forEach((f, i) => setTimeout(() => tone(f, 0.2, 'triangle', 0.13), i * 130)); },
+  chirp()   { tone(2200 + Math.random() * 600, 0.07, 'sine', 0.05, 2900); setTimeout(() => tone(2600, 0.06, 'sine', 0.04, 3200), 90); }
+};
+
+// ---------- Ranking (localStorage) ----------
+const LS_SCORES = 'superTucan_top10';
+const LS_NAME = 'superTucan_lastName';
+function loadScores() {
+  try { return JSON.parse(localStorage.getItem(LS_SCORES)) || []; }
+  catch (e) { return []; }
+}
+function saveScore(name, score) {
+  const list = loadScores();
+  list.push({ name, score, date: new Date().toISOString().slice(0, 10) });
+  list.sort((a, b) => b.score - a.score);
+  const top = list.slice(0, 10);
+  localStorage.setItem(LS_SCORES, JSON.stringify(top));
+  return top.findIndex(e => e.name === name && e.score === score) + 1; // posição (1-based) ou 0
+}
+function renderRanking() {
+  const ol = document.getElementById('rankList');
+  const list = loadScores();
+  if (!list.length) {
+    ol.innerHTML = '<li class="empty">Nenhuma pontuação ainda. Seja o primeiro!</li>';
+    return;
+  }
+  ol.innerHTML = list.map((e, i) =>
+    `<li><span>${String(i + 1).padStart(2, '0')}. ${e.name}</span><span class="pts">${e.score} &#129370;</span></li>`
+  ).join('');
+}
+
+// ---------- Estado do jogo ----------
+let state = 'menu'; // menu | play | dead | victory
+let playerName = 'AAA';
+let frames = 0;
+let bird, obstacles, eggs, particles, clouds;
+let score, totalDist, phaseIdx, phaseDist, bannerTimer, deathTimer, shake;
+let chirpTimer = 0;
+
+function resetGame() {
+  bird = { x: 120, y: H / 2, vy: 0, rot: 0, wing: 0, flapAnim: 0, r: 15 };
+  obstacles = [];
+  eggs = [];
+  particles = [];
+  score = 0;
+  totalDist = 0;
+  phaseIdx = 0;
+  phaseDist = 0;
+  bannerTimer = 120; // banner da fase 1
+  deathTimer = 0;
+  shake = 0;
+  frames = 0;
+  clouds = [];
+  for (let i = 0; i < 4; i++) clouds.push({ x: Math.random() * W, y: 40 + Math.random() * 150, s: 0.85 + Math.random() * 0.7 });
+}
+
+function phase() { return PHASES[phaseIdx]; }
+
+// ---------- Entrada ----------
+function flap() {
+  if (state !== 'play') return;
+  bird.vy = -7.2;
+  bird.flapAnim = 10;
+  sfx.flap();
+}
+document.addEventListener('keydown', e => {
+  if (e.code === 'Space' || e.code === 'ArrowUp') {
+    if (document.activeElement && document.activeElement.id === 'initials') return;
+    e.preventDefault();
+    flap();
+  }
+});
+canvas.addEventListener('pointerdown', () => { audio(); flap(); });
+
+// ---------- Obstáculos (galhos) e ovos ----------
+function spawnObstacle() {
+  const p = phase();
+  const margin = 90;
+  const gapY = margin + Math.random() * (H - GROUND_H - margin * 2 - p.gap) + p.gap / 2;
+  const ob = { x: W + 60, gapY, gap: p.gap, w: 30, seed: Math.random() * 1000 };
+  obstacles.push(ob);
+  // Ovo no centro da abertura (10% de chance de ovo dourado = 3 pts)
+  const golden = Math.random() < 0.10;
+  eggs.push({ x: ob.x + ob.w / 2, y: gapY + (Math.random() * 40 - 20), golden, taken: false, bob: Math.random() * 6.28 });
+  // Ovo bônus entre obstáculos, às vezes
+  if (Math.random() < 0.35) {
+    eggs.push({ x: ob.x + p.spacing / 2, y: margin + 40 + Math.random() * (H - GROUND_H - margin - 120), golden: false, taken: false, bob: Math.random() * 6.28 });
+  }
+}
+
+function burst(x, y, color, n) {
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * Math.PI * 2, sp = 1 + Math.random() * 3;
+    particles.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 1, life: 30 + Math.random() * 20, color });
+  }
+}
+
+// ---------- Lógica ----------
+function update() {
+  frames++;
+  const p = phase();
+
+  // pios de pássaros ambiente
+  if (--chirpTimer <= 0) {
+    if (state === 'play' && Math.random() < 0.4) sfx.chirp();
+    chirpTimer = 240 + Math.random() * 300;
+  }
+
+  // nuvens (sempre animadas, inclusive no menu)
+  const cloudSpeed = state === 'play' ? p.speed * 0.25 : 0.3;
+  clouds.forEach(c => { c.x -= cloudSpeed * c.s; if (c.x < -90) { c.x = W + 90; c.y = 30 + Math.random() * 160; } });
+
+  // partículas
+  particles = particles.filter(pt => {
+    pt.x += pt.vx; pt.y += pt.vy; pt.vy += 0.12; pt.life--;
+    return pt.life > 0;
+  });
+
+  if (state === 'menu') {
+    // tucano de demonstração flutuando atrás do menu
+    bird.y = H / 2 + Math.sin(frames / 30) * 20;
+    bird.wing = Math.sin(frames / 6) * 0.9;
+    bird.rot = Math.sin(frames / 30) * 0.1;
+    return;
+  }
+
+  if (state === 'dead' || state === 'victory') {
+    // tucano cai após colisão
+    if (state === 'dead' && bird.y < H - GROUND_H - 14) {
+      bird.vy += 0.5;
+      bird.y += bird.vy;
+      bird.rot = Math.min(bird.rot + 0.08, Math.PI / 2);
+    }
+    if (shake > 0) shake--;
+    if (++deathTimer === 55) showGameOver();
+    return;
+  }
+
+  // ---- estado: play ----
+  if (bannerTimer > 0) bannerTimer--;
+
+  // física do tucano
+  bird.vy += 0.42;
+  if (bird.vy > 10) bird.vy = 10;
+  bird.y += bird.vy;
+  bird.rot = Math.max(-0.45, Math.min(1.2, bird.vy * 0.09));
+  if (bird.flapAnim > 0) bird.flapAnim--;
+  bird.wing = bird.flapAnim > 0 ? Math.sin(frames * 1.1) * 1.2 : Math.sin(frames * 0.25) * 0.4;
+  if (bird.y < bird.r) { bird.y = bird.r; bird.vy = 0; }
+
+  // deslocamento horizontal
+  totalDist += p.speed;
+  phaseDist += p.speed;
+
+  // transição de fase
+  if (phaseDist >= p.dist) {
+    if (phaseIdx < PHASES.length - 1) {
+      phaseIdx++;
+      phaseDist = 0;
+      bannerTimer = 130;
+      sfx.phase();
+      burst(bird.x, bird.y, '#ffd23f', 20);
+    } else {
+      // venceu as 3 fases!
+      score += VICTORY_BONUS;
+      state = 'victory';
+      sfx.victory();
+      burst(bird.x, bird.y, '#ffd23f', 40);
+      return;
+    }
+  }
+
+  // gera obstáculos
+  const last = obstacles[obstacles.length - 1];
+  if (!last || last.x < W - p.spacing) spawnObstacle();
+
+  // move obstáculos e ovos
+  obstacles.forEach(o => o.x -= p.speed);
+  eggs.forEach(e => e.x -= p.speed);
+  obstacles = obstacles.filter(o => o.x > -80);
+  eggs = eggs.filter(e => e.x > -30 && !e.taken);
+
+  // colisão com o chão
+  if (bird.y + bird.r >= H - GROUND_H) {
+    bird.y = H - GROUND_H - bird.r;
+    die();
+    return;
+  }
+
+  // colisão com galhos (retângulos superior e inferior)
+  for (const o of obstacles) {
+    const bx = bird.x, by = bird.y, r = bird.r - 2;
+    if (bx + r > o.x - o.w / 2 && bx - r < o.x + o.w / 2) {
+      if (by - r < o.gapY - o.gap / 2 || by + r > o.gapY + o.gap / 2) {
+        die();
+        return;
+      }
+    }
+  }
+
+  // coleta de ovos
+  for (const e of eggs) {
+    const dx = bird.x - e.x, dy = bird.y - e.y;
+    if (dx * dx + dy * dy < (bird.r + 11) * (bird.r + 11)) {
+      e.taken = true;
+      const pts = e.golden ? 3 : 1;
+      score += pts;
+      burst(e.x, e.y, e.golden ? '#ffd23f' : '#ffffff', e.golden ? 16 : 8);
+      if (e.golden) sfx.gold(); else sfx.egg();
+    }
+  }
+}
+
+function die() {
+  state = 'dead';
+  shake = 14;
+  sfx.crash();
+  burst(bird.x, bird.y, '#e0532f', 18);
+}
+
+// ---------- Desenho ----------
+function drawBackground(p) {
+  // céu
+  const sky = ctx.createLinearGradient(0, 0, 0, H);
+  sky.addColorStop(0, p.skyTop);
+  sky.addColorStop(1, p.skyBot);
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, W, H);
+
+  // sol
+  ctx.fillStyle = p.deco === 'cerrado' ? 'rgba(255,120,40,.85)' : 'rgba(255,240,180,.8)';
+  ctx.beginPath();
+  ctx.arc(W - 90, 85, p.deco === 'cerrado' ? 46 : 34, 0, 7);
+  ctx.fill();
+
+  // nuvens
+  ctx.fillStyle = 'rgba(255,255,255,.75)';
+  clouds.forEach(c => {
+    ctx.beginPath();
+    ctx.ellipse(c.x, c.y, 34 * c.s, 13 * c.s, 0, 0, 7);
+    ctx.ellipse(c.x + 20 * c.s, c.y - 8 * c.s, 22 * c.s, 11 * c.s, 0, 0, 7);
+    ctx.ellipse(c.x - 22 * c.s, c.y - 5 * c.s, 18 * c.s, 9 * c.s, 0, 0, 7);
+    ctx.fill();
+  });
+
+  // camada distante (parallax) — silhuetas por bioma
+  const off1 = (totalDist * 0.25) % 220;
+  ctx.fillStyle = p.far;
+  ctx.globalAlpha = 0.55;
+  for (let x = -off1 - 220; x < W + 220; x += 220) {
+    if (p.deco === 'jungle') {
+      // morros arredondados de mata
+      ctx.beginPath();
+      ctx.arc(x + 70, H - GROUND_H + 40, 120, Math.PI, 0);
+      ctx.arc(x + 190, H - GROUND_H + 60, 100, Math.PI, 0);
+      ctx.fill();
+    } else if (p.deco === 'cerrado') {
+      // chapadas retas
+      ctx.fillRect(x, H - GROUND_H - 90, 150, 90);
+      ctx.beginPath();
+      ctx.moveTo(x + 150, H - GROUND_H); ctx.lineTo(x + 150, H - GROUND_H - 90); ctx.lineTo(x + 185, H - GROUND_H);
+      ctx.fill();
+    } else {
+      // linha d'água distante com vegetação baixa
+      ctx.beginPath();
+      ctx.arc(x + 60, H - GROUND_H + 55, 80, Math.PI, 0);
+      ctx.arc(x + 170, H - GROUND_H + 65, 70, Math.PI, 0);
+      ctx.fill();
+    }
+  }
+  ctx.globalAlpha = 1;
+
+  // camada média (parallax) — árvores características
+  const off2 = (totalDist * 0.5) % 180;
+  ctx.fillStyle = p.mid;
+  ctx.globalAlpha = 0.7;
+  for (let x = -off2 - 180; x < W + 180; x += 180) {
+    const baseY = H - GROUND_H;
+    if (p.deco === 'jungle') {
+      // palmeira
+      ctx.fillRect(x + 58, baseY - 95, 8, 95);
+      for (let a = 0; a < 5; a++) {
+        ctx.beginPath();
+        ctx.ellipse(x + 62, baseY - 98, 34, 9, (a - 2) * 0.5, 0, 7);
+        ctx.fill();
+      }
+    } else if (p.deco === 'cerrado') {
+      // árvore tortuosa do cerrado
+      ctx.fillRect(x + 55, baseY - 60, 7, 60);
+      ctx.save();
+      ctx.translate(x + 58, baseY - 58);
+      ctx.rotate(-0.5); ctx.fillRect(0, 0, 5, -30);
+      ctx.rotate(1.0); ctx.fillRect(0, 0, 5, -26);
+      ctx.restore();
+      ctx.beginPath();
+      ctx.ellipse(x + 58, baseY - 92, 38, 16, 0, 0, 7);
+      ctx.fill();
+    } else {
+      // vitória-régia e capim do pantanal
+      ctx.beginPath();
+      ctx.ellipse(x + 60, baseY - 4, 26, 7, 0, 0, 7);
+      ctx.fill();
+      for (let g = 0; g < 6; g++) ctx.fillRect(x + 110 + g * 6, baseY - 26 - (g % 3) * 8, 2, 26 + (g % 3) * 8);
+    }
+  }
+  ctx.globalAlpha = 1;
+
+  // faixa d'água no pantanal
+  if (p.deco === 'pantanal') {
+    ctx.fillStyle = 'rgba(80,160,200,.45)';
+    ctx.fillRect(0, H - GROUND_H - 16, W, 16);
+    ctx.strokeStyle = 'rgba(255,255,255,.35)';
+    ctx.lineWidth = 1.5;
+    for (let i = 0; i < 5; i++) {
+      const wx = ((i * 130 - totalDist * 0.8) % (W + 60) + W + 60) % (W + 60) - 30;
+      ctx.beginPath();
+      ctx.moveTo(wx, H - GROUND_H - 8);
+      ctx.quadraticCurveTo(wx + 12, H - GROUND_H - 13, wx + 24, H - GROUND_H - 8);
+      ctx.stroke();
+    }
+  }
+}
+
+function drawGround(p) {
+  const y = H - GROUND_H;
+  ctx.fillStyle = p.ground;
+  ctx.fillRect(0, y, W, GROUND_H);
+  ctx.fillStyle = p.groundTop;
+  ctx.fillRect(0, y, W, 12);
+  // textura rolante
+  ctx.fillStyle = 'rgba(0,0,0,.15)';
+  const off = totalDist % 40;
+  for (let x = -off; x < W; x += 40) {
+    ctx.fillRect(x, y + 20, 18, 5);
+    ctx.fillRect(x + 22, y + 44, 12, 4);
+  }
+}
+
+function drawBranch(o, p) {
+  const topLen = o.gapY - o.gap / 2;
+  const botY = o.gapY + o.gap / 2;
+  ctx.save();
+  // galho superior (desce do dossel)
+  ctx.fillStyle = p.branch;
+  ctx.fillRect(o.x - o.w / 2, 0, o.w, topLen);
+  // galho inferior (sobe do chão)
+  ctx.fillRect(o.x - o.w / 2, botY, o.w, H - GROUND_H - botY);
+  // textura da casca
+  ctx.fillStyle = 'rgba(0,0,0,.18)';
+  ctx.fillRect(o.x - o.w / 2 + 4, 0, 4, topLen);
+  ctx.fillRect(o.x - o.w / 2 + 4, botY, 4, H - GROUND_H - botY);
+  ctx.fillStyle = 'rgba(255,255,255,.10)';
+  ctx.fillRect(o.x + o.w / 2 - 7, 0, 3, topLen);
+  ctx.fillRect(o.x + o.w / 2 - 7, botY, 3, H - GROUND_H - botY);
+
+  // ramificações laterais + folhagem nas pontas
+  const twig = (bx, by, dir, up) => {
+    ctx.strokeStyle = p.branch;
+    ctx.lineWidth = 7;
+    ctx.beginPath();
+    ctx.moveTo(bx, by);
+    ctx.quadraticCurveTo(bx + 22 * dir, by + (up ? -12 : 12), bx + 38 * dir, by + (up ? -20 : 20));
+    ctx.stroke();
+    ctx.fillStyle = p.leaf;
+    ctx.beginPath();
+    ctx.ellipse(bx + 40 * dir, by + (up ? -22 : 22), 14, 9, dir * 0.4, 0, 7);
+    ctx.fill();
+  };
+  const s = Math.floor(o.seed);
+  if (topLen > 70) twig(o.x, 40 + (s % 30), (s % 2 ? 1 : -1), false);
+  if (topLen > 150) twig(o.x, topLen - 55, (s % 2 ? -1 : 1), false);
+  if (H - GROUND_H - botY > 70) twig(o.x, H - GROUND_H - 35 - (s % 25), (s % 2 ? -1 : 1), true);
+  if (H - GROUND_H - botY > 150) twig(o.x, botY + 55, (s % 2 ? 1 : -1), true);
+
+  // tufos de folhas nas extremidades da abertura
+  ctx.fillStyle = p.leaf;
+  ctx.beginPath();
+  ctx.ellipse(o.x, topLen, 24, 12, 0, 0, 7);
+  ctx.ellipse(o.x, botY, 24, 12, 0, 0, 7);
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawEgg(e) {
+  const bob = Math.sin(frames * 0.08 + e.bob) * 4;
+  ctx.save();
+  ctx.translate(e.x, e.y + bob);
+  // brilho
+  ctx.fillStyle = e.golden ? 'rgba(255,210,63,.25)' : 'rgba(255,255,255,.18)';
+  ctx.beginPath();
+  ctx.arc(0, 0, 17, 0, 7);
+  ctx.fill();
+  // casca
+  ctx.fillStyle = e.golden ? '#ffd23f' : '#fdf6e3';
+  ctx.strokeStyle = e.golden ? '#c98f00' : '#d9cbb0';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 9, 12, 0, 0, 7);
+  ctx.fill();
+  ctx.stroke();
+  // pintinhas
+  ctx.fillStyle = e.golden ? '#b06a10' : '#c9b892';
+  ctx.beginPath();
+  ctx.arc(-3, -3, 1.5, 0, 7); ctx.arc(3, 2, 1.3, 0, 7); ctx.arc(-1, 6, 1.2, 0, 7);
+  ctx.fill();
+  if (e.golden) {
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 9px Courier New';
+    ctx.textAlign = 'center';
+    ctx.fillText('3', 0, 3);
+  }
+  ctx.restore();
+}
+
+function drawToucan(p) {
+  ctx.save();
+  ctx.translate(bird.x, bird.y);
+  ctx.rotate(bird.rot);
+
+  // cauda
+  ctx.fillStyle = '#1a1a1a';
+  ctx.beginPath();
+  ctx.moveTo(-14, -4);
+  ctx.lineTo(-30, -10);
+  ctx.lineTo(-28, 4);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = '#e0532f';
+  ctx.beginPath();
+  ctx.moveTo(-26, -8);
+  ctx.lineTo(-31, -10);
+  ctx.lineTo(-30, -3);
+  ctx.closePath();
+  ctx.fill();
+
+  // corpo
+  ctx.fillStyle = '#1a1a1a';
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 19, 15, -0.1, 0, 7);
+  ctx.fill();
+
+  // peito branco/amarelado
+  ctx.fillStyle = '#fdf3d0';
+  ctx.beginPath();
+  ctx.ellipse(7, 4, 10, 10, 0.3, 0, 7);
+  ctx.fill();
+
+  // asa (animada)
+  ctx.save();
+  ctx.translate(-4, -2);
+  ctx.rotate(bird.wing * 0.55);
+  ctx.fillStyle = '#2e2e2e';
+  ctx.beginPath();
+  ctx.ellipse(-3, 4, 13, 7, 0.35, 0, 7);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,.12)';
+  ctx.beginPath();
+  ctx.ellipse(-6, 6, 8, 3.5, 0.35, 0, 7);
+  ctx.fill();
+  ctx.restore();
+
+  // cabeça
+  ctx.fillStyle = '#1a1a1a';
+  ctx.beginPath();
+  ctx.arc(12, -8, 10, 0, 7);
+  ctx.fill();
+  // bochecha clara
+  ctx.fillStyle = '#fdf3d0';
+  ctx.beginPath();
+  ctx.arc(14, -6, 7, 0, 7);
+  ctx.fill();
+
+  // BICO — muda de cor a cada fase
+  const bk = ctx.createLinearGradient(18, -14, 46, -6);
+  bk.addColorStop(0, p.beak[0]);
+  bk.addColorStop(1, p.beak[1]);
+  ctx.fillStyle = bk;
+  ctx.beginPath();
+  ctx.moveTo(18, -14);
+  ctx.quadraticCurveTo(44, -16, 47, -7);
+  ctx.quadraticCurveTo(46, -2, 38, -1);
+  ctx.quadraticCurveTo(26, 0, 18, -3);
+  ctx.closePath();
+  ctx.fill();
+  // linha da boca
+  ctx.strokeStyle = 'rgba(0,0,0,.35)';
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(19, -8);
+  ctx.quadraticCurveTo(34, -9, 44, -7);
+  ctx.stroke();
+  // ponta escura
+  ctx.fillStyle = 'rgba(0,0,0,.45)';
+  ctx.beginPath();
+  ctx.ellipse(45, -7, 3.5, 4.5, 0.3, 0, 7);
+  ctx.fill();
+
+  // OLHO — íris muda de cor a cada fase
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(13, -9, 4.5, 0, 7);
+  ctx.fill();
+  ctx.fillStyle = p.eye;
+  ctx.beginPath();
+  ctx.arc(13.5, -9, 3, 0, 7);
+  ctx.fill();
+  ctx.fillStyle = '#000';
+  ctx.beginPath();
+  ctx.arc(14, -9, 1.6, 0, 7);
+  ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(14.8, -9.8, 0.7, 0, 7);
+  ctx.fill();
+
+  // patas
+  ctx.strokeStyle = '#f5a623';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.moveTo(0, 13); ctx.lineTo(-2, 19);
+  ctx.moveTo(6, 13); ctx.lineTo(5, 19);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+function drawHUD(p) {
+  // placar de ovos
+  ctx.save();
+  ctx.fillStyle = 'rgba(0,0,0,.35)';
+  if (ctx.roundRect) {
+    ctx.beginPath(); ctx.roundRect(12, 12, 118, 40, 10); ctx.fill();
+  } else {
+    ctx.fillRect(12, 12, 118, 40);
+  }
+  // mini ovo
+  ctx.fillStyle = '#fdf6e3';
+  ctx.strokeStyle = '#d9cbb0';
+  ctx.beginPath(); ctx.ellipse(34, 32, 8, 11, 0, 0, 7); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#ffd23f';
+  ctx.font = 'bold 26px Courier New';
+  ctx.textAlign = 'left';
+  ctx.fillText(String(score), 52, 41);
+
+  // fase + barra de progresso
+  ctx.fillStyle = 'rgba(0,0,0,.35)';
+  if (ctx.roundRect) {
+    ctx.beginPath(); ctx.roundRect(W - 192, 12, 180, 40, 10); ctx.fill();
+  } else {
+    ctx.fillRect(W - 192, 12, 180, 40);
+  }
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 11px Courier New';
+  ctx.textAlign = 'left';
+  ctx.fillText('FASE ' + (phaseIdx + 1) + ' · ' + p.name, W - 182, 28);
+  ctx.fillStyle = 'rgba(255,255,255,.25)';
+  ctx.fillRect(W - 182, 35, 160, 9);
+  ctx.fillStyle = p.beak[0];
+  ctx.fillRect(W - 182, 35, 160 * Math.min(1, phaseDist / p.dist), 9);
+  ctx.restore();
+}
+
+function drawBanner(p) {
+  if (bannerTimer <= 0) return;
+  const a = bannerTimer > 110 ? (130 - bannerTimer) / 20 : Math.min(1, bannerTimer / 30);
+  ctx.save();
+  ctx.globalAlpha = a;
+  ctx.fillStyle = 'rgba(0,0,0,.55)';
+  ctx.fillRect(0, H / 2 - 58, W, 96);
+  ctx.fillStyle = '#ffd23f';
+  ctx.font = 'bold 30px Courier New';
+  ctx.textAlign = 'center';
+  ctx.fillText('FASE ' + (phaseIdx + 1), W / 2, H / 2 - 18);
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 20px Courier New';
+  ctx.fillText(p.name, W / 2, H / 2 + 14);
+  ctx.restore();
+}
+
+function draw() {
+  const p = phase();
+  ctx.save();
+  if (shake > 0) ctx.translate((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake);
+
+  drawBackground(p);
+  obstacles.forEach(o => drawBranch(o, p));
+  eggs.forEach(e => { if (!e.taken) drawEgg(e); });
+  drawGround(p);
+
+  // partículas
+  particles.forEach(pt => {
+    ctx.globalAlpha = Math.min(1, pt.life / 25);
+    ctx.fillStyle = pt.color;
+    ctx.fillRect(pt.x - 2, pt.y - 2, 4, 4);
+  });
+  ctx.globalAlpha = 1;
+
+  drawToucan(p);
+
+  if (state === 'play' || state === 'dead' || state === 'victory') {
+    drawHUD(p);
+    drawBanner(p);
+  }
+  ctx.restore();
+}
+
+// ---------- Loop ----------
+function loop() {
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+
+// ---------- Telas / UI ----------
+const elMenu = document.getElementById('menu');
+const elGO = document.getElementById('gameover');
+const elInitials = document.getElementById('initials');
+
+elInitials.value = localStorage.getItem(LS_NAME) || '';
+elInitials.addEventListener('input', () => {
+  elInitials.value = elInitials.value.toUpperCase().replace(/[^A-Z]/g, '');
+});
+
+function startGame() {
+  const name = (elInitials.value || 'AAA').padEnd(3, 'A').slice(0, 3);
+  playerName = name;
+  localStorage.setItem(LS_NAME, name);
+  audio();
+  resetGame();
+  state = 'play';
+  elMenu.classList.add('hidden');
+  elGO.classList.add('hidden');
+  sfx.phase();
+}
+
+function showGameOver() {
+  const won = state === 'victory';
+  const pos = saveScore(playerName, score);
+  document.getElementById('goTitle').textContent = won ? '🏆 VITÓRIA!' : 'FIM DE JOGO';
+  document.getElementById('goScore').textContent = score;
+  const rec = document.getElementById('goRecord');
+  rec.classList.toggle('hidden', pos !== 1);
+  document.getElementById('goRank').textContent =
+    (won ? 'Você atravessou os 3 biomas! (+' + VICTORY_BONUS + ' ovos de bônus) · ' : '') +
+    (pos > 0 ? playerName + ' entrou no TOP 10 em ' + pos + 'º lugar!' : 'Não entrou no TOP 10 desta vez.');
+  elGO.classList.remove('hidden');
+}
+
+document.getElementById('btnPlay').addEventListener('click', startGame);
+document.getElementById('btnAgain').addEventListener('click', startGame);
+document.getElementById('btnMenu').addEventListener('click', () => {
+  state = 'menu';
+  resetGame();
+  renderRanking();
+  elGO.classList.add('hidden');
+  elMenu.classList.remove('hidden');
+});
+elInitials.addEventListener('keydown', e => {
+  if (e.key === 'Enter') startGame();
+});
+
+// ---------- Início ----------
+resetGame();
+renderRanking();
+loop();
+</script>
+</body>
+</html>
