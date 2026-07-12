@@ -2273,20 +2273,47 @@ function drawCameo(cm) {
   const col = conf[0], face = conf[1], kind = conf[2];
   ctx.save();
   ctx.translate(cm.x, cm.y);
-  // galho grosso pertinho da câmera
-  ctx.strokeStyle = '#4a3220';
-  ctx.lineWidth = 16;
-  ctx.lineCap = 'round';
+  // TRONCO grosso nascendo do chão, subindo até o bichinho no topo (primeiro plano)
+  const groundLocal = (H - GROUND_H) - cm.y; // y do solo em coordenadas locais
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  // casca: tronco com leve curvinha, da base do solo até ~y=34 (logo abaixo do bicho)
+  ctx.strokeStyle = '#5a3d24';
+  ctx.lineWidth = 34;
   ctx.beginPath();
-  ctx.moveTo(-50, 26);
-  ctx.quadraticCurveTo(60, 18, 220, 30);
+  ctx.moveTo(6, groundLocal);
+  ctx.quadraticCurveTo(-8, groundLocal - 60, 12, 34);
   ctx.stroke();
-  ctx.fillStyle = '#2f8f46';
-  [[-36, 18], [34, 13], [100, 18], [160, 22]].forEach(l => {
-    ctx.beginPath(); ctx.ellipse(l[0], l[1], 17, 8, -0.3, 0, 7); ctx.fill();
+  // textura de casca (traços verticais mais escuros)
+  ctx.strokeStyle = 'rgba(40,26,14,.55)';
+  ctx.lineWidth = 3;
+  [-9, 0, 9].forEach(off => {
+    ctx.beginPath();
+    ctx.moveTo(6 + off, groundLocal - 6);
+    ctx.quadraticCurveTo(-8 + off, groundLocal - 60, 12 + off * 0.6, 40);
+    ctx.stroke();
   });
-  // bichinho sentado, balançando de leve
-  ctx.translate(20, -14 + Math.sin(cm.ph * 2) * 2);
+  // raízes na base
+  ctx.strokeStyle = '#5a3d24'; ctx.lineWidth = 9;
+  ctx.beginPath();
+  ctx.moveTo(-2, groundLocal - 4); ctx.lineTo(-20, groundLocal + 4);
+  ctx.moveTo(14, groundLocal - 4); ctx.lineTo(30, groundLocal + 4);
+  ctx.stroke();
+  // galho lateral saindo do tronco
+  ctx.lineWidth = 12;
+  ctx.beginPath();
+  ctx.moveTo(10, 70); ctx.quadraticCurveTo(48, 58, 70, 34);
+  ctx.stroke();
+  // folhagem no galho lateral e uma touceira acima do topo (atrás do bichinho)
+  ctx.fillStyle = '#2f8f46';
+  [[64, 30, 18, 10], [80, 22, 15, 9], [18, -34, 24, 13], [-8, -30, 20, 11]].forEach(l => {
+    ctx.beginPath(); ctx.ellipse(l[0], l[1], l[2], l[3], -0.3, 0, 7); ctx.fill();
+  });
+  ctx.fillStyle = '#39a352';
+  [[72, 24, 12, 7], [6, -38, 15, 9]].forEach(l => {
+    ctx.beginPath(); ctx.ellipse(l[0], l[1], l[2], l[3], -0.2, 0, 7); ctx.fill();
+  });
+  // bichinho sentado no topo do tronco, balançando de leve
+  ctx.translate(10, -14 + Math.sin(cm.ph * 2) * 2);
   ctx.fillStyle = col;
   ctx.beginPath(); ctx.ellipse(0, 14, 17, 14, 0, 0, 7); ctx.fill();
   ctx.fillStyle = face;
