@@ -710,6 +710,27 @@ let combo = 0; // ovos coletados em sequência sem deixar nenhum passar
 let enemies = [];
 let enemyTimer = 0;
 const ENEMY_SPEED = 2.5;
+// ---------- Fauna decorativa dos biomas (cosmética: usa Math.random,
+// nunca o rng do desafio diário; não colide com nada) ----------
+const FAUNA = {
+  jungle:   ['onca', 'bugio', 'macaco', 'anaconda', 'anta'],
+  cerrado:  ['tamandua', 'lobo', 'tatu', 'ema', 'anta', 'jiboia'],
+  mata:     ['oncaparda', 'mico', 'jaguatirica', 'tatu'],
+  caatinga: ['seriema', 'lagarto', 'cascavel', 'veado'],
+  pampas:   ['capivara', 'tartaruga', 'ra', 'tatu', 'jararaca', 'veado'],
+  pantanal: ['jacare', 'tuiuiu', 'capivara', 'anaconda']
+};
+const FLOCKS = { // cores das revoadas de aves por bioma
+  jungle:   [['#2e8b57']],                                   // papagaios
+  cerrado:  [['#7fb069']],                                   // maritacas
+  mata:     [['#22303c']],                                   // tucanos em silhueta
+  caatinga: [['#e8e3d8'], ['#e8e3d8'], ['#3b82f6']],         // asas-brancas; ararinha-azul (rara)
+  pampas:   [['#4b5563']],                                   // quero-queros
+  pantanal: [['#d62828'], ['#1d4ed8'], ['#f59e0b', '#1d4ed8']] // araras vermelha, azul e canindé
+};
+let critters = [], flocks = [];
+let critterTimer = 120, flockTimer = 240;
+
 // Power-ups coletáveis e seus efeitos ativos (em frames)
 let powerups = [];
 let pena = 0;      // PENA: velocidade x1.3 e pontos x2 (10 s)
@@ -750,6 +771,8 @@ function resetGame() {
   enemies = [];
   enemyTimer = 180;
   powerups = [];
+  critters = []; flocks = [];
+  critterTimer = 120; flockTimer = 240;
   pena = 0; shield = 0; slowmo = 0; invuln = 0;
   event = null; eventTimer = 0; eventCooldown = 900; alertTimer = 0;
   floaters = [];
@@ -891,6 +914,37 @@ function update() {
   // nuvens (sempre animadas, inclusive no menu)
   const cloudSpeed = state === 'play' ? p.speed * 0.25 : 0.3;
   clouds.forEach(c => { c.x -= cloudSpeed * c.s; if (c.x < -90) { c.x = W + 90; c.y = 30 + Math.random() * 160; } });
+
+  // fauna decorativa: bichos no chão e revoadas ao fundo (todos os estados)
+  const fSpeed = state === 'play' ? currentDiff().speed : 0.3;
+  if (--critterTimer <= 0) {
+    critterTimer = 380 + Math.random() * 520;
+    if (critters.length < 3) {
+      const kinds = FAUNA[phase().deco];
+      critters.push({
+        kind: kinds[Math.floor(Math.random() * kinds.length)],
+        x: W + 90,
+        ph: Math.random() * 6.28,
+        s: 0.85 + Math.random() * 0.35
+      });
+    }
+  }
+  critters.forEach(c => { c.x -= fSpeed * 0.92; c.ph += 0.05; });
+  critters = critters.filter(c => c.x > -130);
+  if (--flockTimer <= 0) {
+    flockTimer = 1000 + Math.random() * 1500;
+    const sets = FLOCKS[phase().deco];
+    flocks.push({
+      x: W + 140,
+      y: 60 + Math.random() * 170,
+      vx: 0.5 + Math.random() * 0.35,
+      colors: sets[Math.floor(Math.random() * sets.length)],
+      n: 5 + Math.floor(Math.random() * 5),
+      ph: Math.random() * 6.28
+    });
+  }
+  flocks.forEach(fl => { fl.x -= fSpeed * 0.25 + fl.vx; fl.ph += 0.09; });
+  flocks = flocks.filter(fl => fl.x > -280);
 
   // partículas (confetes giram; penas caem devagar balançando)
   particles = particles.filter(pt => {
@@ -1240,6 +1294,31 @@ function drawBackground(p) {
     ctx.fill();
   });
 
+  // revoadas de aves do bioma em formação V, lá no fundo
+  flocks.forEach(fl => {
+    ctx.save();
+    ctx.globalAlpha = 0.75;
+    for (let i = 0; i < fl.n; i++) {
+      const side = i % 2 ? 1 : -1;
+      const idx = Math.ceil(i / 2);
+      const bx = fl.x + idx * 16;
+      const by = fl.y + side * idx * 8 + Math.sin(fl.ph + i) * 2;
+      const flap = Math.sin(fl.ph * 2 + i * 0.7);
+      const col = fl.colors[i % fl.colors.length];
+      ctx.strokeStyle = col;
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      ctx.moveTo(bx - 6, by - flap * 4);
+      ctx.quadraticCurveTo(bx, by + 2, bx + 6, by - flap * 4);
+      ctx.stroke();
+      ctx.fillStyle = col;
+      ctx.beginPath();
+      ctx.ellipse(bx, by + 1, 3, 1.6, 0, 0, 7);
+      ctx.fill();
+    }
+    ctx.restore();
+  });
+
   // camada distante (parallax) — silhuetas por bioma
   const off1 = (totalDist * 0.25) % 220;
   ctx.fillStyle = p.far;
@@ -1506,6 +1585,274 @@ function drawEgg(e) {
     ctx.font = "9px Bungee, 'Courier New', monospace";
     ctx.textAlign = 'center';
     ctx.fillText('5', 0, 3);
+  }
+  ctx.restore();
+}
+
+// Fauna do bioma: bichos simples e carismáticos andando pelo cenário
+function drawCritter(c) {
+  const ph = c.ph;
+  const bob = Math.sin(ph * 2) * 1.2; // balanço do passo
+  const leg = Math.sin(ph * 2);       // pêndulo das pernas
+  ctx.save();
+  ctx.translate(c.x, H - GROUND_H + 8);
+  ctx.scale(c.s, c.s);
+  ctx.globalAlpha = 0.92;
+  switch (c.kind) {
+    case 'onca': case 'oncaparda': case 'jaguatirica': {
+      const sc = c.kind === 'jaguatirica' ? 0.68 : 1;
+      const col = c.kind === 'oncaparda' ? '#a67c52' : '#d9a441';
+      ctx.scale(sc, sc);
+      ctx.strokeStyle = col; ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.moveTo(-14, -18 + bob); ctx.lineTo(-14 + leg * 4, 0);
+      ctx.moveTo(-6, -18 + bob); ctx.lineTo(-6 - leg * 4, 0);
+      ctx.moveTo(8, -18 + bob); ctx.lineTo(8 + leg * 4, 0);
+      ctx.moveTo(15, -18 + bob); ctx.lineTo(15 - leg * 4, 0);
+      ctx.stroke();
+      ctx.fillStyle = col;
+      ctx.beginPath(); ctx.ellipse(0, -22 + bob, 22, 9, 0, 0, 7); ctx.fill();
+      ctx.beginPath(); ctx.arc(-24, -26 + bob, 7, 0, 7); ctx.fill();
+      ctx.beginPath(); ctx.arc(-27, -32 + bob, 2.5, 0, 7); ctx.arc(-21, -33 + bob, 2.5, 0, 7); ctx.fill();
+      ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.moveTo(20, -24 + bob);
+      ctx.quadraticCurveTo(30, -30 + Math.sin(ph) * 3, 34, -22); ctx.stroke();
+      if (c.kind !== 'oncaparda') {
+        ctx.fillStyle = 'rgba(60,40,10,.8)';
+        for (let i = 0; i < 8; i++) ctx.fillRect(-14 + i * 4.5, -25 + ((i * 7) % 8) + bob, 2, 2);
+      }
+      break;
+    }
+    case 'bugio': case 'macaco': case 'mico': {
+      const col = c.kind === 'bugio' ? '#7a3b1e' : c.kind === 'mico' ? '#f5a623' : '#8a6a4a';
+      ctx.scale(c.kind === 'bugio' ? 1 : 0.68, c.kind === 'bugio' ? 1 : 0.68);
+      ctx.fillStyle = col;
+      ctx.beginPath(); ctx.ellipse(0, -12 + bob * 0.6, 9, 11, 0, 0, 7); ctx.fill();
+      ctx.beginPath(); ctx.arc(-2, -26 + bob * 0.6, 6.5, 0, 7); ctx.fill();
+      ctx.fillStyle = c.kind === 'mico' ? '#ffe0b0' : '#c9a882';
+      ctx.beginPath(); ctx.arc(-4, -25 + bob * 0.6, 3.5, 0, 7); ctx.fill();
+      ctx.strokeStyle = col; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(8, -10);
+      ctx.quadraticCurveTo(18, -18 + Math.sin(ph) * 4, 14, -28 + Math.sin(ph) * 4);
+      ctx.stroke();
+      break;
+    }
+    case 'anaconda': case 'jiboia': case 'jararaca': {
+      const col = c.kind === 'anaconda' ? '#3a5f3a' : c.kind === 'jiboia' ? '#8a6a3a' : '#6a6a4a';
+      const len = c.kind === 'anaconda' ? 46 : 30;
+      ctx.strokeStyle = col; ctx.lineWidth = c.kind === 'anaconda' ? 7 : 4.5;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      for (let i = 0; i <= len; i += 4) {
+        const sx = -len / 2 + i, sy = -5 + Math.sin(ph * 2 + i * 0.25) * 3.5;
+        if (i === 0) ctx.moveTo(sx, sy); else ctx.lineTo(sx, sy);
+      }
+      ctx.stroke();
+      ctx.fillStyle = col;
+      ctx.beginPath(); ctx.ellipse(-len / 2 - 3, -5 + Math.sin(ph * 2) * 3.5, 5, 3.5, 0, 0, 7); ctx.fill();
+      break;
+    }
+    case 'cascavel': {
+      ctx.strokeStyle = '#9a7b4f'; ctx.lineWidth = 5; ctx.lineCap = 'round';
+      ctx.beginPath();
+      for (let a = 0; a < 12; a += 0.3) {
+        const r = 3 + a * 1.05;
+        const sx = Math.cos(a) * r, sy = -6 + Math.sin(a) * r * 0.45;
+        if (a === 0) ctx.moveTo(sx, sy); else ctx.lineTo(sx, sy);
+      }
+      ctx.stroke();
+      const sh = Math.sin(ph * 6) * 2; // chocalho tremendo
+      ctx.fillStyle = '#c9b892';
+      ctx.fillRect(10 + sh, -27, 4, 9);
+      ctx.fillStyle = '#9a7b4f';
+      ctx.beginPath(); ctx.ellipse(-12, -16, 5, 3.5, -0.4, 0, 7); ctx.fill();
+      break;
+    }
+    case 'tatu': {
+      ctx.fillStyle = '#9a8a72';
+      ctx.beginPath(); ctx.ellipse(0, -9 + bob * 0.5, 13, 8, 0, Math.PI, 0); ctx.fill();
+      ctx.strokeStyle = 'rgba(60,50,35,.6)'; ctx.lineWidth = 1.5;
+      for (let i = -6; i <= 6; i += 4) { ctx.beginPath(); ctx.moveTo(i, -15); ctx.lineTo(i, -3); ctx.stroke(); }
+      ctx.fillStyle = '#8a7a62';
+      ctx.beginPath(); ctx.ellipse(-14, -5, 5, 3, -0.3, 0, 7); ctx.fill();
+      ctx.strokeStyle = '#8a7a62'; ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.moveTo(12, -6); ctx.lineTo(20, -2); ctx.stroke();
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(-6, -3); ctx.lineTo(-6 + leg * 2, 0);
+      ctx.moveTo(4, -3); ctx.lineTo(4 - leg * 2, 0);
+      ctx.stroke();
+      break;
+    }
+    case 'tamandua': {
+      ctx.fillStyle = '#5a4a3a';
+      ctx.beginPath(); ctx.ellipse(2, -16 + bob, 16, 9, 0, 0, 7); ctx.fill();
+      const sn = Math.sin(ph) * 2; // focinho fuçando
+      ctx.strokeStyle = '#5a4a3a'; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.moveTo(-14, -18 + bob); ctx.quadraticCurveTo(-24, -14, -30, -4 + sn); ctx.stroke();
+      ctx.fillStyle = '#4a3a2e'; // cauda-bandeira
+      ctx.beginPath();
+      ctx.moveTo(14, -18 + bob); ctx.quadraticCurveTo(34, -34, 40, -12);
+      ctx.quadraticCurveTo(30, -6, 16, -10); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = '#d9cbb0'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(-8, -24 + bob); ctx.lineTo(4, -10 + bob); ctx.stroke();
+      ctx.strokeStyle = '#5a4a3a'; ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(-8, -12 + bob); ctx.lineTo(-8 + leg * 3, 0);
+      ctx.moveTo(8, -12 + bob); ctx.lineTo(8 - leg * 3, 0);
+      ctx.stroke();
+      break;
+    }
+    case 'lobo': {
+      ctx.strokeStyle = '#1a1a1a'; ctx.lineWidth = 3.5; // as famosas pernas longas
+      ctx.beginPath();
+      ctx.moveTo(-10, -26 + bob); ctx.lineTo(-10 + leg * 5, 0);
+      ctx.moveTo(-4, -26 + bob); ctx.lineTo(-4 - leg * 5, 0);
+      ctx.moveTo(8, -26 + bob); ctx.lineTo(8 + leg * 5, 0);
+      ctx.moveTo(13, -26 + bob); ctx.lineTo(13 - leg * 5, 0);
+      ctx.stroke();
+      ctx.fillStyle = '#c1440e';
+      ctx.beginPath(); ctx.ellipse(0, -30 + bob, 16, 7.5, 0, 0, 7); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(-12, -32 + bob); ctx.lineTo(-20, -44 + bob); ctx.lineTo(-8, -34 + bob); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.arc(-20, -44 + bob, 5, 0, 7); ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(-24, -47 + bob); ctx.lineTo(-23, -56 + bob); ctx.lineTo(-19, -48 + bob);
+      ctx.moveTo(-18, -48 + bob); ctx.lineTo(-16, -56 + bob); ctx.lineTo(-13, -47 + bob);
+      ctx.fill();
+      break;
+    }
+    case 'ema': case 'seriema': case 'tuiuiu': {
+      const col = c.kind === 'ema' ? '#6a6a5a' : c.kind === 'seriema' ? '#a89878' : '#f2f2ee';
+      ctx.strokeStyle = c.kind === 'tuiuiu' ? '#333' : '#8a7a5a'; ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(-3, -22 + bob); ctx.lineTo(-3 + leg * 5, 0);
+      ctx.moveTo(4, -22 + bob); ctx.lineTo(4 - leg * 5, 0);
+      ctx.stroke();
+      ctx.fillStyle = col;
+      ctx.beginPath(); ctx.ellipse(0, -28 + bob, 13, 9, 0, 0, 7); ctx.fill();
+      const peck = Math.max(0, Math.sin(ph * 0.7)) * 10; // bica o chão
+      ctx.strokeStyle = c.kind === 'tuiuiu' ? '#111' : col; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(-9, -32 + bob); ctx.quadraticCurveTo(-16, -48 + peck, -18, -50 + peck + bob); ctx.stroke();
+      if (c.kind === 'tuiuiu') { // papo vermelho do tuiuiú
+        ctx.strokeStyle = '#d62828'; ctx.lineWidth = 3.5;
+        ctx.beginPath(); ctx.moveTo(-12, -38 + bob + peck * 0.5); ctx.lineTo(-15, -44 + peck); ctx.stroke();
+      }
+      ctx.fillStyle = c.kind === 'tuiuiu' ? '#111' : col;
+      ctx.beginPath(); ctx.arc(-18, -50 + peck + bob, 4, 0, 7); ctx.fill();
+      ctx.fillStyle = '#c9b892';
+      ctx.beginPath();
+      ctx.moveTo(-21, -51 + peck + bob); ctx.lineTo(-30, -48 + peck + bob); ctx.lineTo(-21, -47 + peck + bob);
+      ctx.closePath(); ctx.fill();
+      if (c.kind === 'seriema') { // penacho
+        ctx.strokeStyle = col; ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(-19, -53 + peck + bob); ctx.lineTo(-22, -59 + peck + bob);
+        ctx.moveTo(-17, -53 + peck + bob); ctx.lineTo(-18, -60 + peck + bob);
+        ctx.stroke();
+      }
+      break;
+    }
+    case 'anta': {
+      ctx.strokeStyle = '#5a5048'; ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.moveTo(-10, -14 + bob); ctx.lineTo(-10 + leg * 3, 0);
+      ctx.moveTo(10, -14 + bob); ctx.lineTo(10 - leg * 3, 0);
+      ctx.stroke();
+      ctx.fillStyle = '#5a5048';
+      ctx.beginPath(); ctx.ellipse(0, -18 + bob, 18, 11, 0, 0, 7); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(-17, -22 + bob, 8, 6, 0.2, 0, 7); ctx.fill();
+      const tr = Math.sin(ph) * 1.5; // trombinha mexendo
+      ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.moveTo(-24, -22 + bob); ctx.quadraticCurveTo(-28, -18 + tr, -27, -14 + tr); ctx.stroke();
+      break;
+    }
+    case 'capivara': {
+      ctx.strokeStyle = '#8a6f4d'; ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(-8, -10 + bob * 0.5); ctx.lineTo(-8 + leg * 2, 0);
+      ctx.moveTo(8, -10 + bob * 0.5); ctx.lineTo(8 - leg * 2, 0);
+      ctx.stroke();
+      ctx.fillStyle = '#8a6f4d';
+      ctx.beginPath(); ctx.ellipse(0, -14 + bob * 0.5, 15, 9, 0, 0, 7); ctx.fill();
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(-24, -22 + bob * 0.5, 12, 10, 3); else ctx.rect(-24, -22 + bob * 0.5, 12, 10);
+      ctx.fill();
+      ctx.beginPath(); ctx.arc(-14, -23 + bob * 0.5, 2, 0, 7); ctx.fill();
+      break;
+    }
+    case 'tartaruga': {
+      ctx.fillStyle = '#4a7a4a';
+      ctx.beginPath(); ctx.ellipse(0, -7, 11, 7, 0, Math.PI, 0); ctx.fill();
+      ctx.fillStyle = '#6a9a5a';
+      ctx.beginPath(); ctx.ellipse(-12, -5 + Math.sin(ph * 0.8), 4.5, 3, 0, 0, 7); ctx.fill();
+      ctx.strokeStyle = '#3a5a3a'; ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(-6, -2); ctx.lineTo(-7, 0);
+      ctx.moveTo(6, -2); ctx.lineTo(7, 0);
+      ctx.stroke();
+      break;
+    }
+    case 'ra': {
+      const hop = Math.max(0, Math.sin(ph * 1.6)) * 8;
+      ctx.fillStyle = '#5aa864';
+      ctx.beginPath(); ctx.ellipse(0, -6 - hop, 7, 5, 0, 0, 7); ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.beginPath(); ctx.arc(-4, -11 - hop, 2, 0, 7); ctx.arc(1, -11 - hop, 2, 0, 7); ctx.fill();
+      ctx.fillStyle = '#000';
+      ctx.beginPath(); ctx.arc(-4, -11 - hop, 0.9, 0, 7); ctx.arc(1, -11 - hop, 0.9, 0, 7); ctx.fill();
+      ctx.strokeStyle = '#4a8a54'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(5, -3 - hop); ctx.quadraticCurveTo(9, -1 - hop * 0.5, 11, 0); ctx.stroke();
+      break;
+    }
+    case 'lagarto': {
+      const dart = Math.sin(ph * 0.5) > 0.6 ? Math.sin(ph * 8) * 1.5 : 0; // corre e congela
+      ctx.fillStyle = '#7a8a4a';
+      ctx.beginPath(); ctx.ellipse(dart, -5, 10, 3.5, 0, 0, 7); ctx.fill();
+      ctx.beginPath(); ctx.arc(-11 + dart, -5, 3, 0, 7); ctx.fill();
+      ctx.strokeStyle = '#7a8a4a'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(9 + dart, -4); ctx.quadraticCurveTo(17 + dart, -3, 21 + dart, -6); ctx.stroke();
+      break;
+    }
+    case 'veado': {
+      ctx.strokeStyle = '#9a7a5a'; ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(-8, -22 + bob); ctx.lineTo(-8 + leg * 4, 0);
+      ctx.moveTo(-3, -22 + bob); ctx.lineTo(-3 - leg * 4, 0);
+      ctx.moveTo(7, -22 + bob); ctx.lineTo(7 + leg * 4, 0);
+      ctx.moveTo(11, -22 + bob); ctx.lineTo(11 - leg * 4, 0);
+      ctx.stroke();
+      ctx.fillStyle = '#b08a62';
+      ctx.beginPath(); ctx.ellipse(0, -26 + bob, 13, 7, 0, 0, 7); ctx.fill();
+      const graze = Math.max(0, Math.sin(ph * 0.6)) * 12; // pastando
+      ctx.beginPath();
+      ctx.moveTo(-10, -28 + bob); ctx.lineTo(-18, -40 + graze + bob); ctx.lineTo(-13, -27 + bob);
+      ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.arc(-18, -40 + graze + bob, 4, 0, 7); ctx.fill();
+      ctx.strokeStyle = '#7a5a3a'; ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(-19, -44 + graze + bob); ctx.lineTo(-21, -49 + graze + bob);
+      ctx.moveTo(-17, -44 + graze + bob); ctx.lineTo(-16, -50 + graze + bob);
+      ctx.stroke();
+      break;
+    }
+    case 'jacare': {
+      const mouth = Math.max(0, Math.sin(ph * 0.5)) * 5; // boca abre devagar
+      ctx.fillStyle = '#4a6a3a';
+      ctx.beginPath(); ctx.ellipse(4, -6, 20, 5.5, 0, 0, 7); ctx.fill();
+      ctx.beginPath();
+      for (let i = -10; i <= 14; i += 6) { ctx.moveTo(i, -10); ctx.lineTo(i + 3, -14); ctx.lineTo(i + 6, -10); }
+      ctx.fill();
+      ctx.beginPath(); ctx.moveTo(-14, -8); ctx.lineTo(-34, -6 - mouth); ctx.lineTo(-14, -5); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#e8e3c8'; // papo amarelo!
+      ctx.beginPath(); ctx.moveTo(-14, -4); ctx.lineTo(-32, -2 + mouth * 0.4); ctx.lineTo(-13, -1); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#ffd23f';
+      ctx.beginPath(); ctx.arc(-13, -10, 1.6, 0, 7); ctx.fill();
+      ctx.fillStyle = '#4a6a3a';
+      ctx.beginPath();
+      ctx.moveTo(22, -8); ctx.quadraticCurveTo(34, -6 + Math.sin(ph) * 2, 40, -3); ctx.lineTo(22, -3);
+      ctx.closePath(); ctx.fill();
+      break;
+    }
   }
   ctx.restore();
 }
@@ -1973,6 +2320,7 @@ function draw() {
   if (shake > 0) ctx.translate((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake);
 
   drawBackground(p);
+  critters.forEach(drawCritter); // fauna do bioma, atrás dos obstáculos
   eggs.forEach(e => { if (!e.taken && e.jewel) drawJewelGlow(e); });
   obstacles.forEach(o => drawBranch(o, p));
   eggs.forEach(e => { if (!e.taken) drawEgg(e); });
@@ -2448,7 +2796,7 @@ if (document.fonts && document.fonts.load) {
     document.fonts.load(f).catch(() => {});
   });
 }
-const GAME_VERSION = '1.8';
+const GAME_VERSION = '1.9';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 resetGame();
