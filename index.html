@@ -1803,12 +1803,13 @@ function drawTreeDweller(tile, x, baseY, p) {
     else if (roll === 3) drawPerchedHawk(x + 61, baseY - 128, ph);
     else if (roll === 4) drawTreeMonkey(x + 40, baseY - 96, ph, true); // mico-leão
   } else if (p.deco === 'cerrado') {
-    // copa da árvore tortuosa em (x+58, baseY-92)
+    // copa da árvore tortuosa em (x+58, baseY-92) — ~50% das árvores com morador
     if (roll < 3) drawSloth(x + 74, baseY - 86, ph);
-    else if (roll === 3) drawPerchedHawk(x + 58, baseY - 110, ph);
+    else if (roll < 5) drawPerchedHawk(x + 58, baseY - 110, ph);
   } else if (p.deco === 'caatinga') {
-    // topo do mandacaru em (x+61, baseY-78)
-    if (roll < 2) drawPerchedHawk(x + 61, baseY - 80, ph);
+    // topo do mandacaru em (x+61, baseY-78) — ~50% das árvores com morador
+    if (roll < 3) drawPerchedHawk(x + 61, baseY - 80, ph);
+    else if (roll < 5) drawTreeMonkey(x + 48, baseY - 84, ph, false);
   }
   ctx.restore();
 }
@@ -3712,7 +3713,7 @@ if (document.fonts && document.fonts.load) {
     document.fonts.load(f).catch(() => {});
   });
 }
-const GAME_VERSION = '2.2';
+const GAME_VERSION = '2.3';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 resetGame();
