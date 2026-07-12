@@ -313,42 +313,42 @@ fitCanvas();
 // 6 biomas brasileiros — cada paleta em forte contraste com a anterior
 const PHASES = [
   { // verde profundo e úmido
-    name: 'AMAZÔNIA', dist: 1600, speed: 2.5, gap: 320, spacing: 265,
+    name: 'AMAZÔNIA', dist: 1600, speed: 2.3, gap: 358, spacing: 286,
     body: '#16161a', wing: '#2e2e2e', beak: ['#ff9f1c', '#e0532f'], eye: '#ffd23f',
     skyTop: '#bfe8c0', skyBot: '#e9f7d3', far: '#1f5e34', mid: '#2f7a45',
     branch: '#5b3a21', leaf: '#2f8f46', ground: '#2e6b33', groundTop: '#3f8f4a',
     deco: 'jungle'
   },
   { // dourado quente (contraste com o verde)
-    name: 'CERRADO', dist: 2000, speed: 2.9, gap: 162, spacing: 245,
+    name: 'CERRADO', dist: 2000, speed: 2.67, gap: 181, spacing: 265,
     body: '#241435', wing: '#3a2452', beak: ['#0ea5e9', '#075985'], eye: '#ffd23f',
     skyTop: '#ff9e3d', skyBot: '#ffe3ad', far: '#b26a1e', mid: '#8a4d17',
     branch: '#7d5a3c', leaf: '#d9a441', ground: '#b8813f', groundTop: '#d9a55c',
     deco: 'cerrado'
   },
   { // névoa fria azul-esverdeada (contraste com o dourado)
-    name: 'MATA ATLÂNTICA', dist: 3000, speed: 3.2, gap: 150, spacing: 230,
+    name: 'MATA ATLÂNTICA', dist: 3000, speed: 2.95, gap: 168, spacing: 248,
     body: '#101820', wing: '#22303c', beak: ['#ffd23f', '#f59e0b'], eye: '#ff5c8a',
     skyTop: '#5fb8c9', skyBot: '#dcf2ee', far: '#1d6a5e', mid: '#2a8a74',
     branch: '#4c3a2b', leaf: '#37a06b', ground: '#2d7a58', groundTop: '#3f9a6e',
     deco: 'mata'
   },
   { // seco, pálido, sol de osso (contraste com a névoa fria)
-    name: 'CAATINGA', dist: 3400, speed: 3.6, gap: 140, spacing: 215,
+    name: 'CAATINGA', dist: 3400, speed: 3.31, gap: 157, spacing: 232,
     body: '#262019', wing: '#3d342a', beak: ['#2e9e5b', '#1b6e3d'], eye: '#e63946',
     skyTop: '#f7e7c6', skyBot: '#fdf6e3', far: '#b09a72', mid: '#8a7050',
     branch: '#6e5a3f', leaf: '#7ca24a', ground: '#c9a86a', groundTop: '#dcc07f',
     deco: 'caatinga'
   },
   { // crepúsculo violeta sobre campo verde (contraste com o pálido)
-    name: 'PAMPAS', dist: 3800, speed: 3.9, gap: 130, spacing: 205,
+    name: 'PAMPAS', dist: 3800, speed: 3.59, gap: 146, spacing: 221,
     body: '#22333b', wing: '#35494f', beak: ['#ff2e93', '#a3125e'], eye: '#a7f432',
     skyTop: '#7b4fb5', skyBot: '#f2a4c4', far: '#4a3a72', mid: '#2f5d3a',
     branch: '#4a3a2a', leaf: '#5aa864', ground: '#3f7a3f', groundTop: '#57a05a',
     deco: 'pampas'
   },
   { // azul de água e céu aberto (contraste com o violeta) — INFINITA
-    name: 'PANTANAL', dist: Infinity, speed: 4.2, gap: 124, spacing: 198,
+    name: 'PANTANAL', dist: Infinity, speed: 3.86, gap: 139, spacing: 214,
     body: '#101418', wing: '#25313a', beak: ['#06b6d4', '#0e7490'], eye: '#22c55e',
     skyTop: '#4aa8e8', skyBot: '#eaf6ff', far: '#2f6a9e', mid: '#2a7a5e',
     branch: '#5c4a36', leaf: '#4a9e6e', ground: '#2f6e5a', groundTop: '#3f8f6e',
@@ -366,9 +366,9 @@ function currentDiff() {
   let d;
   if (phaseIdx < LAST) d = { speed: p.speed, gap: p.gap, spacing: p.spacing };
   else d = {
-    speed: Math.min(6.2, p.speed + p3Level * 0.2),
-    gap: Math.max(108, p.gap - p3Level * 3),
-    spacing: Math.max(182, p.spacing - p3Level * 3)
+    speed: Math.min(5.6, p.speed + p3Level * 0.15),
+    gap: Math.max(122, p.gap - p3Level * 2.2),
+    spacing: Math.max(196, p.spacing - p3Level * 2.2)
   };
   // modificadores ativos: relógio (câmera lenta), pena (mais rápido), vulcão
   let k = 1;
@@ -966,8 +966,8 @@ function update() {
   // fauna decorativa: bichos no chão e revoadas ao fundo (todos os estados)
   const fSpeed = state === 'play' ? currentDiff().speed : 0.3;
   if (--critterTimer <= 0) {
-    critterTimer = 190 + Math.random() * 260; // o dobro de bichos em cena
-    if (critters.length < 6) {
+    critterTimer = 320 + Math.random() * 430; // fauna mais espaçada (−40%)
+    if (critters.length < 4) {
       // à noite, a fauna noturna substitui a diurna
       const kinds = event === 'NOITE' ? NIGHT_FAUNA[phase().deco] : FAUNA[phase().deco];
       const kind = kinds[Math.floor(Math.random() * kinds.length)];
@@ -2642,11 +2642,16 @@ function drawET(cm) {
   ctx.beginPath(); ctx.ellipse(0, 8, 9, 8, 0, 0, 7); ctx.fill();
   ctx.fillStyle = skin;
   ctx.beginPath(); ctx.ellipse(0, 4, 13, 15, 0, 0, 7); ctx.fill();
-  // 3 corninhos/antenas no topo
-  ctx.strokeStyle = skin; ctx.lineWidth = 2.5;
-  [[-7, -1], [0, 0], [7, -1]].forEach(a => {
-    ctx.beginPath(); ctx.moveTo(a[0], -14); ctx.lineTo(a[0] + a[1] * 2, -24); ctx.stroke();
-    ctx.fillStyle = '#c0e0c8'; ctx.beginPath(); ctx.arc(a[0] + a[1] * 2, -25, 2, 0, 7); ctx.fill();
+  // 3 PROTUBERÂNCIAS/bossas no topo da cabeça (ET de Varginha: caroços da própria pele)
+  [[-8, -12, 5], [0, -15, 5.5], [8, -12, 5]].forEach(b => {
+    ctx.fillStyle = skin;
+    ctx.beginPath(); ctx.arc(b[0], b[1], b[2], 0, 7); ctx.fill();
+    // leve sombra embaixo de cada bossa pra dar volume
+    ctx.fillStyle = skinDk;
+    ctx.beginPath(); ctx.ellipse(b[0], b[1] + b[2] * 0.5, b[2] * 0.7, b[2] * 0.35, 0, 0, Math.PI); ctx.fill();
+    // brilho no topo de cada bossa
+    ctx.fillStyle = 'rgba(220,245,225,.5)';
+    ctx.beginPath(); ctx.arc(b[0] - b[2] * 0.3, b[1] - b[2] * 0.4, b[2] * 0.3, 0, 7); ctx.fill();
   });
   // olhos pretos GRANDES, amendoados, com brilho (piscam de vez em quando)
   const blink = Math.sin(cm.ph * 1.7) > 0.93;
@@ -3713,7 +3718,7 @@ if (document.fonts && document.fonts.load) {
     document.fonts.load(f).catch(() => {});
   });
 }
-const GAME_VERSION = '2.3';
+const GAME_VERSION = '2.4';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 resetGame();
