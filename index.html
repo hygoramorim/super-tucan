@@ -2368,6 +2368,28 @@ function draw() {
     ctx.stroke();
   }
 
+  // COMBO ativo: linhas de velocidade estilo mangá, girando devagar ao redor
+  // do tucano — o "momento de poder" fica evidente sem esconder o jogo
+  if (combo >= 5 && state === 'play') {
+    ctx.save();
+    ctx.translate(bird.x, bird.y);
+    ctx.rotate(frames * 0.004); // deslocamento circular lento
+    ctx.lineCap = 'round';
+    const R = Math.max(W, H);
+    for (let i = 0; i < 28; i++) {
+      const a = (i / 28) * Math.PI * 2 + Math.sin(frames * 0.02 + i) * 0.02;
+      // o comprimento pulsa para parecer traço de mangá feito à mão
+      const inner = 150 + Math.sin(frames * 0.18 + i * 3.7) * 28 + (i % 3) * 24;
+      ctx.strokeStyle = i % 4 === 0 ? 'rgba(255,46,147,.30)' : 'rgba(255,255,255,.28)';
+      ctx.lineWidth = 1.2 + (i % 3);
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(a) * inner, Math.sin(a) * inner);
+      ctx.lineTo(Math.cos(a) * R, Math.sin(a) * R);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
   // overlays dos eventos climáticos
   if (event === 'TEMPESTADE') {
     ctx.fillStyle = 'rgba(20,30,60,.28)';
@@ -2796,7 +2818,7 @@ if (document.fonts && document.fonts.load) {
     document.fonts.load(f).catch(() => {});
   });
 }
-const GAME_VERSION = '1.9';
+const GAME_VERSION = '2.0';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 resetGame();
