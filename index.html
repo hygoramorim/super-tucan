@@ -439,6 +439,33 @@ const sfx = {
   chirp()   { tone(2200 + Math.random() * 600, 0.07, 'sine', 0.05, 2900); setTimeout(() => tone(2600, 0.06, 'sine', 0.04, 3200), 90); }
 };
 
+// ---------- Voz do tucano (PT-BR, tom cartoon via Web Speech API) ----------
+let ttsVoice = null;
+function pickVoice() {
+  try {
+    const vs = speechSynthesis.getVoices();
+    ttsVoice = vs.find(v => v.lang === 'pt-BR' && /Luciana|Francisca|Google/i.test(v.name))
+      || vs.find(v => v.lang && v.lang.indexOf('pt') === 0) || null;
+  } catch (e) { /* sem TTS */ }
+}
+if ('speechSynthesis' in window) {
+  pickVoice();
+  speechSynthesis.onvoiceschanged = pickVoice;
+}
+function speak(text) {
+  if (muted || !('speechSynthesis' in window)) return;
+  try {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text.toLowerCase());
+    u.lang = 'pt-BR';
+    if (ttsVoice) u.voice = ttsVoice;
+    u.pitch = 1.9;  // vozinha aguda de desenho animado
+    u.rate = 1.15;
+    u.volume = 0.9;
+    speechSynthesis.speak(u);
+  } catch (e) { /* sem TTS */ }
+}
+
 // ---------- Música de fundo (chiptune sintetizado, 1 tema por fase) ----------
 function mtone(freq, t, dur, type, vol) {
   const a = audio(), o = a.createOscillator(), g = a.createGain();
@@ -713,12 +740,12 @@ const ENEMY_SPEED = 2.5;
 // ---------- Fauna decorativa dos biomas (cosmética: usa Math.random,
 // nunca o rng do desafio diário; não colide com nada) ----------
 const FAUNA = {
-  jungle:   ['onca', 'bugio', 'macaco', 'anaconda', 'anta', 'preguica'],
-  cerrado:  ['tamandua', 'lobo', 'tatu', 'ema', 'anta', 'jiboia', 'preguica'],
-  mata:     ['oncaparda', 'mico', 'jaguatirica', 'tatu', 'preguica'],
-  caatinga: ['seriema', 'lagarto', 'cascavel', 'veado'],
+  jungle:   ['onca', 'bugio', 'macaco', 'anaconda', 'anta'],
+  cerrado:  ['tamandua', 'lobo', 'tatu', 'ema', 'anta', 'jiboia', 'gaviao'],
+  mata:     ['oncaparda', 'mico', 'jaguatirica', 'tatu', 'gaviao'],
+  caatinga: ['seriema', 'lagarto', 'cascavel', 'veado', 'gaviao'],
   pampas:   ['capivara', 'tartaruga', 'ra', 'tatu', 'jararaca', 'veado'],
-  pantanal: ['jacare', 'tuiuiu', 'capivara', 'anaconda']
+  pantanal: ['jacare', 'tuiuiu', 'capivara', 'anaconda', 'gaviao']
 };
 const FLOCKS = { // cores das revoadas de aves por bioma
   jungle:   [['#2e8b57']],                                   // papagaios
@@ -730,6 +757,8 @@ const FLOCKS = { // cores das revoadas de aves por bioma
 };
 let critters = [], flocks = [];
 let critterTimer = 120, flockTimer = 240;
+// camafeu de primeiro plano: galho pertinho da câmera com bichinho acenando
+let cameo = null, cameoTimer = 420;
 
 // Power-ups coletáveis e seus efeitos ativos (em frames)
 let powerups = [];
@@ -773,6 +802,7 @@ function resetGame() {
   powerups = [];
   critters = []; flocks = [];
   critterTimer = 120; flockTimer = 240;
+  cameo = null; cameoTimer = 420;
   pena = 0; shield = 0; slowmo = 0; invuln = 0;
   event = null; eventTimer = 0; eventCooldown = 900; alertTimer = 0;
   floaters = [];
@@ -918,16 +948,16 @@ function update() {
   // fauna decorativa: bichos no chão e revoadas ao fundo (todos os estados)
   const fSpeed = state === 'play' ? currentDiff().speed : 0.3;
   if (--critterTimer <= 0) {
-    critterTimer = 380 + Math.random() * 520;
-    if (critters.length < 3) {
+    critterTimer = 190 + Math.random() * 260; // o dobro de bichos em cena
+    if (critters.length < 6) {
       const kinds = FAUNA[phase().deco];
       const kind = kinds[Math.floor(Math.random() * kinds.length)];
       critters.push({
         kind,
         x: W + 90,
-        hy: 120 + Math.random() * 130, // altura do galho (só a preguiça usa)
+        hy: 80 + Math.random() * 140, // altura de voo (gavião planando)
         ph: Math.random() * 6.28,
-        s: 0.85 + Math.random() * 0.35
+        s: 1.15 + Math.random() * 0.4 // maiores, bem visíveis
       });
     }
   }
@@ -947,6 +977,22 @@ function update() {
   }
   flocks.forEach(fl => { fl.x -= fSpeed * 0.25 + fl.vx; fl.ph += 0.09; });
   flocks = flocks.filter(fl => fl.x > -280);
+
+  // camafeu de primeiro plano a cada ~10 s
+  if (!cameo && --cameoTimer <= 0) {
+    cameoTimer = 550 + Math.random() * 250;
+    cameo = {
+      x: W + 180,
+      y: Math.random() < 0.5 ? 110 + Math.random() * 40 : H - GROUND_H - 130 - Math.random() * 40,
+      kind: phase().deco,
+      ph: Math.random() * 6.28
+    };
+  }
+  if (cameo) {
+    cameo.x -= fSpeed * 1.55; // primeiro plano passa mais rápido (parallax)
+    cameo.ph += 0.06;
+    if (cameo.x < -240) cameo = null;
+  }
 
   // partículas (confetes giram; penas caem devagar balançando)
   particles = particles.filter(pt => {
@@ -992,6 +1038,7 @@ function update() {
       shake = 10;
       spawnFeathers();
       sfx.thud(deathPose);
+      setTimeout(() => speak(deathQuote), 350); // o tucano FALA a frase
     }
     if (shake > 0) shake--;
     floaters = floaters.filter(f => { f.y -= 0.7; f.life--; return f.life > 0; });
@@ -1409,6 +1456,9 @@ function drawBackground(p) {
       ctx.fill();
       for (let g = 0; g < 6; g++) ctx.fillRect(x + 110 + g * 6, baseY - 26 - (g % 3) * 8, 2, 26 + (g % 3) * 8);
     }
+    // moradores fixos desta árvore (preguiça, gavião, macaquinho)
+    drawTreeDweller(Math.round((x + totalDist * 0.5) / 180), x, baseY, p);
+    ctx.fillStyle = p.mid;
   }
   ctx.globalAlpha = 1;
 
@@ -1591,58 +1641,140 @@ function drawEgg(e) {
   ctx.restore();
 }
 
+// ---------- Moradores das árvores: presos às árvores FIXAS do parallax ----------
+// Cada árvore do cenário tem um "endereço" (tile); um hash decide se ela tem
+// preguiça pendurada, gavião pousado ou macaquinho — e eles rolam junto com ela.
+function drawSloth(x, y, ph) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(Math.sin(ph * 0.5) * 0.1); // balança beeem devagar
+  // braços agarrados na copa
+  ctx.strokeStyle = '#8a7a5e';
+  ctx.lineWidth = 5;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(-11, -2); ctx.quadraticCurveTo(-15, 8, -9, 15);
+  ctx.moveTo(11, -3); ctx.quadraticCurveTo(15, 8, 9, 15);
+  ctx.stroke();
+  // corpo pendurado de cabeça pra baixo
+  ctx.fillStyle = '#8a7a5e';
+  ctx.beginPath(); ctx.ellipse(0, 23, 13, 15, 0, 0, 7); ctx.fill();
+  ctx.beginPath(); ctx.arc(0, 41, 9, 0, 7); ctx.fill();
+  // máscara clara do rosto + listras dos olhos
+  ctx.fillStyle = '#d9cbb0';
+  ctx.beginPath(); ctx.ellipse(0, 42, 6.5, 5.5, 0, 0, 7); ctx.fill();
+  ctx.strokeStyle = '#4a3a2e';
+  ctx.lineWidth = 1.7;
+  ctx.beginPath();
+  ctx.moveTo(-5.5, 39); ctx.lineTo(-2, 42);
+  ctx.moveTo(5.5, 39); ctx.lineTo(2, 42);
+  ctx.stroke();
+  ctx.beginPath(); ctx.arc(0, 44, 2.4, 0.2, Math.PI - 0.2); ctx.stroke(); // sorrisinho
+  // Zzz subindo
+  ctx.fillStyle = 'rgba(255,255,255,.85)';
+  ctx.font = '10px sans-serif';
+  const zf = (ph * 6) % 18;
+  ctx.fillText('z', 16, 33 - zf);
+  ctx.font = '7px sans-serif';
+  ctx.fillText('z', 22, 27 - zf);
+  ctx.restore();
+}
+function drawPerchedHawk(x, y, ph) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(Math.sin(ph * 0.3) > 0 ? 1 : -1, 1); // vira a cabeça de vez em quando
+  ctx.fillStyle = '#4a3a2a';
+  ctx.beginPath(); ctx.ellipse(0, -8, 6, 10, 0.1, 0, 7); ctx.fill(); // corpo ereto
+  ctx.fillStyle = '#e8e3d8';
+  ctx.beginPath(); ctx.ellipse(1, -4, 3.5, 6, 0.1, 0, 7); ctx.fill(); // peito claro
+  ctx.fillStyle = '#4a3a2a';
+  ctx.beginPath(); ctx.arc(-1, -19, 4.5, 0, 7); ctx.fill(); // cabeça
+  ctx.fillStyle = '#ffd23f';
+  ctx.beginPath(); ctx.arc(-3, -20, 1.2, 0, 7); ctx.fill(); // olho amarelo
+  ctx.fillStyle = '#c9b892';
+  ctx.beginPath(); ctx.moveTo(-5, -18); ctx.lineTo(-9, -16.5); ctx.lineTo(-5, -15.5); ctx.closePath(); ctx.fill(); // bico curvo
+  ctx.strokeStyle = '#8a7a5a';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(-2, 2); ctx.lineTo(-2, 5); ctx.moveTo(2, 2); ctx.lineTo(2, 5); ctx.stroke(); // garras
+  ctx.restore();
+}
+function drawTreeMonkey(x, y, ph, golden) {
+  ctx.save();
+  ctx.translate(x, y);
+  const col = golden ? '#f5a623' : '#8a6a4a';
+  ctx.fillStyle = col;
+  ctx.beginPath(); ctx.ellipse(0, 0, 7, 9, 0, 0, 7); ctx.fill(); // sentado na copa
+  ctx.beginPath(); ctx.arc(-1, -11, 5.5, 0, 7); ctx.fill();
+  ctx.fillStyle = golden ? '#ffe0b0' : '#c9a882';
+  ctx.beginPath(); ctx.arc(-2, -10, 3, 0, 7); ctx.fill(); // rostinho
+  ctx.fillStyle = '#3a2a1a';
+  ctx.beginPath(); ctx.arc(-3, -11, 0.8, 0, 7); ctx.arc(-0.5, -11, 0.8, 0, 7); ctx.fill(); // olhinhos
+  ctx.strokeStyle = col;
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.moveTo(6, 4);
+  ctx.quadraticCurveTo(14, -2 + Math.sin(ph) * 4, 11, -12 + Math.sin(ph) * 4); // cauda balançando
+  ctx.stroke();
+  ctx.restore();
+}
+function drawTreeDweller(tile, x, baseY, p) {
+  let h = (tile * 2654435761) >>> 0;
+  h = (h ^ (h >>> 13)) >>> 0;
+  const roll = h % 10;
+  const ph = frames * 0.02 + (h % 7);
+  ctx.save();
+  ctx.globalAlpha = 0.95;
+  if (p.deco === 'jungle') {
+    // copa da palmeira em (x+62, baseY-98)
+    if (roll < 3) drawSloth(x + 78, baseY - 92, ph);
+    else if (roll < 5) drawTreeMonkey(x + 50, baseY - 104, ph, false);
+  } else if (p.deco === 'mata') {
+    // copa da araucária em (x+61, baseY-92..126)
+    if (roll < 3) drawSloth(x + 80, baseY - 88, ph);
+    else if (roll === 3) drawPerchedHawk(x + 61, baseY - 128, ph);
+    else if (roll === 4) drawTreeMonkey(x + 40, baseY - 96, ph, true); // mico-leão
+  } else if (p.deco === 'cerrado') {
+    // copa da árvore tortuosa em (x+58, baseY-92)
+    if (roll < 3) drawSloth(x + 74, baseY - 86, ph);
+    else if (roll === 3) drawPerchedHawk(x + 58, baseY - 110, ph);
+  } else if (p.deco === 'caatinga') {
+    // topo do mandacaru em (x+61, baseY-78)
+    if (roll < 2) drawPerchedHawk(x + 61, baseY - 80, ph);
+  }
+  ctx.restore();
+}
+
 // Fauna do bioma: bichos simples e carismáticos andando pelo cenário
 function drawCritter(c) {
   const ph = c.ph;
   const bob = Math.sin(ph * 2) * 1.2; // balanço do passo
   const leg = Math.sin(ph * 2);       // pêndulo das pernas
   ctx.save();
-  // a preguiça vive pendurada no alto; o resto anda no chão
-  ctx.translate(c.x, c.kind === 'preguica' ? c.hy : H - GROUND_H + 8);
+  // o gavião plana no céu; o resto anda no chão
+  ctx.translate(c.x, c.kind === 'gaviao' ? c.hy : H - GROUND_H + 8);
   ctx.scale(c.s, c.s);
   ctx.globalAlpha = 0.92;
   switch (c.kind) {
-    case 'preguica': {
-      const sway = Math.sin(ph * 0.5) * 0.12; // balança beeem devagar
-      // galho de apoio com folhas
-      ctx.strokeStyle = '#5b3a21'; ctx.lineWidth = 6; ctx.lineCap = 'round';
-      ctx.beginPath(); ctx.moveTo(-34, 0); ctx.lineTo(34, -4); ctx.stroke();
-      ctx.fillStyle = '#3a8f46';
+    case 'gaviao': {
+      // plana em círculos largos, inclinando nas curvas
+      ctx.translate(Math.cos(ph * 0.5) * 34, Math.sin(ph) * 12);
+      ctx.rotate(Math.sin(ph * 0.5) * 0.18);
+      ctx.fillStyle = '#4a3a2a';
+      // asas abertas com "dedos" nas pontas
       ctx.beginPath();
-      ctx.ellipse(32, -9, 9, 5, -0.4, 0, 7);
-      ctx.ellipse(-33, -4, 8, 4.5, 0.3, 0, 7);
+      ctx.moveTo(0, 0);
+      ctx.quadraticCurveTo(-15, -8, -28, -5);
+      ctx.lineTo(-27, -2); ctx.lineTo(-24, -4); ctx.lineTo(-23, -1); ctx.lineTo(-20, -3);
+      ctx.quadraticCurveTo(-10, 0, 0, 3);
+      ctx.quadraticCurveTo(10, 0, 20, -3);
+      ctx.lineTo(23, -1); ctx.lineTo(24, -4); ctx.lineTo(27, -2); ctx.lineTo(28, -5);
+      ctx.quadraticCurveTo(15, -8, 0, 0);
       ctx.fill();
-      ctx.save();
-      ctx.translate(0, -2);
-      ctx.rotate(sway);
-      // braços agarrados no galho
-      ctx.strokeStyle = '#8a7a5e'; ctx.lineWidth = 4.5;
-      ctx.beginPath();
-      ctx.moveTo(-10, 2); ctx.quadraticCurveTo(-14, 10, -8, 16);
-      ctx.moveTo(10, 1); ctx.quadraticCurveTo(14, 10, 8, 16);
-      ctx.stroke();
-      // corpo pendurado de cabeça pra baixo
-      ctx.fillStyle = '#8a7a5e';
-      ctx.beginPath(); ctx.ellipse(0, 24, 12, 14, 0, 0, 7); ctx.fill();
-      ctx.beginPath(); ctx.arc(0, 40, 8, 0, 7); ctx.fill();
-      // máscara clara do rosto
-      ctx.fillStyle = '#d9cbb0';
-      ctx.beginPath(); ctx.ellipse(0, 41, 6, 5, 0, 0, 7); ctx.fill();
-      // listras dos olhos (dormindo) e sorrisinho
-      ctx.strokeStyle = '#4a3a2e'; ctx.lineWidth = 1.6;
-      ctx.beginPath();
-      ctx.moveTo(-5, 38); ctx.lineTo(-2, 41);
-      ctx.moveTo(5, 38); ctx.lineTo(2, 41);
-      ctx.stroke();
-      ctx.beginPath(); ctx.arc(0, 43, 2.2, 0.2, Math.PI - 0.2); ctx.stroke();
-      // Zzz subindo devagarzinho
-      ctx.fillStyle = 'rgba(255,255,255,.85)';
-      ctx.font = '10px sans-serif';
-      const zf = (ph * 6) % 18;
-      ctx.fillText('z', 15, 32 - zf);
-      ctx.font = '7px sans-serif';
-      ctx.fillText('z', 21, 26 - zf);
-      ctx.restore();
+      // corpo, cauda em leque e cabeça
+      ctx.beginPath(); ctx.ellipse(0, 2, 4.5, 7, 0, 0, 7); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(-4, 8); ctx.lineTo(0, 15); ctx.lineTo(4, 8); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#e8e3d8';
+      ctx.beginPath(); ctx.arc(0, -3, 2.6, 0, 7); ctx.fill();
       break;
     }
     case 'onca': case 'oncaparda': case 'jaguatirica': {
@@ -1663,9 +1795,23 @@ function drawCritter(c) {
       ctx.lineWidth = 4;
       ctx.beginPath(); ctx.moveTo(20, -24 + bob);
       ctx.quadraticCurveTo(30, -30 + Math.sin(ph) * 3, 34, -22); ctx.stroke();
+      // barriga clara
+      ctx.fillStyle = 'rgba(255,250,235,.5)';
+      ctx.beginPath(); ctx.ellipse(0, -16 + bob, 16, 4, 0, 0, 7); ctx.fill();
+      // olho e focinho
+      ctx.fillStyle = '#1a1a1a';
+      ctx.beginPath(); ctx.arc(-26, -27 + bob, 1.3, 0, 7); ctx.fill();
+      ctx.beginPath(); ctx.arc(-30, -24 + bob, 1.5, 0, 7); ctx.fill();
       if (c.kind !== 'oncaparda') {
-        ctx.fillStyle = 'rgba(60,40,10,.8)';
-        for (let i = 0; i < 8; i++) ctx.fillRect(-14 + i * 4.5, -25 + ((i * 7) % 8) + bob, 2, 2);
+        // rosetas de verdade (anéis com miolo)
+        ctx.strokeStyle = 'rgba(60,40,10,.85)';
+        ctx.lineWidth = 1.2;
+        ctx.fillStyle = 'rgba(60,40,10,.55)';
+        for (let i = 0; i < 6; i++) {
+          const rx = -13 + i * 5.5, ry = -25 + ((i * 7) % 7) + bob;
+          ctx.beginPath(); ctx.arc(rx, ry, 2.2, 0, 7); ctx.stroke();
+          ctx.beginPath(); ctx.arc(rx, ry, 0.8, 0, 7); ctx.fill();
+        }
       }
       break;
     }
@@ -1765,6 +1911,14 @@ function drawCritter(c) {
       ctx.moveTo(-24, -47 + bob); ctx.lineTo(-23, -56 + bob); ctx.lineTo(-19, -48 + bob);
       ctx.moveTo(-18, -48 + bob); ctx.lineTo(-16, -56 + bob); ctx.lineTo(-13, -47 + bob);
       ctx.fill();
+      // gola escura do pescoço, olho e focinho
+      ctx.fillStyle = '#1a1a1a';
+      ctx.beginPath(); ctx.ellipse(-11, -34 + bob, 4, 6, -0.6, 0, 7); ctx.fill();
+      ctx.beginPath(); ctx.arc(-25, -44 + bob, 1.6, 0, 7); ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.beginPath(); ctx.arc(-22, -45 + bob, 1.2, 0, 7); ctx.fill();
+      ctx.fillStyle = '#1a1a1a';
+      ctx.beginPath(); ctx.arc(-22, -45 + bob, 0.7, 0, 7); ctx.fill();
       break;
     }
     case 'ema': case 'seriema': case 'tuiuiu': {
@@ -1891,8 +2045,22 @@ function drawCritter(c) {
       ctx.beginPath(); ctx.moveTo(-14, -8); ctx.lineTo(-34, -6 - mouth); ctx.lineTo(-14, -5); ctx.closePath(); ctx.fill();
       ctx.fillStyle = '#e8e3c8'; // papo amarelo!
       ctx.beginPath(); ctx.moveTo(-14, -4); ctx.lineTo(-32, -2 + mouth * 0.4); ctx.lineTo(-13, -1); ctx.closePath(); ctx.fill();
+      // dentinhos brancos na mandíbula
+      ctx.fillStyle = '#fff';
+      for (let i = 0; i < 4; i++) {
+        const tx2 = -18 - i * 3.5;
+        ctx.beginPath();
+        ctx.moveTo(tx2, -5 - mouth * (0.2 + i * 0.05));
+        ctx.lineTo(tx2 - 1.2, -2.8 - mouth * 0.1);
+        ctx.lineTo(tx2 - 2.4, -5 - mouth * (0.2 + i * 0.05));
+        ctx.closePath();
+        ctx.fill();
+      }
+      // olho amarelo com pupila vertical
       ctx.fillStyle = '#ffd23f';
-      ctx.beginPath(); ctx.arc(-13, -10, 1.6, 0, 7); ctx.fill();
+      ctx.beginPath(); ctx.arc(-13, -10, 2, 0, 7); ctx.fill();
+      ctx.fillStyle = '#1a1a1a';
+      ctx.fillRect(-13.5, -12, 1, 4);
       ctx.fillStyle = '#4a6a3a';
       ctx.beginPath();
       ctx.moveTo(22, -8); ctx.quadraticCurveTo(34, -6 + Math.sin(ph) * 2, 40, -3); ctx.lineTo(22, -3);
@@ -1900,6 +2068,101 @@ function drawCritter(c) {
       break;
     }
   }
+  ctx.restore();
+}
+
+// Camafeu de primeiro plano: bichinho cartoon no galho, olhando pra câmera e acenando ;)
+function drawCameo(cm) {
+  const conf = {
+    jungle:   ['#8a6a4a', '#c9a882', 'macaco'],
+    cerrado:  ['#c1440e', '#ffd9b0', 'lobo'],
+    mata:     ['#f5a623', '#ffe0b0', 'mico'],
+    caatinga: ['#b08a62', '#e8d9c0', 'veado'],
+    pampas:   ['#8a6f4d', '#c9b892', 'capivara'],
+    pantanal: ['#d62828', '#ffd9b0', 'arara']
+  }[cm.kind] || ['#8a6a4a', '#c9a882', 'macaco'];
+  const col = conf[0], face = conf[1], kind = conf[2];
+  ctx.save();
+  ctx.translate(cm.x, cm.y);
+  // galho grosso pertinho da câmera
+  ctx.strokeStyle = '#4a3220';
+  ctx.lineWidth = 16;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(-50, 26);
+  ctx.quadraticCurveTo(60, 18, 220, 30);
+  ctx.stroke();
+  ctx.fillStyle = '#2f8f46';
+  [[-36, 18], [34, 13], [100, 18], [160, 22]].forEach(l => {
+    ctx.beginPath(); ctx.ellipse(l[0], l[1], 17, 8, -0.3, 0, 7); ctx.fill();
+  });
+  // bichinho sentado, balançando de leve
+  ctx.translate(20, -14 + Math.sin(cm.ph * 2) * 2);
+  ctx.fillStyle = col;
+  ctx.beginPath(); ctx.ellipse(0, 14, 17, 14, 0, 0, 7); ctx.fill();
+  ctx.fillStyle = face;
+  ctx.beginPath(); ctx.ellipse(0, 17, 10, 9, 0, 0, 7); ctx.fill(); // barriguinha
+  ctx.fillStyle = col;
+  ctx.beginPath(); ctx.arc(0, -12, 20, 0, 7); ctx.fill(); // cabeçona
+  // orelhas / topete por espécie
+  if (kind === 'macaco' || kind === 'mico') {
+    ctx.beginPath(); ctx.arc(-18, -18, 6.5, 0, 7); ctx.arc(18, -18, 6.5, 0, 7); ctx.fill();
+  } else if (kind === 'lobo' || kind === 'veado') {
+    ctx.beginPath();
+    ctx.moveTo(-16, -24); ctx.lineTo(-12, -42); ctx.lineTo(-5, -27);
+    ctx.moveTo(16, -24); ctx.lineTo(12, -42); ctx.lineTo(5, -27);
+    ctx.fill();
+  } else if (kind === 'capivara') {
+    ctx.beginPath(); ctx.arc(-14, -27, 4.5, 0, 7); ctx.arc(14, -27, 4.5, 0, 7); ctx.fill();
+  } else if (kind === 'arara') {
+    ctx.beginPath();
+    ctx.moveTo(-6, -30); ctx.quadraticCurveTo(-11, -46, -1, -37);
+    ctx.moveTo(2, -31); ctx.quadraticCurveTo(4, -48, 11, -35);
+    ctx.fill();
+  }
+  // rosto claro
+  ctx.fillStyle = face;
+  ctx.beginPath(); ctx.ellipse(0, -8, 13, 10, 0, 0, 7); ctx.fill();
+  // olhões olhando pra câmera (piscando de vez em quando)
+  const blink = Math.sin(cm.ph * 1.3) > 0.96;
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.ellipse(-6, -12, 5.5, blink ? 0.9 : 6.5, 0, 0, 7);
+  ctx.ellipse(6, -12, 5.5, blink ? 0.9 : 6.5, 0, 0, 7);
+  ctx.fill();
+  if (!blink) {
+    ctx.fillStyle = '#1a1a1a';
+    ctx.beginPath(); ctx.arc(-5, -11, 2.6, 0, 7); ctx.arc(7, -11, 2.6, 0, 7); ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(-4, -12, 1, 0, 7); ctx.arc(8, -12, 1, 0, 7); ctx.fill();
+  }
+  // nariz e sorriso (ou bico de arara)
+  if (kind === 'arara') {
+    ctx.fillStyle = '#2a2a2a';
+    ctx.beginPath();
+    ctx.moveTo(-4, -4); ctx.quadraticCurveTo(0, 6, 6, -2); ctx.quadraticCurveTo(1, -6, -4, -4);
+    ctx.fill();
+  } else {
+    ctx.fillStyle = '#3a2a1a';
+    ctx.beginPath(); ctx.ellipse(0, -3, 2.5, 1.8, 0, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#3a2a1a';
+    ctx.lineWidth = 1.8;
+    ctx.beginPath(); ctx.arc(0, -1, 5, 0.3, Math.PI - 0.3); ctx.stroke();
+  }
+  // bochechas coradas
+  ctx.fillStyle = 'rgba(255,110,140,.45)';
+  ctx.beginPath(); ctx.arc(-11, -5, 2.6, 0, 7); ctx.arc(11, -5, 2.6, 0, 7); ctx.fill();
+  // bracinho acenando pra você ;)
+  ctx.save();
+  ctx.translate(15, 5);
+  ctx.rotate(-0.8 + Math.sin(cm.ph * 4) * 0.55);
+  ctx.strokeStyle = col;
+  ctx.lineWidth = 6;
+  ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(14, -12); ctx.stroke();
+  ctx.fillStyle = face;
+  ctx.beginPath(); ctx.arc(16, -14, 4.5, 0, 7); ctx.fill();
+  ctx.restore();
   ctx.restore();
 }
 
@@ -2233,30 +2496,50 @@ function drawToucan(p) {
   ctx.arc(14, -6, 7, 0, 7);
   ctx.fill();
 
-  // BICO — muda de cor a cada fase
-  const bk = ctx.createLinearGradient(18, -14, 46, -6);
+  // BICO realista: alto na base, cume (culmen) curvo, ponta em gancho
+  // para baixo e mandíbula inferior menor — anatomia de tucano-toco
+  const bk = ctx.createLinearGradient(16, -18, 50, -2);
   bk.addColorStop(0, p.beak[0]);
   bk.addColorStop(1, p.beak[1]);
   ctx.fillStyle = bk;
   ctx.beginPath();
-  ctx.moveTo(18, -14);
-  ctx.quadraticCurveTo(44, -16, 47, -7);
-  ctx.quadraticCurveTo(46, -2, 38, -1);
-  ctx.quadraticCurveTo(26, 0, 18, -3);
+  ctx.moveTo(17, -17);                     // base alta, colada na testa
+  ctx.quadraticCurveTo(36, -20, 46, -12);  // cume curvando para baixo
+  ctx.quadraticCurveTo(51, -8, 47, -3);    // ponta arredondada...
+  ctx.lineTo(43, -2);                      // ...com gancho voltado p/ baixo
+  ctx.quadraticCurveTo(45, -5, 41, -6);
+  ctx.quadraticCurveTo(30, -1, 20, 0);     // mandíbula inferior mais curta
+  ctx.quadraticCurveTo(15, -8, 17, -17);
   ctx.closePath();
   ctx.fill();
-  // linha da boca
-  ctx.strokeStyle = 'rgba(0,0,0,.35)';
+  // linha da boca (tomia) acompanhando a curvatura
+  ctx.strokeStyle = 'rgba(0,0,0,.4)';
+  ctx.lineWidth = 1.3;
+  ctx.beginPath();
+  ctx.moveTo(18, -7);
+  ctx.quadraticCurveTo(34, -8.5, 45, -6);
+  ctx.stroke();
+  // mancha escura da ponta (marca registrada do tucano-toco)
+  ctx.fillStyle = 'rgba(0,0,0,.5)';
+  ctx.beginPath();
+  ctx.moveTo(43, -11);
+  ctx.quadraticCurveTo(50, -9, 47, -3);
+  ctx.lineTo(43, -2);
+  ctx.quadraticCurveTo(45, -6, 41, -8);
+  ctx.closePath();
+  ctx.fill();
+  // narina na base do cume
+  ctx.fillStyle = 'rgba(0,0,0,.35)';
+  ctx.beginPath();
+  ctx.ellipse(20, -14, 1.4, 0.8, 0.3, 0, 7);
+  ctx.fill();
+  // brilho do cume
+  ctx.strokeStyle = 'rgba(255,255,255,.35)';
   ctx.lineWidth = 1.2;
   ctx.beginPath();
-  ctx.moveTo(19, -8);
-  ctx.quadraticCurveTo(34, -9, 44, -7);
+  ctx.moveTo(20, -16);
+  ctx.quadraticCurveTo(35, -18.5, 44, -11);
   ctx.stroke();
-  // ponta escura
-  ctx.fillStyle = 'rgba(0,0,0,.45)';
-  ctx.beginPath();
-  ctx.ellipse(45, -7, 3.5, 4.5, 0.3, 0, 7);
-  ctx.fill();
 
   // OLHO — íris muda de cor a cada fase
   ctx.fillStyle = '#fff';
@@ -2517,6 +2800,9 @@ function draw() {
     ctx.fillStyle = g; ctx.fillRect(W - 80, 0, 80, H);
     ctx.globalAlpha = 1;
   }
+
+  // camafeu de primeiro plano (na frente de tudo, atrás do HUD)
+  if (cameo) drawCameo(cameo);
 
   if (state !== 'menu') {
     drawHUD(p);
@@ -2864,7 +3150,7 @@ if (document.fonts && document.fonts.load) {
     document.fonts.load(f).catch(() => {});
   });
 }
-const GAME_VERSION = '2.1';
+const GAME_VERSION = '2.2';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 resetGame();
