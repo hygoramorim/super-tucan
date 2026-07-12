@@ -767,6 +767,8 @@ const NIGHT_FAUNA = {
 };
 let critters = [], flocks = [];
 let critterTimer = 120, flockTimer = 240;
+// insetos decorativos (borboleta/abelha/joaninha) voando baixo; viram vaga-lumes à noite
+let bugs = [], bugTimer = 60;
 // camafeu de primeiro plano: galho pertinho da câmera com bichinho acenando
 let cameo = null, cameoTimer = 420;
 
@@ -812,6 +814,7 @@ function resetGame() {
   powerups = [];
   critters = []; flocks = [];
   critterTimer = 120; flockTimer = 240;
+  bugs = []; bugTimer = 60;
   cameo = null; cameoTimer = 420;
   pena = 0; shield = 0; slowmo = 0; invuln = 0;
   event = null; eventTimer = 0; eventCooldown = 900; alertTimer = 0;
@@ -974,6 +977,30 @@ function update() {
   }
   critters.forEach(c => { c.x -= fSpeed * 0.92; c.ph += 0.05; });
   critters = critters.filter(c => c.x > -130);
+  // insetos decorativos: voam baixo, perto do chão/vegetação (à noite viram vaga-lumes)
+  if (--bugTimer <= 0) {
+    bugTimer = 45 + Math.random() * 70;
+    if (bugs.length < 8) {
+      const kinds = ['borboleta', 'abelha', 'joaninha'];
+      bugs.push({
+        kind: kinds[Math.floor(Math.random() * kinds.length)],
+        x: W + 30,
+        y: (H - GROUND_H - 70) + Math.random() * 60, // faixa inferior
+        ph: Math.random() * 6.28,
+        col: FLOCKS[phase().deco][0][0],
+        vy: 0
+      });
+    }
+  }
+  bugs.forEach(b => {
+    b.ph += 0.12;
+    // borboleta ziguezagueia, abelha vai reta e rápida, joaninha lenta
+    const spd = b.kind === 'abelha' ? 1.4 : b.kind === 'joaninha' ? 0.6 : 1.0;
+    b.x -= fSpeed * 0.5 + spd;
+    if (b.kind === 'borboleta') b.y += Math.sin(b.ph * 1.5) * 1.1;
+    else if (b.kind === 'abelha') b.y += Math.sin(b.ph * 3) * 0.5;
+  });
+  bugs = bugs.filter(b => b.x > -20);
   if (--flockTimer <= 0) {
     flockTimer = 1000 + Math.random() * 1500;
     // à noite, revoadas de morcegos em vez de aves
@@ -1783,6 +1810,54 @@ function blinkEye(x, y, r, ph) {
     ctx.fillStyle = '#fff';
     ctx.beginPath(); ctx.arc(x + r * 0.35, y - r * 0.25, r * 0.2, 0, 7); ctx.fill();
   }
+}
+
+// Insetos decorativos: borboleta, abelha, joaninha (à noite viram vaga-lumes)
+function drawBug(b) {
+  ctx.save();
+  ctx.translate(b.x, b.y);
+  if (event === 'NOITE') {
+    // vaga-lume: pontinho amarelo-esverdeado com halo pulsante
+    const glow = 0.4 + 0.6 * Math.abs(Math.sin(b.ph * 2));
+    ctx.globalAlpha = glow;
+    ctx.fillStyle = 'rgba(200,255,120,.5)';
+    ctx.beginPath(); ctx.arc(0, 0, 6, 0, 7); ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#e8ff8a';
+    ctx.beginPath(); ctx.arc(0, 0, 2, 0, 7); ctx.fill();
+    ctx.restore();
+    return;
+  }
+  const w = Math.sin(b.ph * 4); // batida de asa
+  if (b.kind === 'borboleta') {
+    ctx.fillStyle = b.col || '#e0532f';
+    const wing = 4 + Math.abs(w) * 3;
+    ctx.beginPath(); ctx.ellipse(-3, -1, wing, 5, -0.4, 0, 7); ctx.fill(); // asa esq
+    ctx.beginPath(); ctx.ellipse(3, -1, wing, 5, 0.4, 0, 7); ctx.fill();   // asa dir
+    ctx.fillStyle = 'rgba(255,255,255,.5)';
+    ctx.beginPath(); ctx.ellipse(-3, 0, wing * 0.4, 2, -0.4, 0, 7); ctx.ellipse(3, 0, wing * 0.4, 2, 0.4, 0, 7); ctx.fill();
+    ctx.fillStyle = '#3a2a1a'; // corpinho
+    ctx.beginPath(); ctx.ellipse(0, 0, 1, 5, 0, 0, 7); ctx.fill();
+  } else if (b.kind === 'abelha') {
+    // asinhas rápidas transparentes
+    ctx.fillStyle = 'rgba(255,255,255,.55)';
+    ctx.beginPath(); ctx.ellipse(-1, -3 - w, 3, 2, -0.3, 0, 7); ctx.ellipse(1, -3 - w, 3, 2, 0.3, 0, 7); ctx.fill();
+    // corpo listrado
+    ctx.fillStyle = '#f5b800';
+    ctx.beginPath(); ctx.ellipse(0, 0, 4.5, 3, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = '#2a2a1a';
+    ctx.fillRect(-1.5, -3, 1.4, 6); ctx.fillRect(1.2, -2.5, 1.4, 5);
+  } else { // joaninha
+    ctx.fillStyle = '#111';
+    ctx.beginPath(); ctx.arc(-3, -1, 2, 0, 7); ctx.fill(); // cabeça
+    ctx.fillStyle = '#e01e1e';
+    ctx.beginPath(); ctx.ellipse(1, 0, 5, 4, 0, 0, 7); ctx.fill(); // élitros
+    ctx.strokeStyle = '#111'; ctx.lineWidth = 0.7;
+    ctx.beginPath(); ctx.moveTo(1, -4); ctx.lineTo(1, 4); ctx.stroke(); // linha central
+    ctx.fillStyle = '#111'; // bolinhas
+    ctx.beginPath(); ctx.arc(-0.5, -1.5, 0.9, 0, 7); ctx.arc(3, -1, 0.9, 0, 7); ctx.arc(-0.5, 1.5, 0.9, 0, 7); ctx.arc(3, 1.5, 0.9, 0, 7); ctx.fill();
+  }
+  ctx.restore();
 }
 
 // Fauna do bioma: bichos simples e carismáticos andando pelo cenário
@@ -3081,6 +3156,7 @@ function draw() {
 
   drawBackground(p);
   critters.forEach(drawCritter); // fauna do bioma, atrás dos obstáculos
+  bugs.forEach(drawBug);         // insetos decorativos voando baixo
   eggs.forEach(e => { if (!e.taken && e.jewel) drawJewelGlow(e); });
   obstacles.forEach(o => drawBranch(o, p));
   eggs.forEach(e => { if (!e.taken) drawEgg(e); });
