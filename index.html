@@ -755,6 +755,16 @@ const FLOCKS = { // cores das revoadas de aves por bioma
   pampas:   [['#4b5563']],                                   // quero-queros
   pantanal: [['#d62828'], ['#1d4ed8'], ['#f59e0b', '#1d4ed8']] // araras vermelha, azul e canindé
 };
+// Fauna NOTURNA (só durante o evento NOITE): substitui a fauna diurna.
+// coruja voa (usa o galho aéreo do gavião); morcego voa errático; gambá e onça-pintada andam.
+const NIGHT_FAUNA = {
+  jungle:   ['coruja', 'morcego', 'gamba', 'oncapintada'],
+  cerrado:  ['coruja', 'morcego', 'gamba', 'oncapintada'],
+  mata:     ['coruja', 'morcego', 'gamba', 'oncapintada'],
+  caatinga: ['coruja', 'morcego', 'gamba'],
+  pampas:   ['coruja', 'morcego', 'gamba'],
+  pantanal: ['coruja', 'morcego', 'gamba', 'oncapintada']
+};
 let critters = [], flocks = [];
 let critterTimer = 120, flockTimer = 240;
 // camafeu de primeiro plano: galho pertinho da câmera com bichinho acenando
@@ -950,12 +960,13 @@ function update() {
   if (--critterTimer <= 0) {
     critterTimer = 190 + Math.random() * 260; // o dobro de bichos em cena
     if (critters.length < 6) {
-      const kinds = FAUNA[phase().deco];
+      // à noite, a fauna noturna substitui a diurna
+      const kinds = event === 'NOITE' ? NIGHT_FAUNA[phase().deco] : FAUNA[phase().deco];
       const kind = kinds[Math.floor(Math.random() * kinds.length)];
       critters.push({
         kind,
         x: W + 90,
-        hy: 80 + Math.random() * 140, // altura de voo (gavião planando)
+        hy: 80 + Math.random() * 140, // altura de voo (gavião/coruja/morcego)
         ph: Math.random() * 6.28,
         s: 1.15 + Math.random() * 0.4 // maiores, bem visíveis
       });
@@ -965,14 +976,17 @@ function update() {
   critters = critters.filter(c => c.x > -130);
   if (--flockTimer <= 0) {
     flockTimer = 1000 + Math.random() * 1500;
-    const sets = FLOCKS[phase().deco];
+    // à noite, revoadas de morcegos em vez de aves
+    const night = event === 'NOITE';
+    const sets = night ? [['#1a1a2a']] : FLOCKS[phase().deco];
     flocks.push({
       x: W + 140,
       y: 60 + Math.random() * 170,
       vx: 0.5 + Math.random() * 0.35,
       colors: sets[Math.floor(Math.random() * sets.length)],
       n: 5 + Math.floor(Math.random() * 5),
-      ph: Math.random() * 6.28
+      ph: Math.random() * 6.28,
+      bat: night
     });
   }
   flocks.forEach(fl => { fl.x -= fSpeed * 0.25 + fl.vx; fl.ph += 0.09; });
@@ -1069,8 +1083,8 @@ function update() {
   // eventos climáticos (da fase 3 em diante; nunca no tutorial)
   if (gameMode !== 'tutorial' && phaseIdx >= 2) {
     if (!event && --eventCooldown <= 0) {
-      event = ['VENTANIA', 'TEMPESTADE', 'VULCÃO'][Math.floor(rng() * 3)];
-      eventTimer = 480; // 8 s
+      event = ['VENTANIA', 'TEMPESTADE', 'VULCÃO', 'NOITE'][Math.floor(rng() * 4)];
+      eventTimer = event === 'NOITE' ? 600 : 480; // noite dura ~10s (respiro)
       alertTimer = 160;
       sfx.alert();
     }
@@ -1354,16 +1368,27 @@ function drawBackground(p) {
       const by = fl.y + side * idx * 8 + Math.sin(fl.ph + i) * 2;
       const flap = Math.sin(fl.ph * 2 + i * 0.7);
       const col = fl.colors[i % fl.colors.length];
-      ctx.strokeStyle = col;
-      ctx.lineWidth = 2.2;
-      ctx.beginPath();
-      ctx.moveTo(bx - 6, by - flap * 4);
-      ctx.quadraticCurveTo(bx, by + 2, bx + 6, by - flap * 4);
-      ctx.stroke();
-      ctx.fillStyle = col;
-      ctx.beginPath();
-      ctx.ellipse(bx, by + 1, 3, 1.6, 0, 0, 7);
-      ctx.fill();
+      if (fl.bat) {
+        // morcego: asa angular "W" + corpinho
+        ctx.fillStyle = col;
+        ctx.beginPath();
+        ctx.moveTo(bx, by);
+        ctx.lineTo(bx - 4, by - 3 - flap * 3); ctx.lineTo(bx - 7, by + 1); ctx.lineTo(bx - 3, by + 2);
+        ctx.lineTo(bx, by + 1);
+        ctx.lineTo(bx + 3, by + 2); ctx.lineTo(bx + 7, by + 1); ctx.lineTo(bx + 4, by - 3 - flap * 3);
+        ctx.closePath(); ctx.fill();
+      } else {
+        ctx.strokeStyle = col;
+        ctx.lineWidth = 2.2;
+        ctx.beginPath();
+        ctx.moveTo(bx - 6, by - flap * 4);
+        ctx.quadraticCurveTo(bx, by + 2, bx + 6, by - flap * 4);
+        ctx.stroke();
+        ctx.fillStyle = col;
+        ctx.beginPath();
+        ctx.ellipse(bx, by + 1, 3, 1.6, 0, 0, 7);
+        ctx.fill();
+      }
     }
     ctx.restore();
   });
@@ -1763,8 +1788,9 @@ function drawCritter(c) {
   const bob = Math.sin(ph * 2) * 1.2; // balanço do passo
   const leg = Math.sin(ph * 2);       // pêndulo das pernas
   ctx.save();
-  // o gavião plana no céu; o resto anda no chão
-  ctx.translate(c.x, c.kind === 'gaviao' ? c.hy : H - GROUND_H + 8);
+  // gavião/coruja/morcego voam no céu; o resto anda no chão
+  const flyer = c.kind === 'gaviao' || c.kind === 'coruja' || c.kind === 'morcego';
+  ctx.translate(c.x, flyer ? c.hy : H - GROUND_H + 8);
   ctx.scale(c.s, c.s);
   ctx.globalAlpha = 0.92;
   switch (c.kind) {
@@ -2254,6 +2280,123 @@ function drawCritter(c) {
       ctx.beginPath();
       ctx.moveTo(22, -8); ctx.quadraticCurveTo(34, -6 + Math.sin(ph) * 2, 40, -3); ctx.lineTo(22, -3);
       ctx.closePath(); ctx.fill();
+      break;
+    }
+    // ---------- fauna NOTURNA ----------
+    case 'coruja': {
+      // pousada no ar (planando), corpo redondo e cabeça com "orelhas"
+      ctx.translate(Math.cos(ph * 0.4) * 20, Math.sin(ph * 0.8) * 8);
+      const flap = Math.sin(ph * 4) * 6;
+      ctx.fillStyle = '#8a6a4a';
+      // asas batendo
+      ctx.beginPath();
+      ctx.moveTo(-4, 0); ctx.quadraticCurveTo(-20, -6 - flap, -26, 2); ctx.quadraticCurveTo(-16, 4, -4, 4); ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(4, 0); ctx.quadraticCurveTo(20, -6 - flap, 26, 2); ctx.quadraticCurveTo(16, 4, 4, 4); ctx.fill();
+      // corpo
+      ctx.beginPath(); ctx.ellipse(0, 2, 8, 10, 0, 0, 7); ctx.fill();
+      // barriga clara com listras
+      ctx.fillStyle = '#c9a882';
+      ctx.beginPath(); ctx.ellipse(0, 4, 5, 7, 0, 0, 7); ctx.fill();
+      // cabeça + tufos de orelha
+      ctx.fillStyle = '#8a6a4a';
+      ctx.beginPath(); ctx.arc(0, -8, 7, 0, 7); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(-6, -12); ctx.lineTo(-8, -18); ctx.lineTo(-3, -13);
+      ctx.moveTo(6, -12); ctx.lineTo(8, -18); ctx.lineTo(3, -13); ctx.fill();
+      // disco facial claro + olhões grandes
+      ctx.fillStyle = '#e8dcc0';
+      ctx.beginPath(); ctx.arc(-3, -8, 3.5, 0, 7); ctx.arc(3, -8, 3.5, 0, 7); ctx.fill();
+      ctx.fillStyle = '#ffd23f';
+      ctx.beginPath(); ctx.arc(-3, -8, 2.6, 0, 7); ctx.arc(3, -8, 2.6, 0, 7); ctx.fill();
+      const bk = Math.sin(ph * 1.3) > 0.9; // pisca lento
+      ctx.fillStyle = '#1a1a1a';
+      ctx.beginPath(); ctx.arc(-3, -8, bk ? 2.6 : 1.4, 0, 7); ctx.arc(3, -8, bk ? 2.6 : 1.4, 0, 7); ctx.fill();
+      if (!bk) { ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(-2.3, -8.7, 0.5, 0, 7); ctx.arc(3.7, -8.7, 0.5, 0, 7); ctx.fill(); }
+      // biquinho
+      ctx.fillStyle = '#f5a623';
+      ctx.beginPath(); ctx.moveTo(-1.5, -6); ctx.lineTo(1.5, -6); ctx.lineTo(0, -3); ctx.fill();
+      break;
+    }
+    case 'morcego': {
+      // voo errático: sobe/desce rápido
+      ctx.translate(Math.sin(ph * 1.7) * 26, Math.cos(ph * 2.3) * 14);
+      const w = Math.sin(ph * 6) * 8; // asas batendo depressa
+      ctx.fillStyle = '#2a2540';
+      // asas membranosas
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.quadraticCurveTo(-9, -6 - w, -18, -2); ctx.quadraticCurveTo(-13, 0, -15, 4);
+      ctx.quadraticCurveTo(-9, 2, -6, 5); ctx.quadraticCurveTo(-3, 2, 0, 3);
+      ctx.quadraticCurveTo(3, 2, 6, 5); ctx.quadraticCurveTo(9, 2, 15, 4);
+      ctx.quadraticCurveTo(13, 0, 18, -2); ctx.quadraticCurveTo(9, -6 - w, 0, 0);
+      ctx.fill();
+      // corpinho + orelhas
+      ctx.beginPath(); ctx.ellipse(0, 0, 3, 4, 0, 0, 7); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(-2, -3); ctx.lineTo(-3, -7); ctx.lineTo(-0.5, -4);
+      ctx.moveTo(2, -3); ctx.lineTo(3, -7); ctx.lineTo(0.5, -4); ctx.fill();
+      // olhinhos vermelhos brilhando
+      ctx.fillStyle = '#ff4d4d';
+      ctx.beginPath(); ctx.arc(-1.2, -1, 0.8, 0, 7); ctx.arc(1.2, -1, 0.8, 0, 7); ctx.fill();
+      break;
+    }
+    case 'gamba': {
+      // gambá (marsupial) andando com filhote nas costas
+      ctx.strokeStyle = '#2a2420'; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(-8, -8 + bob); ctx.lineTo(-8 + leg * 3, 0);
+      ctx.moveTo(8, -8 + bob); ctx.lineTo(8 - leg * 3, 0);
+      ctx.stroke();
+      // cauda pelada, comprida
+      ctx.strokeStyle = '#c9a8a0'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(12, -10 + bob); ctx.quadraticCurveTo(24, -8, 26, -2 + Math.sin(ph) * 2); ctx.stroke();
+      // corpo cinza
+      ctx.fillStyle = '#8a8078';
+      ctx.beginPath(); ctx.ellipse(0, -12 + bob, 14, 8, 0, 0, 7); ctx.fill();
+      // filhote nas costas
+      ctx.fillStyle = '#a89e94';
+      ctx.beginPath(); ctx.arc(2, -20 + bob, 4, 0, 7); ctx.fill();
+      ctx.fillStyle = '#3a342e';
+      ctx.beginPath(); ctx.arc(1, -21 + bob, 0.8, 0, 7); ctx.arc(3.5, -21 + bob, 0.8, 0, 7); ctx.fill();
+      // cabeça branca pontuda
+      ctx.fillStyle = '#e8e3da';
+      ctx.beginPath(); ctx.moveTo(-12, -14 + bob); ctx.lineTo(-26, -10 + bob); ctx.lineTo(-12, -7 + bob); ctx.closePath(); ctx.fill();
+      // orelhas escuras
+      ctx.fillStyle = '#2a2420';
+      ctx.beginPath(); ctx.arc(-14, -18 + bob, 3, 0, 7); ctx.arc(-10, -18 + bob, 3, 0, 7); ctx.fill();
+      // narizinho rosa + olho
+      ctx.fillStyle = '#d98a9a';
+      ctx.beginPath(); ctx.arc(-26, -10 + bob, 1.5, 0, 7); ctx.fill();
+      ctx.fillStyle = '#1a1a1a';
+      ctx.beginPath(); ctx.arc(-17, -12 + bob, 1.2, 0, 7); ctx.fill();
+      break;
+    }
+    case 'oncapintada': {
+      // onça-pintada noturna: silhueta escura com OLHOS BRILHANDO
+      ctx.strokeStyle = '#3a3226'; ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.moveTo(-14, -18 + bob); ctx.lineTo(-14 + leg * 4, 0);
+      ctx.moveTo(-6, -18 + bob); ctx.lineTo(-6 - leg * 4, 0);
+      ctx.moveTo(8, -18 + bob); ctx.lineTo(8 + leg * 4, 0);
+      ctx.moveTo(15, -18 + bob); ctx.lineTo(15 - leg * 4, 0);
+      ctx.stroke();
+      ctx.fillStyle = '#4a4030';
+      ctx.beginPath(); ctx.ellipse(0, -22 + bob, 22, 9, 0, 0, 7); ctx.fill();
+      ctx.beginPath(); ctx.arc(-24, -26 + bob, 7, 0, 7); ctx.fill();
+      ctx.beginPath(); ctx.arc(-28, -32 + bob, 2.6, 0, 7); ctx.arc(-20, -32 + bob, 2.6, 0, 7); ctx.fill();
+      // rosetas escuras
+      ctx.fillStyle = 'rgba(20,16,8,.6)';
+      for (let i = 0; i < 6; i++) { const rx = -13 + i * 5.5, ry = -25 + ((i * 7) % 7) + bob; ctx.beginPath(); ctx.arc(rx, ry, 2, 0, 7); ctx.fill(); }
+      // cauda
+      ctx.strokeStyle = '#4a4030'; ctx.lineWidth = 4; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(20, -24 + bob); ctx.quadraticCurveTo(30, -30 + Math.sin(ph) * 3, 34, -22); ctx.stroke();
+      // OLHOS brilhando no escuro (halo + globo âmbar)
+      const glow = 0.6 + Math.abs(Math.sin(ph * 2)) * 0.4;
+      ctx.fillStyle = 'rgba(180,255,120,' + (0.3 * glow) + ')';
+      ctx.beginPath(); ctx.arc(-27, -27 + bob, 4, 0, 7); ctx.arc(-22, -27 + bob, 4, 0, 7); ctx.fill();
+      ctx.fillStyle = '#dfff7a';
+      ctx.beginPath(); ctx.arc(-27, -27 + bob, 1.8, 0, 7); ctx.arc(-22, -27 + bob, 1.8, 0, 7); ctx.fill();
+      ctx.fillStyle = '#1a1a1a';
+      ctx.fillRect(-27.5, -29 + bob, 1, 4); ctx.fillRect(-22.5, -29 + bob, 1, 4);
       break;
     }
   }
@@ -2967,21 +3110,50 @@ function draw() {
       ctx.quadraticCurveTo(rx + 30, ry - 6, rx + 60, ry);
       ctx.stroke();
     }
+  } else if (event === 'NOITE') {
+    // véu noturno: escurece a cena com gradiente azul-marinho → violeta (entra/sai suave)
+    const fade = Math.min(1, (600 - Math.min(eventTimer, 600)) / 40) * Math.min(1, eventTimer / 40 + 0.3);
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, 'rgba(10,14,40,' + (0.62 * fade) + ')');
+    g.addColorStop(0.6, 'rgba(30,18,54,' + (0.52 * fade) + ')');
+    g.addColorStop(1, 'rgba(12,20,30,' + (0.45 * fade) + ')');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+    // LUA no alto à direita, com halo
+    const mx = W - 80, my = 120;
+    ctx.globalAlpha = fade;
+    ctx.fillStyle = 'rgba(255,250,220,.18)';
+    ctx.beginPath(); ctx.arc(mx, my, 44, 0, 7); ctx.fill();
+    ctx.fillStyle = '#f7f2d8';
+    ctx.beginPath(); ctx.arc(mx, my, 26, 0, 7); ctx.fill();
+    ctx.fillStyle = 'rgba(210,200,170,.5)'; // crateras
+    ctx.beginPath(); ctx.arc(mx - 8, my - 6, 5, 0, 7); ctx.arc(mx + 7, my + 4, 4, 0, 7); ctx.arc(mx - 2, my + 10, 3, 0, 7); ctx.fill();
+    // ESTRELAS (posições determinísticas, cintilam)
+    ctx.fillStyle = '#fff';
+    for (let i = 0; i < 40; i++) {
+      const sx = (i * 137.5) % W;
+      const sy = (i * 73.3) % (H - GROUND_H - 120);
+      const tw = 0.4 + 0.6 * Math.abs(Math.sin(frames * 0.04 + i));
+      ctx.globalAlpha = fade * tw;
+      ctx.fillRect(sx, sy, i % 5 === 0 ? 2 : 1.3, i % 5 === 0 ? 2 : 1.3);
+    }
+    ctx.globalAlpha = 1;
   }
   if (slowmo > 0 && state === 'play') {
     ctx.fillStyle = 'rgba(125,211,252,.08)';
     ctx.fillRect(0, 0, W, H);
   }
 
-  // faixa vermelha de ALERTA do evento (borda superior, piscando)
+  // faixa do evento (borda superior, piscando) — vermelha p/ perigo, azul p/ noite
   if (alertTimer > 0 && event) {
+    const noite = event === 'NOITE';
     ctx.globalAlpha = Math.min(1, alertTimer / 30) * (frames % 20 < 12 ? 1 : 0.5);
-    ctx.fillStyle = 'rgba(165,20,20,.8)';
+    ctx.fillStyle = noite ? 'rgba(40,40,110,.85)' : 'rgba(165,20,20,.8)';
     ctx.fillRect(0, 96, W, 26);
     ctx.fillStyle = '#fff';
     ctx.font = (W < 460 ? 11 : 13) + "px Bungee, 'Courier New', monospace";
     ctx.textAlign = 'center';
-    ctx.fillText('⚠ ALERTA: ' + event, W / 2, 114);
+    ctx.fillText(noite ? '🌙 CAIU A NOITE' : '⚠ ALERTA: ' + event, W / 2, 114);
     ctx.globalAlpha = 1;
   }
 
