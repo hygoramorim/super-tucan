@@ -649,23 +649,32 @@ function markOwned(name) {
   if (!l.includes(name)) l.push(name);
   localStorage.setItem('superTucan_myNames', JSON.stringify(l));
 }
-// Retorna true se o nome é seu (ou acabou de ser registrado); false se pertence a outro jogador
+// Nomes genéricos/default que NÃO entram no sistema de unicidade:
+// qualquer jogador pode usar (convidado), nunca são registrados nem bloqueiam ninguém.
+const GENERIC_NAMES = ['TUCANO', 'JOGADOR', 'PLAYER', 'ANONIMO', 'CONVIDADO'];
+function isGenericName(name) { return !name || GENERIC_NAMES.includes(name); }
+
+// Retorna true se o nome é seu (ou acabou de ser registrado); false se pertence a outro jogador.
+// A POSSE é definida SOMENTE pelo device (localStorage). O IP nunca concede posse sozinho,
+// pois é compartilhado por muitos jogadores em CGNAT/redes móveis (roubaria nomes de terceiros).
 async function claimName(name) {
+  if (isGenericName(name)) return true; // nome default/genérico: joga como convidado, sem reivindicar
   if (ownedLocal(name)) return true;
   try {
-    const r = await fetch(DB_URL + '/names/' + name + '.json');
+    const r = await fetch(DB_URL + '/names/' + encodeURIComponent(name) + '.json');
     if (!r.ok) return true; // registro indisponível: não trava o jogo
     const cur = await r.json();
     const dev = deviceId();
     if (!cur) {
-      const w = await fetch(DB_URL + '/names/' + name + '.json', {
+      const w = await fetch(DB_URL + '/names/' + encodeURIComponent(name) + '.json', {
         method: 'PUT',
         body: JSON.stringify({ ip: myIpHash || 'na', dev })
       });
       if (w.ok) { markOwned(name); return true; }
       return true; // corrida rara: deixa jogar
     }
-    if (cur.dev === dev || (myIpHash && cur.ip === myIpHash)) { markOwned(name); return true; }
+    // posse exclusivamente por device; IP fica só como metadado (não autoriza)
+    if (cur.dev === dev) { markOwned(name); return true; }
     return false;
   } catch (e) {
     return true; // sem internet: deixa jogar (ranking não sobe mesmo)
@@ -3718,7 +3727,7 @@ if (document.fonts && document.fonts.load) {
     document.fonts.load(f).catch(() => {});
   });
 }
-const GAME_VERSION = '2.4';
+const GAME_VERSION = '2.5';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 resetGame();
