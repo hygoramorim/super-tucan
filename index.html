@@ -713,9 +713,9 @@ const ENEMY_SPEED = 2.5;
 // ---------- Fauna decorativa dos biomas (cosmética: usa Math.random,
 // nunca o rng do desafio diário; não colide com nada) ----------
 const FAUNA = {
-  jungle:   ['onca', 'bugio', 'macaco', 'anaconda', 'anta'],
-  cerrado:  ['tamandua', 'lobo', 'tatu', 'ema', 'anta', 'jiboia'],
-  mata:     ['oncaparda', 'mico', 'jaguatirica', 'tatu'],
+  jungle:   ['onca', 'bugio', 'macaco', 'anaconda', 'anta', 'preguica'],
+  cerrado:  ['tamandua', 'lobo', 'tatu', 'ema', 'anta', 'jiboia', 'preguica'],
+  mata:     ['oncaparda', 'mico', 'jaguatirica', 'tatu', 'preguica'],
   caatinga: ['seriema', 'lagarto', 'cascavel', 'veado'],
   pampas:   ['capivara', 'tartaruga', 'ra', 'tatu', 'jararaca', 'veado'],
   pantanal: ['jacare', 'tuiuiu', 'capivara', 'anaconda']
@@ -921,9 +921,11 @@ function update() {
     critterTimer = 380 + Math.random() * 520;
     if (critters.length < 3) {
       const kinds = FAUNA[phase().deco];
+      const kind = kinds[Math.floor(Math.random() * kinds.length)];
       critters.push({
-        kind: kinds[Math.floor(Math.random() * kinds.length)],
+        kind,
         x: W + 90,
+        hy: 120 + Math.random() * 130, // altura do galho (só a preguiça usa)
         ph: Math.random() * 6.28,
         s: 0.85 + Math.random() * 0.35
       });
@@ -1595,10 +1597,54 @@ function drawCritter(c) {
   const bob = Math.sin(ph * 2) * 1.2; // balanço do passo
   const leg = Math.sin(ph * 2);       // pêndulo das pernas
   ctx.save();
-  ctx.translate(c.x, H - GROUND_H + 8);
+  // a preguiça vive pendurada no alto; o resto anda no chão
+  ctx.translate(c.x, c.kind === 'preguica' ? c.hy : H - GROUND_H + 8);
   ctx.scale(c.s, c.s);
   ctx.globalAlpha = 0.92;
   switch (c.kind) {
+    case 'preguica': {
+      const sway = Math.sin(ph * 0.5) * 0.12; // balança beeem devagar
+      // galho de apoio com folhas
+      ctx.strokeStyle = '#5b3a21'; ctx.lineWidth = 6; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(-34, 0); ctx.lineTo(34, -4); ctx.stroke();
+      ctx.fillStyle = '#3a8f46';
+      ctx.beginPath();
+      ctx.ellipse(32, -9, 9, 5, -0.4, 0, 7);
+      ctx.ellipse(-33, -4, 8, 4.5, 0.3, 0, 7);
+      ctx.fill();
+      ctx.save();
+      ctx.translate(0, -2);
+      ctx.rotate(sway);
+      // braços agarrados no galho
+      ctx.strokeStyle = '#8a7a5e'; ctx.lineWidth = 4.5;
+      ctx.beginPath();
+      ctx.moveTo(-10, 2); ctx.quadraticCurveTo(-14, 10, -8, 16);
+      ctx.moveTo(10, 1); ctx.quadraticCurveTo(14, 10, 8, 16);
+      ctx.stroke();
+      // corpo pendurado de cabeça pra baixo
+      ctx.fillStyle = '#8a7a5e';
+      ctx.beginPath(); ctx.ellipse(0, 24, 12, 14, 0, 0, 7); ctx.fill();
+      ctx.beginPath(); ctx.arc(0, 40, 8, 0, 7); ctx.fill();
+      // máscara clara do rosto
+      ctx.fillStyle = '#d9cbb0';
+      ctx.beginPath(); ctx.ellipse(0, 41, 6, 5, 0, 0, 7); ctx.fill();
+      // listras dos olhos (dormindo) e sorrisinho
+      ctx.strokeStyle = '#4a3a2e'; ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.moveTo(-5, 38); ctx.lineTo(-2, 41);
+      ctx.moveTo(5, 38); ctx.lineTo(2, 41);
+      ctx.stroke();
+      ctx.beginPath(); ctx.arc(0, 43, 2.2, 0.2, Math.PI - 0.2); ctx.stroke();
+      // Zzz subindo devagarzinho
+      ctx.fillStyle = 'rgba(255,255,255,.85)';
+      ctx.font = '10px sans-serif';
+      const zf = (ph * 6) % 18;
+      ctx.fillText('z', 15, 32 - zf);
+      ctx.font = '7px sans-serif';
+      ctx.fillText('z', 21, 26 - zf);
+      ctx.restore();
+      break;
+    }
     case 'onca': case 'oncaparda': case 'jaguatirica': {
       const sc = c.kind === 'jaguatirica' ? 0.68 : 1;
       const col = c.kind === 'oncaparda' ? '#a67c52' : '#d9a441';
@@ -2818,7 +2864,7 @@ if (document.fonts && document.fonts.load) {
     document.fonts.load(f).catch(() => {});
   });
 }
-const GAME_VERSION = '2.0';
+const GAME_VERSION = '2.1';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 resetGame();
