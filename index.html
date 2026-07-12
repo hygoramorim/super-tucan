@@ -375,6 +375,7 @@ function currentDiff() {
   if (slowmo > 0) k *= 0.55;
   if (pena > 0) k *= 1.3;
   if (event === 'VULCÃO') k *= 1.1;
+  if (bookTimer > 0) k *= bookMod; // LIVRO: +vel (1.3) ou -vel (0.7)
   d.speed *= k;
   return d;
 }
@@ -778,6 +779,9 @@ let pena = 0;      // PENA: velocidade x1.3 e pontos x2 (10 s)
 let shield = 0;    // ESCUDO: atravessa 1 tronco
 let slowmo = 0;    // RELÓGIO: tudo mais lento (15 s)
 let invuln = 0;    // invencibilidade breve após usar escudo / tutorial
+let agua = 0;      // ÁGUA: batida de asa impulsiona mais alto (10 s)
+let bookMod = 1;   // LIVRO: multiplicador de velocidade (0.7 lento / 1.3 rápido)
+let bookTimer = 0; // duração do efeito do LIVRO (8 s)
 // Eventos climáticos
 let event = null, eventTimer = 0, eventCooldown = 900, alertTimer = 0;
 // Celebrações
@@ -817,6 +821,7 @@ function resetGame() {
   bugs = []; bugTimer = 60;
   cameo = null; cameoTimer = 420;
   pena = 0; shield = 0; slowmo = 0; invuln = 0;
+  agua = 0; bookMod = 1; bookTimer = 0;
   event = null; eventTimer = 0; eventCooldown = 900; alertTimer = 0;
   floaters = [];
   nextMilestone = 50;
@@ -835,7 +840,7 @@ function phase() { return PHASES[phaseIdx]; }
 function flap() {
   if (state === 'ready') state = 'play'; // 1º toque inicia a física
   if (state !== 'play') return;
-  bird.vy = -7.2;
+  bird.vy = -7.2 * (agua > 0 ? 1.35 : 1); // ÁGUA: pulo mais alto
   bird.flapAnim = 10;
   sfx.flap();
 }
@@ -898,9 +903,9 @@ function spawnObstacle() {
     eggs.push({ x: ob.x + d.spacing / 2, y: by, golden: false, taken: false, bob: Math.random() * 6.28, age: 0 });
   }
   // Power-up ocasional (12%): PENA, ESCUDO ou RELÓGIO — nunca no hardcore/tutorial
-  if (gameMode !== 'hardcore' && gameMode !== 'tutorial' && !jewelBetween && rng() < 0.12) {
+  if (gameMode !== 'hardcore' && gameMode !== 'tutorial' && !jewelBetween && rng() < 0.17) {
     const r2 = rng();
-    const type = r2 < 0.42 ? 'pena' : r2 < 0.75 ? 'escudo' : 'relogio';
+    const type = r2 < 0.28 ? 'pena' : r2 < 0.5 ? 'escudo' : r2 < 0.68 ? 'relogio' : r2 < 0.84 ? 'livro' : 'agua';
     const py = Math.max(130, Math.min(H - GROUND_H - 70, gapY + (rng() * 160 - 80)));
     powerups.push({ x: ob.x + d.spacing * 0.35, y: py, type, bob: Math.random() * 6.28, age: 0, taken: false });
   }
@@ -1096,6 +1101,8 @@ function update() {
   if (pena > 0) pena--;
   if (slowmo > 0) slowmo--;
   if (invuln > 0) invuln--;
+  if (agua > 0) agua--;
+  if (bookTimer > 0) { bookTimer--; if (bookTimer === 0) bookMod = 1; }
 
   // textos flutuantes
   floaters = floaters.filter(f => { f.y -= 0.7; f.life--; return f.life > 0; });
@@ -1230,7 +1237,14 @@ function update() {
       sfx.power();
       if (pu.type === 'pena') { pena = 600; floater('🪶 PENA! PONTOS ×2', '#ff9f1c'); }
       else if (pu.type === 'escudo') { shield = 1; floater('🛡 ESCUDO!', '#7ee08a'); }
-      else { slowmo = 900; floater('⏰ CÂMERA LENTA!', '#7dd3fc'); }
+      else if (pu.type === 'relogio') { slowmo = 900; floater('⏰ CÂMERA LENTA!', '#7dd3fc'); }
+      else if (pu.type === 'livro') {
+        // surpresa: 70% desacelera (bom), 30% acelera (desafio)
+        if (Math.random() < 0.7) { bookMod = 0.7; floater('😴 SONECA... −VELOCIDADE', '#7dd3fc'); }
+        else { bookMod = 1.3; floater('📖 ESTUDOU! +VELOCIDADE', '#ff9f1c'); }
+        bookTimer = 480;
+      }
+      else if (pu.type === 'agua') { agua = 600; floater('💧 HIDRATADO! PULO +ALTO', '#38bdf8'); }
       burst(pu.x, pu.y, '#ffffff', 14);
     }
   }
@@ -2675,7 +2689,11 @@ function drawET(cm) {
 // Power-ups flutuantes: medalhão branco com aura pulsante
 function drawPowerup(pu) {
   const bob = Math.sin(frames * 0.07 + pu.bob) * 5;
-  const cfg = pu.type === 'pena' ? ['#ff9f1c', '🪶'] : pu.type === 'escudo' ? ['#2e9e5b', '🛡'] : ['#0ea5e9', '⏰'];
+  const cfg = pu.type === 'pena' ? ['#ff9f1c', '🪶']
+    : pu.type === 'escudo' ? ['#2e9e5b', '🛡']
+    : pu.type === 'relogio' ? ['#0ea5e9', '⏰']
+    : pu.type === 'livro' ? ['#8b5cf6', '📖']
+    : ['#38bdf8', '💧'];
   ctx.save();
   ctx.globalAlpha = Math.min(1, pu.age / 15);
   ctx.translate(pu.x, pu.y + bob);
@@ -2693,6 +2711,12 @@ function drawPowerup(pu) {
   ctx.font = '14px sans-serif';
   ctx.textAlign = 'center';
   ctx.fillText(cfg[1], 0, 5);
+  // LIVRO é surpresa: "?" pulsante sobreposto
+  if (pu.type === 'livro' && frames % 40 < 24) {
+    ctx.fillStyle = '#8b5cf6';
+    ctx.font = "800 12px Grandstander, sans-serif";
+    ctx.fillText('?', 9, -6);
+  }
   ctx.restore();
 }
 
@@ -3103,7 +3127,9 @@ function drawHUD(p) {
   ctx.font = '700 11px Grandstander, sans-serif';
   if (pena > 0) { ctx.fillStyle = '#ff9f1c'; ctx.fillText('🪶 PENA ×2 · ' + Math.ceil(pena / 60) + 's', 14, fxY); fxY += 15; }
   if (shield > 0) { ctx.fillStyle = '#7ee08a'; ctx.fillText('🛡 ESCUDO PRONTO', 14, fxY); fxY += 15; }
-  if (slowmo > 0) { ctx.fillStyle = '#7dd3fc'; ctx.fillText('⏰ LENTO · ' + Math.ceil(slowmo / 60) + 's', 14, fxY); }
+  if (slowmo > 0) { ctx.fillStyle = '#7dd3fc'; ctx.fillText('⏰ LENTO · ' + Math.ceil(slowmo / 60) + 's', 14, fxY); fxY += 15; }
+  if (agua > 0) { ctx.fillStyle = '#38bdf8'; ctx.fillText('💧 ÁGUA · ' + Math.ceil(agua / 60) + 's', 14, fxY); fxY += 15; }
+  if (bookTimer > 0) { ctx.fillStyle = bookMod < 1 ? '#7dd3fc' : '#ff9f1c'; ctx.fillText((bookMod < 1 ? '😴' : '📖') + ' LIVRO · ' + Math.ceil(bookTimer / 60) + 's', 14, fxY); }
 
   // fase + barra de progresso — encolhe em telas estreitas (celular em pé)
   const narrow = W < 460;
