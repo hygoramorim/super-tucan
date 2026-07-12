@@ -164,9 +164,29 @@
   .tab.active { background: linear-gradient(180deg, #ffd23f, #f5a623); color: #10281a; }
   #menuPB { color: #f5a623; margin-top: 4px; }
   #goPB { font-size: 12px; color: #f5a623; }
+  #goXP { font-size: 12px; color: #7ee08a; }
+  #fSearch {
+    width: 150px; font-size: 16px; font-family: inherit; font-weight: 700;
+    text-align: center; text-transform: uppercase;
+    background: #10281a; color: #ffd23f;
+    border: 2px solid #7ee08a; border-radius: 8px; padding: 7px 4px; outline: none;
+  }
+  #fList {
+    min-width: 260px; max-width: 320px; max-height: 38vh; overflow-y: auto;
+    font-size: 13px; text-align: left;
+  }
+  #fList .frow {
+    display: flex; justify-content: space-between; align-items: center; gap: 10px;
+    background: rgba(16,40,26,.9); border: 1px solid #2e6e3e;
+    border-radius: 8px; padding: 6px 10px; margin-bottom: 5px;
+  }
+  #fList .frow button { font-size: 11px; padding: 5px 10px; box-shadow: none; }
+  #fList .fempty { color: #5a7a62; font-style: italic; text-align: center; padding: 8px; }
   /* ---- Ajustes para telas pequenas (mobile) ---- */
   @media (max-width: 520px), (max-height: 700px) {
-    .overlay { gap: 9px; padding: 12px; overflow-y: auto; justify-content: flex-start; padding-top: 26px; }
+    .overlay { gap: 9px; padding: 12px; overflow-y: auto; }
+    /* só o menu (conteúdo longo) ancora no topo; as outras telas ficam centralizadas */
+    #menu { justify-content: flex-start; padding-top: 26px; }
     h1 { font-size: 24px; }
     h1 small { font-size: 12px; letter-spacing: 4px; }
     .sub { font-size: 11px; max-width: 300px; }
@@ -196,6 +216,23 @@
       <p class="credit">&copy; 2026 CISCO GAMES</p>
     </div>
 
+    <!-- PAINEL DE AMIGOS -->
+    <div id="friends" class="overlay hidden">
+      <h1 style="font-size:24px">&#10084;&#65039; AMIGOS</h1>
+      <p class="hint" id="fWho"></p>
+      <div class="tabs">
+        <button class="tab active" id="fTabList">AMIGOS</button>
+        <button class="tab" id="fTabReq">PEDIDOS</button>
+        <button class="tab" id="fTabAdd">ADICIONAR</button>
+      </div>
+      <div id="fSearchRow" style="display:none;gap:6px;align-items:center">
+        <input id="fSearch" maxlength="9" autocomplete="off" spellcheck="false" placeholder="NOME">
+        <button id="fSearchBtn" class="sec">BUSCAR</button>
+      </div>
+      <div id="fList"></div>
+      <button id="fClose" class="sec">VOLTAR</button>
+    </div>
+
     <!-- TELA DE ABERTURA -->
     <div id="menu" class="overlay">
       <div class="studio">&#10022; CISCO GAMES &#10022;<small>APRESENTA</small></div>
@@ -207,13 +244,14 @@
         <div class="hint" id="menuPB"></div>
       </div>
       <button id="btnPlay">JOGAR</button>
-      <button id="btnDaily" class="sec">&#128197; DESAFIO DO DIA</button>
+      <div style="display:flex;gap:7px;flex-wrap:wrap;justify-content:center">
+        <button id="btnDaily" class="sec">&#128197; DESAFIO DO DIA</button>
+        <button id="btnTutorial" class="sec">&#127891; TUTORIAL</button>
+        <button id="btnHardcore" class="sec">&#128128; HARDCORE</button>
+        <button id="btnFriends" class="sec">&#10084;&#65039; AMIGOS</button>
+      </div>
       <div id="ranking">
-        <h2>&#127942; TOP 10 MUNDIAL</h2>
-        <div class="tabs">
-          <button class="tab active" id="tabAll">GERAL</button>
-          <button class="tab" id="tabDaily">HOJE</button>
-        </div>
+        <h2>&#127942; RANKING GLOBAL &middot; TOP 10</h2>
         <ol id="rankList"></ol>
       </div>
       <p class="hint">ESPAÇO / CLIQUE / TOQUE para voar &middot; E ou P pausa</p>
@@ -227,6 +265,7 @@
       <div class="bigscore" id="goScore">0</div>
       <div id="goRecord" class="newrec hidden">&#11088; NOVO RECORDE! &#11088;</div>
       <div id="goPB"></div>
+      <div id="goXP"></div>
       <div id="goRank" class="sub"></div>
       <button id="btnAgain">JOGAR DE NOVO</button>
       <button id="btnMenu" class="sec">MENU / RANKING</button>
@@ -274,7 +313,7 @@ fitCanvas();
 // 6 biomas brasileiros — cada paleta em forte contraste com a anterior
 const PHASES = [
   { // verde profundo e úmido
-    name: 'AMAZÔNIA', dist: 1600, speed: 2.5, gap: 175, spacing: 265,
+    name: 'AMAZÔNIA', dist: 1600, speed: 2.5, gap: 320, spacing: 265,
     body: '#16161a', wing: '#2e2e2e', beak: ['#ff9f1c', '#e0532f'], eye: '#ffd23f',
     skyTop: '#bfe8c0', skyBot: '#e9f7d3', far: '#1f5e34', mid: '#2f7a45',
     branch: '#5b3a21', leaf: '#2f8f46', ground: '#2e6b33', groundTop: '#3f8f4a',
@@ -321,13 +360,23 @@ const LAST = PHASES.length - 1;
 // difícil porém vencível por um jogador de alto nível (nunca impossível)
 const P3_LEVEL_FRAMES = 900;
 function currentDiff() {
+  // tutorial: bem lento e escancarado, para aprender o voo
+  if (gameMode === 'tutorial') return { speed: 2.2, gap: 340, spacing: 310 };
   const p = PHASES[phaseIdx];
-  if (phaseIdx < LAST) return { speed: p.speed, gap: p.gap, spacing: p.spacing };
-  return {
+  let d;
+  if (phaseIdx < LAST) d = { speed: p.speed, gap: p.gap, spacing: p.spacing };
+  else d = {
     speed: Math.min(6.2, p.speed + p3Level * 0.2),
     gap: Math.max(108, p.gap - p3Level * 3),
     spacing: Math.max(182, p.spacing - p3Level * 3)
   };
+  // modificadores ativos: relógio (câmera lenta), pena (mais rápido), vulcão
+  let k = 1;
+  if (slowmo > 0) k *= 0.55;
+  if (pena > 0) k *= 1.3;
+  if (event === 'VULCÃO') k *= 1.1;
+  d.speed *= k;
+  return d;
 }
 
 // ---------- Áudio (efeitos sintetizados) ----------
@@ -370,8 +419,22 @@ const sfx = {
   egg()     { tone(880, 0.09, 'sine', 0.18); setTimeout(() => tone(1318, 0.14, 'sine', 0.18), 70); }, // "plim" de coleta
   gold()    { [880, 1108, 1318, 1760].forEach((f, i) => setTimeout(() => tone(f, 0.12, 'sine', 0.16), i * 65)); },
   jewel()   { [1318, 1568, 2093, 2637, 3136].forEach((f, i) => setTimeout(() => tone(f, 0.2, 'sine', 0.15), i * 70)); }, // cristalino
+  power()   { [523, 784, 1046].forEach((f, i) => setTimeout(() => tone(f, 0.12, 'square', 0.1), i * 70)); },   // pegou power-up
+  shieldPop() { noiseBurst(0.15, 0.22); tone(320, 0.22, 'triangle', 0.16, 140); },                              // escudo absorveu
+  milestone() { [784, 988, 1175, 1568, 1975].forEach((f, i) => setTimeout(() => tone(f, 0.15, 'triangle', 0.14), i * 75)); }, // marco de pontos
+  comboUp() { tone(660, 0.1, 'square', 0.12); setTimeout(() => tone(990, 0.13, 'square', 0.12), 85); },         // combo ativado
+  alert()   { [620, 470, 620].forEach((f, i) => setTimeout(() => tone(f, 0.2, 'sawtooth', 0.09), i * 210)); },  // sirene de evento
 
   crash()   { noiseBurst(0.35, 0.35); tone(160, 0.4, 'sawtooth', 0.2, 40); }, // impacto no galho
+  fall()    { tone(1400, 0.7, 'sine', 0.12, 280); }, // apito deslizante de desenho animado
+  thud(pose) { // som cômico do pouso, um por pose
+    noiseBurst(0.22, 0.28);
+    if (pose === 0) { tone(180, 0.3, 'sine', 0.2, 80); setTimeout(() => tone(95, 0.25, 'sine', 0.18, 60), 150); }        // boing-boing
+    else if (pose === 1) { tone(120, 0.35, 'sawtooth', 0.16, 50); }                                                        // craft na terra
+    else if (pose === 2) { tone(80, 0.5, 'sine', 0.22, 40); setTimeout(() => sfx.chirp(), 420); }                          // panqueca + pio fraco
+    else if (pose === 3) { [400, 380, 360, 340].forEach((f, i) => setTimeout(() => tone(f, 0.13, 'triangle', 0.09), i * 140)); } // zonzo
+    else { tone(230, 0.18, 'square', 0.15, 200); setTimeout(() => tone(160, 0.3, 'square', 0.13, 70), 170); }              // buzina dramática
+  },
   phase()   { [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => tone(f, 0.16, 'square', 0.08), i * 110)); },
   chirp()   { tone(2200 + Math.random() * 600, 0.07, 'sine', 0.05, 2900); setTimeout(() => tone(2600, 0.06, 'sine', 0.04, 3200), 90); }
 };
@@ -478,36 +541,35 @@ function dayKey() {
   const d = new Date();
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 }
-function dbNode(mode) { return mode === 'daily' ? '/daily/' + dayKey() : '/scores'; }
-function cacheKey(mode) { return mode === 'daily' ? 'superTucan_top10_daily_' + dayKey() : 'superTucan_top10'; }
-function cachedScores(mode) {
-  try { return JSON.parse(localStorage.getItem(cacheKey(mode))) || []; }
+// Ranking ÚNICO E GLOBAL: todos os modos competitivos pontuam no mesmo TOP 10
+function cachedScores() {
+  try { return JSON.parse(localStorage.getItem('superTucan_top10')) || []; }
   catch (e) { return []; }
 }
-async function fetchScores(mode) {
+async function fetchScores() {
   try {
-    const r = await fetch(DB_URL + dbNode(mode) + '.json?orderBy=%22score%22&limitToLast=10');
+    const r = await fetch(DB_URL + '/scores.json?orderBy=%22score%22&limitToLast=10');
     if (!r.ok) throw new Error(r.status);
     const data = await r.json();
     const list = data ? Object.values(data) : [];
     list.sort((a, b) => b.score - a.score);
     const top = list.slice(0, 10);
-    localStorage.setItem(cacheKey(mode), JSON.stringify(top));
+    localStorage.setItem('superTucan_top10', JSON.stringify(top));
     return { list: top, online: true };
   } catch (e) {
-    return { list: cachedScores(mode), online: false };
+    return { list: cachedScores(), online: false };
   }
 }
-async function submitScore(name, score, mode) {
+async function submitScore(name, score) {
   let online = true;
   try {
-    const r = await fetch(DB_URL + dbNode(mode) + '.json', {
+    const r = await fetch(DB_URL + '/scores.json', {
       method: 'POST',
       body: JSON.stringify({ name, score, date: new Date().toISOString().slice(0, 10) })
     });
     if (!r.ok) throw new Error(r.status);
   } catch (e) { online = false; }
-  const res = await fetchScores(mode);
+  const res = await fetchScores();
   const pos = res.list.findIndex(e => e.name === name && e.score === score) + 1; // posição (1-based) ou 0
   return { pos, online: online && res.online };
 }
@@ -516,21 +578,88 @@ function rankHTML(list) {
     `<li><span>${String(i + 1).padStart(2, '0')}. ${e.name}</span><span class="pts">${e.score} &#129370;</span></li>`
   ).join('');
 }
-let rankTab = 'normal';
 async function renderRanking() {
   const ol = document.getElementById('rankList');
-  const mode = rankTab;
-  const cached = cachedScores(mode);
+  const cached = cachedScores();
   ol.innerHTML = cached.length ? rankHTML(cached) : '<li class="empty">Carregando ranking...</li>';
-  const res = await fetchScores(mode);
-  if (mode !== rankTab) return; // usuário trocou de aba durante o fetch
+  const res = await fetchScores();
   if (!res.list.length) {
     ol.innerHTML = '<li class="empty">' + (res.online
-      ? (mode === 'daily' ? 'Ninguém jogou o desafio de hoje. Seja o primeiro!' : 'Nenhuma pontuação ainda. Seja o primeiro do mundo!')
+      ? 'Nenhuma pontuação ainda. Seja o primeiro do mundo!'
       : 'Sem conexão — ranking indisponível.') + '</li>';
     return;
   }
   ol.innerHTML = rankHTML(res.list);
+}
+
+// ---------- Identidade: nome único vinculado a IP + aparelho ----------
+function deviceId() {
+  let d = localStorage.getItem('superTucan_dev');
+  if (!d) {
+    d = Math.random().toString(36).slice(2, 12) + Date.now().toString(36);
+    localStorage.setItem('superTucan_dev', d);
+  }
+  return d;
+}
+function hashStr(s) {
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
+  return 'h' + (h >>> 0).toString(36);
+}
+let myIpHash = null;
+fetch('https://api.ipify.org?format=json')
+  .then(r => r.json())
+  .then(d => { myIpHash = hashStr(d.ip); })
+  .catch(() => { /* offline: valida só pelo aparelho */ });
+function ownedLocal(name) {
+  try { return (JSON.parse(localStorage.getItem('superTucan_myNames')) || []).includes(name); }
+  catch (e) { return false; }
+}
+function markOwned(name) {
+  let l = [];
+  try { l = JSON.parse(localStorage.getItem('superTucan_myNames')) || []; } catch (e) { /* zera */ }
+  if (!l.includes(name)) l.push(name);
+  localStorage.setItem('superTucan_myNames', JSON.stringify(l));
+}
+// Retorna true se o nome é seu (ou acabou de ser registrado); false se pertence a outro jogador
+async function claimName(name) {
+  if (ownedLocal(name)) return true;
+  try {
+    const r = await fetch(DB_URL + '/names/' + name + '.json');
+    if (!r.ok) return true; // registro indisponível: não trava o jogo
+    const cur = await r.json();
+    const dev = deviceId();
+    if (!cur) {
+      const w = await fetch(DB_URL + '/names/' + name + '.json', {
+        method: 'PUT',
+        body: JSON.stringify({ ip: myIpHash || 'na', dev })
+      });
+      if (w.ok) { markOwned(name); return true; }
+      return true; // corrida rara: deixa jogar
+    }
+    if (cur.dev === dev || (myIpHash && cur.ip === myIpHash)) { markOwned(name); return true; }
+    return false;
+  } catch (e) {
+    return true; // sem internet: deixa jogar (ranking não sobe mesmo)
+  }
+}
+
+// ---------- XP e níveis do jogador ----------
+const XP_LEVELS = [
+  [0, 'BEBÊ', '🐣'], [300, 'FILHOTE', '🐥'], [1200, 'JOVEM', '🦜'],
+  [3500, 'ADULTO', '🦅'], [9000, 'ANCIÃO', '🦉']
+];
+function levelFromXp(xp) {
+  let i = 0;
+  while (i + 1 < XP_LEVELS.length && xp >= XP_LEVELS[i + 1][0]) i++;
+  return i;
+}
+// Publica o cartão público do jogador (visto pelos amigos)
+function publishPlayer(name, st) {
+  fetch(DB_URL + '/players/' + name + '.json', {
+    method: 'PUT',
+    body: JSON.stringify({ best: st.pb, xp: st.xp || 0 })
+  }).catch(() => { /* offline */ });
 }
 
 // ---------- Status do jogador (por nome, no aparelho) ----------
@@ -546,7 +675,7 @@ function getStats(name) {
       if (old[name]) s.pb = old[name];
     } catch (e) { /* sem dados antigos */ }
   }
-  return { pb: s.pb || 0, phase: s.phase === undefined ? -1 : s.phase, level: s.level || 0 };
+  return { pb: s.pb || 0, phase: s.phase === undefined ? -1 : s.phase, level: s.level || 0, xp: s.xp || 0 };
 }
 function saveStats(name, st) {
   let m = {};
@@ -581,6 +710,25 @@ let combo = 0; // ovos coletados em sequência sem deixar nenhum passar
 let enemies = [];
 let enemyTimer = 0;
 const ENEMY_SPEED = 2.5;
+// Power-ups coletáveis e seus efeitos ativos (em frames)
+let powerups = [];
+let pena = 0;      // PENA: velocidade x1.3 e pontos x2 (10 s)
+let shield = 0;    // ESCUDO: atravessa 1 tronco
+let slowmo = 0;    // RELÓGIO: tudo mais lento (15 s)
+let invuln = 0;    // invencibilidade breve após usar escudo / tutorial
+// Eventos climáticos
+let event = null, eventTimer = 0, eventCooldown = 900, alertTimer = 0;
+// Celebrações
+let floaters = []; // textos flutuantes {x, y, text, color, life}
+let nextMilestone = 50;
+let tutIdx = 0;
+const TUT_MSGS = [
+  [30, 'TOQUE PARA SUBIR'], [300, 'SOLTE PARA DESCER'], [600, 'COLETE OS OVOS 🥚'],
+  [950, 'DESVIE DOS GALHOS'], [1300, 'TETO E CHÃO MACHUCAM!'], [1650, 'PRONTO! VOCÊ APRENDEU 🦜']
+];
+function floater(text, color, x, y) {
+  floaters.push({ x: x === undefined ? bird.x : x, y: y === undefined ? bird.y - 40 : y, text, color: color || '#ffd23f', life: 90 });
+}
 let chirpTimer = 0;
 
 function resetGame() {
@@ -601,6 +749,12 @@ function resetGame() {
   combo = 0;
   enemies = [];
   enemyTimer = 180;
+  powerups = [];
+  pena = 0; shield = 0; slowmo = 0; invuln = 0;
+  event = null; eventTimer = 0; eventCooldown = 900; alertTimer = 0;
+  floaters = [];
+  nextMilestone = 50;
+  tutIdx = 0;
   lastGapY = H / 2;
   deathTimer = 0;
   shake = 0;
@@ -677,6 +831,13 @@ function spawnObstacle() {
     const by = Math.max(120, Math.min(H - GROUND_H - 60, gapY + (rng() * 140 - 70)));
     eggs.push({ x: ob.x + d.spacing / 2, y: by, golden: false, taken: false, bob: Math.random() * 6.28, age: 0 });
   }
+  // Power-up ocasional (12%): PENA, ESCUDO ou RELÓGIO — nunca no hardcore/tutorial
+  if (gameMode !== 'hardcore' && gameMode !== 'tutorial' && !jewelBetween && rng() < 0.12) {
+    const r2 = rng();
+    const type = r2 < 0.42 ? 'pena' : r2 < 0.75 ? 'escudo' : 'relogio';
+    const py = Math.max(130, Math.min(H - GROUND_H - 70, gapY + (rng() * 160 - 80)));
+    powerups.push({ x: ob.x + d.spacing * 0.35, y: py, type, bob: Math.random() * 6.28, age: 0, taken: false });
+  }
 }
 
 function burst(x, y, color, n) {
@@ -731,8 +892,15 @@ function update() {
   const cloudSpeed = state === 'play' ? p.speed * 0.25 : 0.3;
   clouds.forEach(c => { c.x -= cloudSpeed * c.s; if (c.x < -90) { c.x = W + 90; c.y = 30 + Math.random() * 160; } });
 
-  // partículas (confetes flutuam mais devagar e giram)
+  // partículas (confetes giram; penas caem devagar balançando)
   particles = particles.filter(pt => {
+    if (pt.feather) {
+      pt.x += Math.sin(pt.life * 0.08 + pt.sway) * 0.6;
+      pt.y += 0.45;
+      pt.rot = Math.sin(pt.life * 0.08 + pt.sway) * 0.7;
+      pt.life--;
+      return pt.life > 0 && pt.y < H - GROUND_H + 20;
+    }
     pt.x += pt.vx; pt.y += pt.vy;
     pt.vy += pt.confetti ? 0.05 : 0.12;
     if (pt.confetti) { pt.vx *= 0.99; pt.rot += pt.vr; }
@@ -757,22 +925,62 @@ function update() {
   }
 
   if (state === 'dead') {
-    // tucano cai após colisão
+    // queda com cambalhota + pouso na pose cômica
     if (bird.y < H - GROUND_H - 14) {
       bird.vy += 0.5;
       bird.y += bird.vy;
-      bird.rot = Math.min(bird.rot + 0.08, Math.PI / 2);
+      bird.rot += 0.24; // cambalhota
+    } else if (!landed) {
+      landed = true;
+      bird.y = H - GROUND_H - 14;
+      shake = 10;
+      spawnFeathers();
+      sfx.thud(deathPose);
     }
     if (shake > 0) shake--;
-    if (++deathTimer === 55) showGameOver();
+    floaters = floaters.filter(f => { f.y -= 0.7; f.life--; return f.life > 0; });
+    if (++deathTimer === 135) showGameOver(); // tempo para curtir a pose
     return;
   }
 
   // ---- estado: play ----
   if (bannerTimer > 0) bannerTimer--;
+  if (alertTimer > 0) alertTimer--;
+  if (pena > 0) pena--;
+  if (slowmo > 0) slowmo--;
+  if (invuln > 0) invuln--;
 
-  // física do tucano
+  // textos flutuantes
+  floaters = floaters.filter(f => { f.y -= 0.7; f.life--; return f.life > 0; });
+
+  // tutorial: mensagens guiadas e fim
+  if (gameMode === 'tutorial') {
+    if (tutIdx < TUT_MSGS.length && frames >= TUT_MSGS[tutIdx][0]) {
+      floater(TUT_MSGS[tutIdx][1], '#7ee08a', W / 2, H / 2 - 120);
+      sfx.comboUp();
+      tutIdx++;
+    }
+    if (frames >= 1900) { endTutorial(); return; }
+  }
+
+  // eventos climáticos (da fase 3 em diante; nunca no tutorial)
+  if (gameMode !== 'tutorial' && phaseIdx >= 2) {
+    if (!event && --eventCooldown <= 0) {
+      event = ['VENTANIA', 'TEMPESTADE', 'VULCÃO'][Math.floor(rng() * 3)];
+      eventTimer = 480; // 8 s
+      alertTimer = 160;
+      sfx.alert();
+    }
+    if (event && --eventTimer <= 0) {
+      event = null;
+      eventCooldown = 1400 + rng() * 1500;
+    }
+  }
+
+  // física do tucano (eventos mexem no ar)
   bird.vy += 0.42;
+  if (event === 'TEMPESTADE') bird.vy += 0.07;                       // chuva pesa
+  if (event === 'VENTANIA') bird.vy += Math.sin(frames * 0.05) * 0.22; // rajadas
   if (bird.vy > 10) bird.vy = 10;
   bird.y += bird.vy;
   bird.rot = Math.max(-0.45, Math.min(1.2, bird.vy * 0.09));
@@ -790,8 +998,8 @@ function update() {
   totalDist += d.speed;
   phaseDist += d.speed;
 
-  // transição de fase (a fase final é infinita)
-  if (phaseIdx < LAST && phaseDist >= p.dist) {
+  // transição de fase (a fase final é infinita; tutorial não avança)
+  if (gameMode !== 'tutorial' && phaseIdx < LAST && phaseDist >= p.dist) {
     phaseIdx++;
     phaseDist = 0;
     const np = PHASES[phaseIdx];
@@ -835,7 +1043,7 @@ function update() {
         wing: rng() * 6.28
       });
     }
-    enemies.forEach(en => { en.x -= d.speed + ENEMY_SPEED; });
+    enemies.forEach(en => { en.x -= d.speed + ENEMY_SPEED * (slowmo > 0 ? 0.55 : 1); });
     enemies = enemies.filter(en => en.x > -50);
     for (const en of enemies) {
       const ex = bird.x - en.x, eyd = bird.y - en.y;
@@ -864,6 +1072,42 @@ function update() {
       combo = 0;
     }
   });
+
+  // move e coleta power-ups
+  powerups.forEach(pu => { pu.x -= d.speed; pu.age++; });
+  powerups = powerups.filter(pu => pu.x > -40 && !pu.taken);
+  for (const pu of powerups) {
+    const px = bird.x - pu.x, py = bird.y - (pu.y + Math.sin(frames * 0.07 + pu.bob) * 5);
+    if (px * px + py * py < 26 * 26) {
+      pu.taken = true;
+      sfx.power();
+      if (pu.type === 'pena') { pena = 600; floater('🪶 PENA! PONTOS ×2', '#ff9f1c'); }
+      else if (pu.type === 'escudo') { shield = 1; floater('🛡 ESCUDO!', '#7ee08a'); }
+      else { slowmo = 900; floater('⏰ CÂMERA LENTA!', '#7dd3fc'); }
+      burst(pu.x, pu.y, '#ffffff', 14);
+    }
+  }
+
+  // "quase!" — passou raspando no galho
+  obstacles.forEach(o => {
+    if (!o.passed && o.x + o.w / 2 < bird.x - bird.r) {
+      o.passed = true;
+      const edge = Math.min(bird.y - (o.gapY - o.gap / 2), (o.gapY + o.gap / 2) - bird.y);
+      if (edge < 20 && state === 'play') {
+        floater('UFA!', '#ffffff');
+        sfx.chirp();
+        score += 0; // só celebração — sem ponto, para não virar farm
+      }
+    }
+  });
+
+  // marco de pontos: a cada 50, festa!
+  if (score >= nextMilestone) {
+    floater('🎉 ' + nextMilestone + ' PONTOS!', '#ffd23f', W / 2, H / 2 - 100);
+    celebrate(['#ffd23f', '#ff2e93', '#7dd3fc', '#7ee08a'], 45);
+    sfx.milestone();
+    nextMilestone += 50;
+  }
   obstacles = obstacles.filter(o => o.x > -80);
   eggs = eggs.filter(e => e.x > -30 && !e.taken);
 
@@ -876,14 +1120,25 @@ function update() {
 
   // colisão com galhos: círculo do corpo vs retângulo do tronco (justa e previsível)
   const hitR = bird.r - 4;
-  for (const o of obstacles) {
-    const rx = o.x - o.w / 2;
-    const topH = o.gapY - o.gap / 2;
-    const botY = o.gapY + o.gap / 2;
-    if (circleRect(bird.x, bird.y, hitR, rx, 0, o.w, topH) ||
-        circleRect(bird.x, bird.y, hitR, rx, botY, o.w, H - GROUND_H - botY)) {
-      die();
-      return;
+  if (invuln <= 0) {
+    for (const o of obstacles) {
+      const rx = o.x - o.w / 2;
+      const topH = o.gapY - o.gap / 2;
+      const botY = o.gapY + o.gap / 2;
+      if (circleRect(bird.x, bird.y, hitR, rx, 0, o.w, topH) ||
+          circleRect(bird.x, bird.y, hitR, rx, botY, o.w, H - GROUND_H - botY)) {
+        if (shield > 0) {
+          // ESCUDO: atravessa este tronco
+          shield = 0;
+          invuln = 50;
+          floater('🛡 ESCUDO USADO!', '#7ee08a');
+          sfx.shieldPop();
+          burst(bird.x, bird.y, '#7ee08a', 18);
+        } else {
+          die();
+          return;
+        }
+      }
     }
   }
 
@@ -897,7 +1152,8 @@ function update() {
     if (dx * dx + dy * dy < (bird.r + 11) * (bird.r + 11) || tx * tx + ty * ty < 18 * 18) {
       e.taken = true;
       combo++;
-      const mult = combo >= 5 ? 2 : 1; // combo: 5 seguidos = ovos valem x2
+      if (combo === 5) { floater('🔥 COMBO ×2!', '#ff2e93'); sfx.comboUp(); }
+      const mult = (combo >= 5 ? 2 : 1) * (pena > 0 ? 2 : 1); // combo e PENA dobram
       score += (e.jewel ? 10 : e.golden ? 5 : 1) * mult;
       burst(e.x, ey, e.jewel ? '#7dd3fc' : e.golden ? '#ffd23f' : '#ffffff', e.jewel ? 30 : e.golden ? 16 : 8);
       if (e.jewel) sfx.jewel(); else if (e.golden) sfx.gold(); else sfx.egg();
@@ -905,13 +1161,54 @@ function update() {
   }
 }
 
+let deathPose = 0, landed = false, deathQuote = '';
+// Frases engraçadas que o tucano solta ao se estabacar
+const DEATH_QUOTES = [
+  'AI, CARAMBA!', 'PUXA VIDA...', 'AI, MEU JOELHO!', 'NÃO FOI NADA!',
+  'BORA TENTAR DE NOVO!', 'QUEM PÔS ISSO AÍ?!', 'EU TAVA VOANDO TÃO BEM...',
+  'CADÊ MEUS ÓCULOS?', 'FOI SÓ UM ARRANHÃO', 'MAMÃE...',
+  'O GALHO VEIO ATÉ MIM!', 'AVISA QUE EU TÔ BEM', 'ISSO VAI DEIXAR MARCA',
+  'A CULPA FOI DO VENTO!', 'ATÉ TUCANO ERRA, TÁ?'
+];
 function die() {
+  // no tutorial não se morre: só um susto e segue o voo
+  if (gameMode === 'tutorial') {
+    if (invuln > 0) return;
+    invuln = 55;
+    shake = 5;
+    bird.vy = bird.y > H / 2 ? -6 : 3;
+    floater('OPA! CUIDADO', '#ff5c5c');
+    sfx.shieldPop();
+    return;
+  }
   state = 'dead';
+  landed = false;
+  // 5 poses cômicas de morte, intercaladas a cada queda
+  deathPose = (parseInt(localStorage.getItem('superTucan_deaths') || '0', 10)) % 5;
+  localStorage.setItem('superTucan_deaths', String(deathPose + 1));
+  deathQuote = DEATH_QUOTES[Math.floor(Math.random() * DEATH_QUOTES.length)];
   shake = 14;
   elBtnPause.style.display = 'none';
   stopMusic();
   sfx.crash();
+  sfx.fall(); // apito deslizante cômico da queda
   burst(bird.x, bird.y, '#e0532f', 18);
+}
+
+// Penas que se soltam do tucano no impacto com o solo
+function spawnFeathers() {
+  const p = phase();
+  for (let i = 0; i < 13; i++) {
+    particles.push({
+      x: bird.x + (Math.random() * 76 - 38),
+      y: H - GROUND_H - 24 - Math.random() * 70,
+      vx: 0, vy: 0, rot: 0,
+      feather: true,
+      sway: Math.random() * 6.28,
+      color: i % 3 === 0 ? '#fdf3d0' : (i % 3 === 1 ? p.body : p.wing),
+      life: 170 + Math.random() * 110
+    });
+  }
 }
 
 // ---------- Desenho ----------
@@ -1213,6 +1510,30 @@ function drawEgg(e) {
   ctx.restore();
 }
 
+// Power-ups flutuantes: medalhão branco com aura pulsante
+function drawPowerup(pu) {
+  const bob = Math.sin(frames * 0.07 + pu.bob) * 5;
+  const cfg = pu.type === 'pena' ? ['#ff9f1c', '🪶'] : pu.type === 'escudo' ? ['#2e9e5b', '🛡'] : ['#0ea5e9', '⏰'];
+  ctx.save();
+  ctx.globalAlpha = Math.min(1, pu.age / 15);
+  ctx.translate(pu.x, pu.y + bob);
+  ctx.fillStyle = cfg[0] + '44';
+  ctx.beginPath();
+  ctx.arc(0, 0, 21 + Math.sin(frames * 0.15) * 3, 0, 7);
+  ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.strokeStyle = cfg[0];
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(0, 0, 14, 0, 7);
+  ctx.fill();
+  ctx.stroke();
+  ctx.font = '14px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(cfg[1], 0, 5);
+  ctx.restore();
+}
+
 // Pássaros inimigos: silhuetas simples, 3 espécies, voando para a esquerda
 function drawEnemy(en) {
   const s = en.species === 1 ? 1.3 : en.species === 2 ? 1.1 : 0.85;
@@ -1252,7 +1573,205 @@ function drawEnemy(en) {
   ctx.restore();
 }
 
+// 5 poses cômicas de morte — intercaladas a cada queda
+function drawDeadToucan(p) {
+  const t = frames;
+  ctx.save();
+  ctx.translate(bird.x, H - GROUND_H);
+  // sombra no chão
+  ctx.fillStyle = 'rgba(0,0,0,.22)';
+  ctx.beginPath();
+  ctx.ellipse(0, -1, 30, 5, 0, 0, 7);
+  ctx.fill();
+  const beak = ctx.createLinearGradient(0, -10, 30, 0);
+  beak.addColorStop(0, p.beak[0]);
+  beak.addColorStop(1, p.beak[1]);
+
+  function xEye(x, y) {
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.moveTo(x - 2.5, y - 2.5); ctx.lineTo(x + 2.5, y + 2.5);
+    ctx.moveTo(x + 2.5, y - 2.5); ctx.lineTo(x - 2.5, y + 2.5);
+    ctx.stroke();
+  }
+  function stars(cx, cy) {
+    ctx.fillStyle = '#ffd23f';
+    ctx.font = '11px sans-serif';
+    ctx.textAlign = 'center';
+    for (let i = 0; i < 3; i++) {
+      const a = t * 0.06 + i * 2.09;
+      ctx.fillText('★', cx + Math.cos(a) * 22, cy + Math.sin(a) * 7);
+    }
+  }
+
+  if (deathPose === 0) {
+    // 1) DE BARRIGA PRA CIMA, patas tremendo no ar
+    ctx.fillStyle = p.body;
+    ctx.beginPath(); ctx.ellipse(0, -12, 20, 13, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = '#fdf3d0';
+    ctx.beginPath(); ctx.ellipse(0, -14, 12, 8, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = p.body;
+    ctx.beginPath(); ctx.arc(-18, -8, 9, 0, 7); ctx.fill();
+    // bico apontando pro céu
+    ctx.fillStyle = beak;
+    ctx.beginPath();
+    ctx.moveTo(-22, -14); ctx.quadraticCurveTo(-27, -34, -18, -36);
+    ctx.quadraticCurveTo(-11, -33, -14, -14); ctx.closePath(); ctx.fill();
+    xEye(-21, -9); xEye(-14, -8);
+    // patas tremendo
+    ctx.strokeStyle = '#f5a623'; ctx.lineWidth = 2.5;
+    const tw = Math.sin(t * 0.4) * 3;
+    ctx.beginPath();
+    ctx.moveTo(4, -20); ctx.lineTo(6, -33 + tw);
+    ctx.moveTo(12, -18); ctx.lineTo(15, -31 - tw);
+    ctx.stroke();
+  } else if (deathPose === 1) {
+    // 2) BICO ENTERRADO NO CHÃO, rabo pro alto balançando
+    ctx.fillStyle = p.body;
+    ctx.beginPath(); ctx.ellipse(0, -18, 13, 19, 0.22, 0, 7); ctx.fill();
+    ctx.save();
+    ctx.translate(6, -34);
+    ctx.rotate(Math.sin(t * 0.15) * 0.22);
+    ctx.fillStyle = p.wing;
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(11, -15); ctx.lineTo(-5, -13); ctx.closePath(); ctx.fill();
+    ctx.restore();
+    // bico fincado na terra
+    ctx.fillStyle = beak;
+    ctx.beginPath();
+    ctx.moveTo(-7, -8); ctx.quadraticCurveTo(-3, 5, 4, 3); ctx.lineTo(7, -6); ctx.closePath(); ctx.fill();
+    // patas abertas desesperadas
+    ctx.strokeStyle = '#f5a623'; ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(-10, -24); ctx.lineTo(-19, -28);
+    ctx.moveTo(10, -22); ctx.lineTo(19, -26);
+    ctx.stroke();
+    stars(0, -50);
+  } else if (deathPose === 2) {
+    // 3) PANQUECA: achatado, olhos saltados, língua de fora
+    ctx.fillStyle = p.body;
+    ctx.beginPath(); ctx.ellipse(0, -5, 30, 7, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = '#fdf3d0';
+    ctx.beginPath(); ctx.ellipse(5, -4, 15, 4, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = beak;
+    ctx.beginPath(); ctx.ellipse(-26, -6, 12, 4, -0.15, 0, 7); ctx.fill();
+    // olhos saltados piscando
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(-14, -13, 5, 0, 7); ctx.arc(-5, -13, 5, 0, 7); ctx.fill();
+    ctx.fillStyle = '#000';
+    const pop = 1.4 + Math.abs(Math.sin(t * 0.1)) * 0.6;
+    ctx.beginPath(); ctx.arc(-14, -12, pop, 0, 7); ctx.arc(-5, -12, pop, 0, 7); ctx.fill();
+    // língua
+    ctx.fillStyle = '#ff5c8a';
+    ctx.beginPath(); ctx.ellipse(-20, -1, 3, 5, 0.4, 0, 7); ctx.fill();
+  } else if (deathPose === 3) {
+    // 4) SENTADO E ZONZO, cabeça bamboleando, estrelas na órbita
+    ctx.fillStyle = p.body;
+    ctx.beginPath(); ctx.ellipse(0, -13, 16, 14, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = '#fdf3d0';
+    ctx.beginPath(); ctx.ellipse(0, -10, 10, 8, 0, 0, 7); ctx.fill();
+    ctx.save();
+    ctx.translate(0, -27);
+    ctx.rotate(Math.sin(t * 0.1) * 0.28);
+    ctx.fillStyle = p.body;
+    ctx.beginPath(); ctx.arc(0, 0, 10, 0, 7); ctx.fill();
+    ctx.fillStyle = beak;
+    ctx.beginPath();
+    ctx.moveTo(6, -3); ctx.quadraticCurveTo(25, -3, 26, 2);
+    ctx.quadraticCurveTo(18, 6, 6, 3); ctx.closePath(); ctx.fill();
+    // olho em espiral
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.3;
+    ctx.beginPath();
+    for (let a = 0; a < 11; a += 0.4) {
+      const r = a * 0.42;
+      const sx = -1 + Math.cos(a + t * 0.15) * r, sy = -2 + Math.sin(a + t * 0.15) * r;
+      if (a === 0) ctx.moveTo(sx, sy); else ctx.lineTo(sx, sy);
+    }
+    ctx.stroke();
+    ctx.restore();
+    // patas esticadas na frente
+    ctx.strokeStyle = '#f5a623'; ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(-4, -2); ctx.lineTo(-15, 0);
+    ctx.moveTo(6, -2); ctx.lineTo(17, 0);
+    ctx.stroke();
+    stars(0, -48);
+  } else {
+    // 5) DESMAIO DRAMÁTICO: de lado, asa na testa, perna pro alto
+    ctx.fillStyle = p.body;
+    ctx.beginPath(); ctx.ellipse(0, -10, 22, 11, -0.1, 0, 7); ctx.fill();
+    ctx.fillStyle = '#fdf3d0';
+    ctx.beginPath(); ctx.ellipse(5, -8, 12, 6, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = p.body;
+    ctx.beginPath(); ctx.arc(-20, -12, 9, 0, 7); ctx.fill();
+    ctx.fillStyle = beak;
+    ctx.beginPath();
+    ctx.moveTo(-26, -16); ctx.quadraticCurveTo(-45, -18, -47, -12);
+    ctx.quadraticCurveTo(-40, -8, -26, -10); ctx.closePath(); ctx.fill();
+    // asa na testa, teatral
+    ctx.fillStyle = p.wing;
+    ctx.save();
+    ctx.translate(-14, -19);
+    ctx.rotate(-0.5 + Math.sin(t * 0.05) * 0.07);
+    ctx.beginPath(); ctx.ellipse(0, 0, 11, 5, 0, 0, 7); ctx.fill();
+    ctx.restore();
+    // olho fechado
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(-24, -13); ctx.lineTo(-18, -12); ctx.stroke();
+    // perna erguida com dedinhos
+    ctx.strokeStyle = '#f5a623'; ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(8, -14); ctx.lineTo(12, -31);
+    ctx.moveTo(12, -31); ctx.lineTo(9, -35);
+    ctx.moveTo(12, -31); ctx.lineTo(15, -35);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  // balão de fala com frase engraçada (surge com um "pop")
+  if (deathQuote) {
+    const pop = Math.min(1, deathTimer / 22);
+    ctx.save();
+    ctx.font = '800 13px Grandstander, sans-serif';
+    const tw = ctx.measureText(deathQuote).width;
+    const bw = tw + 24, bh = 30;
+    let bx2 = bird.x + 30;
+    if (bx2 + bw > W - 8) bx2 = bird.x - bw - 30;
+    if (bx2 < 8) bx2 = 8;
+    const by2 = H - GROUND_H - 95;
+    ctx.translate(bx2 + bw / 2, by2 + bh / 2);
+    ctx.scale(pop, pop);
+    ctx.translate(-(bx2 + bw / 2), -(by2 + bh / 2));
+    ctx.fillStyle = '#fff';
+    ctx.strokeStyle = '#10281a';
+    ctx.lineWidth = 2.5;
+    if (ctx.roundRect) {
+      ctx.beginPath();
+      ctx.roundRect(bx2, by2, bw, bh, 12);
+      ctx.fill(); ctx.stroke();
+    } else {
+      ctx.fillRect(bx2, by2, bw, bh);
+      ctx.strokeRect(bx2, by2, bw, bh);
+    }
+    // rabinho do balão apontando pro tucano
+    ctx.beginPath();
+    ctx.moveTo(Math.max(bx2 + 14, Math.min(bx2 + bw - 26, bird.x - 8)), by2 + bh - 1);
+    ctx.lineTo(bird.x, H - GROUND_H - 44);
+    ctx.lineTo(Math.max(bx2 + 26, Math.min(bx2 + bw - 14, bird.x + 8)), by2 + bh - 1);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(bx2 + 14, by2 + bh - 3, bw - 28, 5); // cobre a linha sob o rabinho
+    ctx.fillStyle = '#10281a';
+    ctx.textAlign = 'center';
+    ctx.fillText(deathQuote, bx2 + bw / 2, by2 + 20);
+    ctx.restore();
+  }
+}
+
 function drawToucan(p) {
+  if (state === 'dead' && landed) { drawDeadToucan(p); return; }
   ctx.save();
   ctx.translate(bird.x, bird.y);
   ctx.rotate(bird.rot);
@@ -1273,29 +1792,40 @@ function drawToucan(p) {
   ctx.closePath();
   ctx.fill();
 
-  // corpo
+  // corpo (esguio)
   ctx.fillStyle = p.body;
   ctx.beginPath();
-  ctx.ellipse(0, 0, 19, 15, -0.1, 0, 7);
+  ctx.ellipse(0, 0, 18, 13, -0.1, 0, 7);
   ctx.fill();
 
   // peito branco/amarelado
   ctx.fillStyle = '#fdf3d0';
   ctx.beginPath();
-  ctx.ellipse(7, 4, 10, 10, 0.3, 0, 7);
+  ctx.ellipse(7, 3, 9, 9, 0.3, 0, 7);
   ctx.fill();
 
-  // asa (animada)
+  // ASA: batida VERTICAL (sobe e desce), bem visível fora da silhueta
+  const wy = bird.wing * -8;
   ctx.save();
-  ctx.translate(-4, -2);
-  ctx.rotate(bird.wing * 0.55);
+  ctx.translate(-3, -3 + wy);
+  ctx.rotate(bird.wing * -0.25);
   ctx.fillStyle = p.wing;
   ctx.beginPath();
-  ctx.ellipse(-3, 4, 13, 7, 0.35, 0, 7);
+  ctx.ellipse(-4, 0, 15, 7.5, 0.15, 0, 7);
   ctx.fill();
-  ctx.fillStyle = 'rgba(255,255,255,.12)';
+  ctx.strokeStyle = 'rgba(255,255,255,.3)';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  // penas da ponta da asa
   ctx.beginPath();
-  ctx.ellipse(-6, 6, 8, 3.5, 0.35, 0, 7);
+  ctx.moveTo(-16, 2);
+  ctx.lineTo(-26, 6);
+  ctx.lineTo(-13, 7);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,.16)';
+  ctx.beginPath();
+  ctx.ellipse(-7, 2, 9, 3.5, 0.15, 0, 7);
   ctx.fill();
   ctx.restore();
 
@@ -1386,6 +1916,12 @@ function drawHUD(p) {
     ctx.font = "10px Bungee, 'Courier New', monospace";
     ctx.fillText('COMBO ×2', 14, 64);
   }
+  // efeitos ativos (power-ups) com contagem regressiva
+  let fxY = combo >= 5 ? 80 : 64;
+  ctx.font = '700 11px Grandstander, sans-serif';
+  if (pena > 0) { ctx.fillStyle = '#ff9f1c'; ctx.fillText('🪶 PENA ×2 · ' + Math.ceil(pena / 60) + 's', 14, fxY); fxY += 15; }
+  if (shield > 0) { ctx.fillStyle = '#7ee08a'; ctx.fillText('🛡 ESCUDO PRONTO', 14, fxY); fxY += 15; }
+  if (slowmo > 0) { ctx.fillStyle = '#7dd3fc'; ctx.fillText('⏰ LENTO · ' + Math.ceil(slowmo / 60) + 's', 14, fxY); }
 
   // fase + barra de progresso — encolhe em telas estreitas (celular em pé)
   const narrow = W < 460;
@@ -1440,10 +1976,11 @@ function draw() {
   eggs.forEach(e => { if (!e.taken && e.jewel) drawJewelGlow(e); });
   obstacles.forEach(o => drawBranch(o, p));
   eggs.forEach(e => { if (!e.taken) drawEgg(e); });
+  powerups.forEach(pu => { if (!pu.taken) drawPowerup(pu); });
   enemies.forEach(drawEnemy);
   drawGround(p);
 
-  // partículas e confetes
+  // partículas, confetes e penas
   particles.forEach(pt => {
     ctx.globalAlpha = Math.min(1, pt.life / 25);
     ctx.fillStyle = pt.color;
@@ -1453,6 +1990,19 @@ function draw() {
       ctx.rotate(pt.rot);
       ctx.fillRect(-3, -1.5, 6, 3);
       ctx.restore();
+    } else if (pt.feather) {
+      ctx.save();
+      ctx.translate(pt.x, pt.y);
+      ctx.rotate(pt.rot);
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 9, 3.5, 0, 0, 7);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,.55)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(-8, 0); ctx.lineTo(8, 0);
+      ctx.stroke();
+      ctx.restore();
     } else {
       ctx.fillRect(pt.x - 2, pt.y - 2, 4, 4);
     }
@@ -1460,6 +2010,78 @@ function draw() {
   ctx.globalAlpha = 1;
 
   drawToucan(p);
+
+  // bolha do escudo / piscada de invencibilidade
+  if ((shield > 0 || invuln > 0) && state === 'play') {
+    ctx.strokeStyle = shield > 0 ? 'rgba(126,224,138,.85)' : 'rgba(255,255,255,.45)';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.arc(bird.x, bird.y, 27 + Math.sin(frames * 0.2) * 2, 0, 7);
+    ctx.stroke();
+  }
+
+  // overlays dos eventos climáticos
+  if (event === 'TEMPESTADE') {
+    ctx.fillStyle = 'rgba(20,30,60,.28)';
+    ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = 'rgba(200,220,255,.5)';
+    ctx.lineWidth = 1.5;
+    for (let i = 0; i < 40; i++) {
+      const rx = ((i * 97 + frames * 11) % (W + 40)) - 20;
+      const ry = (i * 53 + frames * 13) % H;
+      ctx.beginPath(); ctx.moveTo(rx, ry); ctx.lineTo(rx - 4, ry + 14); ctx.stroke();
+    }
+    if (frames % 180 < 4) { ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.fillRect(0, 0, W, H); } // relâmpago
+  } else if (event === 'VULCÃO') {
+    ctx.fillStyle = 'rgba(200,60,20,.13)';
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = 'rgba(255,120,40,.85)';
+    for (let i = 0; i < 14; i++) {
+      const rx = (i * 137 + frames * 2.5) % W;
+      const ry = (i * 211 + frames * (2 + i % 3)) % H;
+      ctx.fillRect(rx, ry, 3, 3);
+    }
+  } else if (event === 'VENTANIA') {
+    ctx.strokeStyle = 'rgba(255,255,255,.3)';
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 8; i++) {
+      const ry = 50 + (i * 89 + Math.sin(frames * 0.05 + i) * 30) % (H - GROUND_H - 80);
+      const rx = ((frames * 9 + i * 160) % (W + 200)) - 100;
+      ctx.beginPath();
+      ctx.moveTo(rx, ry);
+      ctx.quadraticCurveTo(rx + 30, ry - 6, rx + 60, ry);
+      ctx.stroke();
+    }
+  }
+  if (slowmo > 0 && state === 'play') {
+    ctx.fillStyle = 'rgba(125,211,252,.08)';
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  // faixa vermelha de ALERTA do evento (borda superior, piscando)
+  if (alertTimer > 0 && event) {
+    ctx.globalAlpha = Math.min(1, alertTimer / 30) * (frames % 20 < 12 ? 1 : 0.5);
+    ctx.fillStyle = 'rgba(165,20,20,.8)';
+    ctx.fillRect(0, 96, W, 26);
+    ctx.fillStyle = '#fff';
+    ctx.font = (W < 460 ? 11 : 13) + "px Bungee, 'Courier New', monospace";
+    ctx.textAlign = 'center';
+    ctx.fillText('⚠ ALERTA: ' + event, W / 2, 114);
+    ctx.globalAlpha = 1;
+  }
+
+  // textos flutuantes de celebração
+  floaters.forEach(f => {
+    ctx.globalAlpha = Math.min(1, f.life / 30);
+    ctx.fillStyle = f.color;
+    ctx.font = '800 16px Grandstander, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.strokeStyle = 'rgba(0,0,0,.6)';
+    ctx.lineWidth = 3;
+    ctx.strokeText(f.text, f.x, f.y);
+    ctx.fillText(f.text, f.x, f.y);
+  });
+  ctx.globalAlpha = 1;
 
   // brilho pirotécnico nas bordas ao ultrapassar uma fase
   if (celebrateTimer > 0) {
@@ -1561,10 +2183,18 @@ elInitials.addEventListener('input', () => {
   updateMenuPB();
 });
 
-function startGame(mode) {
+async function startGame(mode) {
   const name = (elInitials.value.trim() || 'TUCANO').slice(0, 9);
+  // nome é único: registrado uma vez, vinculado ao IP/aparelho do dono
+  document.getElementById('menuPB').textContent = 'VERIFICANDO NOME...';
+  const ok = await claimName(name);
+  if (!ok) {
+    document.getElementById('menuPB').textContent = '❌ "' + name + '" JÁ PERTENCE A OUTRO JOGADOR — ESCOLHA OUTRO NOME';
+    return;
+  }
   playerName = name;
   localStorage.setItem(LS_NAME, name);
+  updateMenuPB();
   gameMode = mode || 'normal';
   // desafio diário: RNG semeado pela data — todos enfrentam a mesma sequência
   rng = gameMode === 'daily'
@@ -1572,12 +2202,34 @@ function startGame(mode) {
     : Math.random;
   audio();
   resetGame();
+  if (gameMode === 'hardcore') {
+    phaseIdx = LAST; // direto no Pantanal, sem power-ups
+    bannerText = '💀 HARDCORE';
+    bannerSub = 'PANTANAL ∞ DIRETO';
+  } else if (gameMode === 'tutorial') {
+    bannerText = '🎓 TUTORIAL';
+    bannerSub = 'SEM MORTE — SÓ APRENDER';
+  }
   state = 'ready'; // física só começa no primeiro toque
   elMenu.classList.add('hidden');
   elGO.classList.add('hidden');
   elBtnPause.style.display = 'block';
   sfx.phase();
-  startMusic(0);
+  startMusic(gameMode === 'hardcore' ? LAST : 0);
+}
+
+function endTutorial() {
+  stopMusic();
+  const st = getStats(playerName);
+  st.xp = (st.xp || 0) + 50; // recompensa por concluir
+  saveStats(playerName, st);
+  state = 'menu';
+  elBtnPause.style.display = 'none';
+  renderRanking();
+  elMenu.classList.remove('hidden');
+  document.getElementById('menuPB').textContent = '🎓 TUTORIAL COMPLETO! +50 XP — AGORA JOGUE DE VERDADE!';
+  celebrate(['#7ee08a', '#ffd23f', '#ffffff'], 45);
+  sfx.milestone();
 }
 
 function showGameOver() {
@@ -1604,7 +2256,24 @@ function showGameOver() {
   } else if (phaseIdx === st.phase && phaseIdx === LAST && p3Level > st.level) {
     st.level = p3Level;
   }
+
+  // XP da partida (várias fontes) e nível do jogador
+  const oldXp = st.xp || 0;
+  const gained = score + phaseIdx * 20
+    + (gameMode === 'daily' ? 30 : 0)
+    + (gameMode === 'hardcore' ? 60 : 0)
+    + (score > pb ? 40 : 0);
+  st.xp = oldXp + gained;
   saveStats(playerName, st);
+  publishPlayer(playerName, st);
+  const oldLv = levelFromXp(oldXp), newLv = levelFromXp(st.xp);
+  const elXP = document.getElementById('goXP');
+  elXP.textContent = '+' + gained + ' XP';
+  if (newLv > oldLv) {
+    elXP.textContent += ' · ⬆ SUBIU DE NÍVEL: ' + XP_LEVELS[newLv][1] + ' ' + XP_LEVELS[newLv][2] + '!';
+    celebrate(['#7ee08a', '#ffd23f', '#ffffff'], 60);
+    sfx.milestone();
+  }
 
   const rec = document.getElementById('goRecord');
   rec.classList.add('hidden');
@@ -1635,15 +2304,118 @@ elInitials.addEventListener('keydown', e => {
   if (e.key === 'Enter') startGame('normal');
 });
 
-// abas do ranking (geral / desafio de hoje)
-function setRankTab(t) {
-  rankTab = t;
-  document.getElementById('tabAll').classList.toggle('active', t === 'normal');
-  document.getElementById('tabDaily').classList.toggle('active', t === 'daily');
-  renderRanking();
+// modos extra
+document.getElementById('btnTutorial').addEventListener('click', () => startGame('tutorial'));
+document.getElementById('btnHardcore').addEventListener('click', () => startGame('hardcore'));
+
+// ---------- Painel de amigos ♥ ----------
+const elFriends = document.getElementById('friends');
+function frow(inner) { return '<div class="frow">' + inner + '</div>'; }
+function fSetTab(t) {
+  document.getElementById('fTabList').classList.toggle('active', t === 'list');
+  document.getElementById('fTabReq').classList.toggle('active', t === 'req');
+  document.getElementById('fTabAdd').classList.toggle('active', t === 'add');
+  document.getElementById('fSearchRow').style.display = t === 'add' ? 'flex' : 'none';
+  const box = document.getElementById('fList');
+  box.innerHTML = '<div class="fempty">Carregando...</div>';
+  if (t === 'list') fLoadFriends();
+  else if (t === 'req') fLoadRequests();
+  else box.innerHTML = '<div class="fempty">Busque um nome acima e peça amizade!</div>';
 }
-document.getElementById('tabAll').addEventListener('click', () => setRankTab('normal'));
-document.getElementById('tabDaily').addEventListener('click', () => setRankTab('daily'));
+async function openFriends() {
+  const name = (elInitials.value.trim() || '').slice(0, 9);
+  if (!name) {
+    document.getElementById('menuPB').textContent = 'DIGITE SEU NOME PARA USAR OS AMIGOS';
+    return;
+  }
+  const ok = await claimName(name);
+  if (!ok) {
+    document.getElementById('menuPB').textContent = '❌ "' + name + '" JÁ PERTENCE A OUTRO JOGADOR';
+    return;
+  }
+  playerName = name;
+  document.getElementById('fWho').textContent = 'VOCÊ: ' + name;
+  elMenu.classList.add('hidden');
+  elFriends.classList.remove('hidden');
+  fSetTab('list');
+}
+async function fLoadFriends() {
+  const box = document.getElementById('fList');
+  try {
+    const data = await (await fetch(DB_URL + '/friends/' + playerName + '.json')).json() || {};
+    const names = Object.keys(data);
+    if (!names.length) { box.innerHTML = '<div class="fempty">Você ainda não tem amigos por aqui. Use ADICIONAR!</div>'; return; }
+    let html = '';
+    for (const n of names) {
+      let info = null;
+      try { info = await (await fetch(DB_URL + '/players/' + n + '.json')).json(); } catch (e) { /* segue sem info */ }
+      const lv = XP_LEVELS[levelFromXp((info && info.xp) || 0)];
+      html += frow('<span>' + lv[2] + ' <b>' + n + '</b> <small>' + lv[1] + '</small></span><span class="pts">' + ((info && info.best) || 0) + ' 🥚</span>');
+    }
+    box.innerHTML = html;
+  } catch (e) { box.innerHTML = '<div class="fempty">Sem conexão.</div>'; }
+}
+async function fLoadRequests() {
+  const box = document.getElementById('fList');
+  try {
+    const data = await (await fetch(DB_URL + '/requests/' + playerName + '.json')).json() || {};
+    const names = Object.keys(data);
+    if (!names.length) { box.innerHTML = '<div class="fempty">Nenhum pedido de amizade pendente.</div>'; return; }
+    box.innerHTML = names.map(n =>
+      frow('<span><b>' + n + '</b> quer ser seu amigo!</span><button data-acc="' + n + '">&#10084; ACEITAR</button>')
+    ).join('');
+    box.querySelectorAll('[data-acc]').forEach(b => b.addEventListener('click', () => fAccept(b.dataset.acc)));
+  } catch (e) { box.innerHTML = '<div class="fempty">Sem conexão.</div>'; }
+}
+async function fAccept(n) {
+  try {
+    await fetch(DB_URL + '/friends/' + playerName + '/' + n + '.json', { method: 'PUT', body: 'true' });
+    await fetch(DB_URL + '/friends/' + n + '/' + playerName + '.json', { method: 'PUT', body: 'true' });
+    await fetch(DB_URL + '/requests/' + playerName + '/' + n + '.json', { method: 'DELETE' });
+    sfx.egg();
+  } catch (e) { /* tenta de novo depois */ }
+  fSetTab('list');
+}
+async function fSearch() {
+  const q = document.getElementById('fSearch').value.trim().toUpperCase().replace(/[^A-Z]/g, '');
+  const box = document.getElementById('fList');
+  if (!q) { box.innerHTML = '<div class="fempty">Digite parte do nome.</div>'; return; }
+  box.innerHTML = '<div class="fempty">Buscando...</div>';
+  try {
+    const url = DB_URL + '/names.json?orderBy=' + encodeURIComponent('"$key"')
+      + '&startAt=' + encodeURIComponent('"' + q + '"')
+      + '&endAt=' + encodeURIComponent('"' + q + '\uf8ff"')
+      + '&limitToFirst=10';
+    const data = await (await fetch(url)).json() || {};
+    const names = Object.keys(data).filter(n => n !== playerName);
+    if (!names.length) { box.innerHTML = '<div class="fempty">Ninguém encontrado com "' + q + '".</div>'; return; }
+    box.innerHTML = names.map(n =>
+      frow('<span><b>' + n + '</b></span><button data-req="' + n + '">&#10084; PEDIR</button>')
+    ).join('');
+    box.querySelectorAll('[data-req]').forEach(b => b.addEventListener('click', async () => {
+      try {
+        await fetch(DB_URL + '/requests/' + b.dataset.req + '/' + playerName + '.json', { method: 'PUT', body: 'true' });
+        b.textContent = 'PEDIDO ✓';
+        b.disabled = true;
+        sfx.comboUp();
+      } catch (e) { /* offline */ }
+    }));
+  } catch (e) { box.innerHTML = '<div class="fempty">Sem conexão.</div>'; }
+}
+document.getElementById('btnFriends').addEventListener('click', openFriends);
+document.getElementById('fClose').addEventListener('click', () => {
+  elFriends.classList.add('hidden');
+  elMenu.classList.remove('hidden');
+});
+document.getElementById('fTabList').addEventListener('click', () => fSetTab('list'));
+document.getElementById('fTabReq').addEventListener('click', () => fSetTab('req'));
+document.getElementById('fTabAdd').addEventListener('click', () => fSetTab('add'));
+document.getElementById('fSearchBtn').addEventListener('click', fSearch);
+document.getElementById('fSearch').addEventListener('keydown', e => { if (e.key === 'Enter') fSearch(); });
+document.getElementById('fSearch').addEventListener('input', () => {
+  const el = document.getElementById('fSearch');
+  el.value = el.value.toUpperCase().replace(/[^A-Z]/g, '');
+});
 
 // mudo (persiste entre sessões)
 const elBtnMute = document.getElementById('btnMute');
@@ -1655,17 +2427,18 @@ elBtnMute.addEventListener('click', () => {
 });
 refreshMute();
 
-// status do jogador exibido no menu, conforme o nome digitado
+// status do jogador exibido no menu: nível, recorde e maior distância
 function updateMenuPB() {
   const el = document.getElementById('menuPB');
   const name = elInitials.value.trim();
   if (!name) { el.textContent = ''; return; }
   const st = getStats(name);
-  if (!st.pb && st.phase < 0) { el.textContent = ''; return; }
+  if (!st.pb && st.phase < 0 && !st.xp) { el.textContent = ''; return; }
+  const lv = XP_LEVELS[levelFromXp(st.xp)];
   const dist = st.phase >= 0
     ? PHASES[st.phase].name + (st.phase === LAST && st.level > 0 ? ' NV ' + (st.level + 1) : '')
     : '—';
-  el.textContent = 'RECORDE: ' + st.pb + ' 🥚 · MAIOR DISTÂNCIA: ' + dist;
+  el.textContent = lv[2] + ' ' + lv[1] + ' (' + st.xp + ' XP) · RECORDE: ' + st.pb + ' 🥚 · CHEGOU EM: ' + dist;
 }
 
 // ---------- Início ----------
@@ -1675,7 +2448,7 @@ if (document.fonts && document.fonts.load) {
     document.fonts.load(f).catch(() => {});
   });
 }
-const GAME_VERSION = '1.7';
+const GAME_VERSION = '1.8';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 resetGame();
