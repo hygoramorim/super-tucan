@@ -992,14 +992,17 @@ function update() {
   flocks.forEach(fl => { fl.x -= fSpeed * 0.25 + fl.vx; fl.ph += 0.09; });
   flocks = flocks.filter(fl => fl.x > -280);
 
-  // camafeu de primeiro plano a cada ~10 s
+  // camafeu de primeiro plano a cada ~10 s — raramente é o ET de Varginha escondido
   if (!cameo && --cameoTimer <= 0) {
     cameoTimer = 550 + Math.random() * 250;
+    const isET = Math.random() < 0.12; // easter egg raro, em todos os biomas
     cameo = {
       x: W + 180,
-      y: Math.random() < 0.5 ? 110 + Math.random() * 40 : H - GROUND_H - 130 - Math.random() * 40,
+      // ET fica agachado atrás da vegetação no chão; camafeu comum varia a altura
+      y: isET ? (H - GROUND_H - 96) : (Math.random() < 0.5 ? 110 + Math.random() * 40 : H - GROUND_H - 130 - Math.random() * 40),
       kind: phase().deco,
-      ph: Math.random() * 6.28
+      ph: Math.random() * 6.28,
+      isET
     };
   }
   if (cameo) {
@@ -2525,6 +2528,75 @@ function drawCameo(cm) {
   ctx.restore();
 }
 
+// ET de Varginha escondido: espia por trás de um arbusto e se esconde (sem hitbox)
+function drawET(cm) {
+  ctx.save();
+  ctx.translate(cm.x, cm.y);
+  const groundLocal = (H - GROUND_H) - cm.y;
+  // quanto o ET "espia" (0 = escondido atrás do arbusto, 1 = cabeça toda pra fora)
+  const peek = Math.max(0, Math.sin(cm.ph * 0.8));
+  // centro da cabeça ancorado ao arbusto: escondido dentro (peek 0), olhos por cima ao espiar (peek 1)
+  const headY = groundLocal - 18 - peek * 40;
+  // --- corpo do ET (agachado, atrás do arbusto) ---
+  ctx.save();
+  ctx.translate(0, headY);
+  const skin = '#8fb89a', skinDk = '#5e8a6d';
+  // pescoço fino
+  ctx.strokeStyle = skin; ctx.lineWidth = 5; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(0, 26); ctx.lineTo(0, 14); ctx.stroke();
+  // cabeça grande em gota invertida
+  ctx.fillStyle = skin;
+  ctx.beginPath(); ctx.ellipse(0, 0, 15, 19, 0, 0, 7); ctx.fill();
+  // sombra do queixo
+  ctx.fillStyle = skinDk;
+  ctx.beginPath(); ctx.ellipse(0, 8, 9, 8, 0, 0, 7); ctx.fill();
+  ctx.fillStyle = skin;
+  ctx.beginPath(); ctx.ellipse(0, 4, 13, 15, 0, 0, 7); ctx.fill();
+  // 3 corninhos/antenas no topo
+  ctx.strokeStyle = skin; ctx.lineWidth = 2.5;
+  [[-7, -1], [0, 0], [7, -1]].forEach(a => {
+    ctx.beginPath(); ctx.moveTo(a[0], -14); ctx.lineTo(a[0] + a[1] * 2, -24); ctx.stroke();
+    ctx.fillStyle = '#c0e0c8'; ctx.beginPath(); ctx.arc(a[0] + a[1] * 2, -25, 2, 0, 7); ctx.fill();
+  });
+  // olhos pretos GRANDES, amendoados, com brilho (piscam de vez em quando)
+  const blink = Math.sin(cm.ph * 1.7) > 0.93;
+  ctx.fillStyle = '#0a0a0a';
+  if (blink) {
+    ctx.strokeStyle = '#0a0a0a'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(-10, 2); ctx.lineTo(-3, 1); ctx.moveTo(10, 2); ctx.lineTo(3, 1); ctx.stroke();
+  } else {
+    ctx.beginPath(); ctx.ellipse(-6, 1, 4, 6.5, 0.4, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(6, 1, 4, 6.5, -0.4, 0, 7); ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(-7, -1.5, 1.1, 0, 7); ctx.arc(5, -1.5, 1.1, 0, 7); ctx.fill();
+  }
+  // boquinha neutra/sorriso tímido
+  ctx.strokeStyle = skinDk; ctx.lineWidth = 1.3;
+  ctx.beginPath(); ctx.arc(0, 9, 3, 0.2, Math.PI - 0.2); ctx.stroke();
+  // bracinho fino acenando tímido quando está bem pra fora
+  if (peek > 0.7) {
+    ctx.strokeStyle = skin; ctx.lineWidth = 3;
+    ctx.save(); ctx.translate(13, 20); ctx.rotate(-0.6 + Math.sin(cm.ph * 5) * 0.5);
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(10, -8); ctx.stroke();
+    ctx.fillStyle = skin; ctx.beginPath(); ctx.arc(11, -9, 3, 0, 7); ctx.fill();
+    ctx.restore();
+  }
+  ctx.restore();
+  // --- arbusto BAIXO na FRENTE, escondendo o corpo do ET (nasce do chão) ---
+  ctx.fillStyle = '#256b36';
+  [[-30, 6], [-10, 2], [12, 4], [32, 7], [0, 9]].forEach(l => {
+    ctx.beginPath(); ctx.ellipse(l[0], groundLocal - l[1], 22, 15, 0, Math.PI, 0); ctx.fill();
+  });
+  ctx.fillStyle = '#2f8f46';
+  [[-20, 2], [4, 3], [24, 2]].forEach(l => {
+    ctx.beginPath(); ctx.ellipse(l[0], groundLocal - 12 - l[1], 15, 11, 0, Math.PI, 0); ctx.fill();
+  });
+  // base do arbusto rente ao chão
+  ctx.fillStyle = '#256b36';
+  ctx.fillRect(-40, groundLocal - 6, 84, 8);
+  ctx.restore();
+}
+
 // Power-ups flutuantes: medalhão branco com aura pulsante
 function drawPowerup(pu) {
   const bob = Math.sin(frames * 0.07 + pu.bob) * 5;
@@ -3190,7 +3262,7 @@ function draw() {
   }
 
   // camafeu de primeiro plano (na frente de tudo, atrás do HUD)
-  if (cameo) drawCameo(cameo);
+  if (cameo) (cameo.isET ? drawET(cameo) : drawCameo(cameo));
 
   if (state !== 'menu') {
     drawHUD(p);
