@@ -1803,18 +1803,25 @@ function drawCritter(c) {
       ctx.stroke();
       ctx.fillStyle = col;
       ctx.beginPath(); ctx.ellipse(0, -22 + bob, 22, 9, 0, 0, 7); ctx.fill();
-      ctx.beginPath(); ctx.arc(-24, -26 + bob, 7, 0, 7); ctx.fill();
-      ctx.beginPath(); ctx.arc(-27, -32 + bob, 2.5, 0, 7); ctx.arc(-21, -33 + bob, 2.5, 0, 7); ctx.fill();
-      ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.arc(-24, -26 + bob, 7, 0, 7); ctx.fill(); // cabeça
+      // orelhinhas arredondadas
+      ctx.beginPath(); ctx.arc(-28, -32 + bob, 2.6, 0, 7); ctx.arc(-20, -32 + bob, 2.6, 0, 7); ctx.fill();
+      ctx.fillStyle = c.kind === 'oncaparda' ? '#7a5a3a' : '#a67c30';
+      ctx.beginPath(); ctx.arc(-28, -32 + bob, 1.2, 0, 7); ctx.arc(-20, -32 + bob, 1.2, 0, 7); ctx.fill();
+      // contorno cartoon do corpo
+      ctx.strokeStyle = 'rgba(60,40,10,.4)'; ctx.lineWidth = 1.3;
+      ctx.beginPath(); ctx.ellipse(0, -22 + bob, 22, 9, 0, 0, 7); ctx.stroke();
+      // cauda
+      ctx.strokeStyle = col; ctx.lineWidth = 4; ctx.lineCap = 'round';
       ctx.beginPath(); ctx.moveTo(20, -24 + bob);
       ctx.quadraticCurveTo(30, -30 + Math.sin(ph) * 3, 34, -22); ctx.stroke();
       // barriga clara
       ctx.fillStyle = 'rgba(255,250,235,.5)';
       ctx.beginPath(); ctx.ellipse(0, -16 + bob, 16, 4, 0, 0, 7); ctx.fill();
-      // olho e focinho
+      // focinho + olho que pisca
       ctx.fillStyle = '#1a1a1a';
-      ctx.beginPath(); ctx.arc(-26, -27 + bob, 1.3, 0, 7); ctx.fill();
       ctx.beginPath(); ctx.arc(-30, -24 + bob, 1.5, 0, 7); ctx.fill();
+      blinkEye(-26, -27 + bob, 1.4, ph);
       if (c.kind !== 'oncaparda') {
         // rosetas de verdade (anéis com miolo)
         ctx.strokeStyle = 'rgba(60,40,10,.85)';
@@ -1830,16 +1837,34 @@ function drawCritter(c) {
     }
     case 'bugio': case 'macaco': case 'mico': {
       const col = c.kind === 'bugio' ? '#7a3b1e' : c.kind === 'mico' ? '#f5a623' : '#8a6a4a';
+      const mane = c.kind === 'mico' ? '#ffb84d' : c.kind === 'bugio' ? '#5a2a12' : '#6a4e32';
       ctx.scale(c.kind === 'bugio' ? 1 : 0.68, c.kind === 'bugio' ? 1 : 0.68);
+      // cauda preênsil enrolando
+      ctx.strokeStyle = col; ctx.lineWidth = 3; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(8, -10);
+      ctx.quadraticCurveTo(20, -16 + Math.sin(ph) * 4, 16, -28 + Math.sin(ph) * 4);
+      ctx.quadraticCurveTo(13, -34, 18, -34);
+      ctx.stroke();
+      // corpo
       ctx.fillStyle = col;
       ctx.beginPath(); ctx.ellipse(0, -12 + bob * 0.6, 9, 11, 0, 0, 7); ctx.fill();
+      // JUBA em volta do rosto (leque de traços)
+      ctx.fillStyle = mane;
+      ctx.beginPath(); ctx.arc(-2, -26 + bob * 0.6, 8.5, 0, 7); ctx.fill();
+      // cabeça + rostinho claro
+      ctx.fillStyle = col;
       ctx.beginPath(); ctx.arc(-2, -26 + bob * 0.6, 6.5, 0, 7); ctx.fill();
       ctx.fillStyle = c.kind === 'mico' ? '#ffe0b0' : '#c9a882';
-      ctx.beginPath(); ctx.arc(-4, -25 + bob * 0.6, 3.5, 0, 7); ctx.fill();
-      ctx.strokeStyle = col; ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.moveTo(8, -10);
-      ctx.quadraticCurveTo(18, -18 + Math.sin(ph) * 4, 14, -28 + Math.sin(ph) * 4);
-      ctx.stroke();
+      ctx.beginPath(); ctx.ellipse(-3, -25 + bob * 0.6, 4, 4.5, 0, 0, 7); ctx.fill();
+      // orelhinhas
+      ctx.fillStyle = col;
+      ctx.beginPath(); ctx.arc(-8, -30 + bob * 0.6, 2.5, 0, 7); ctx.arc(3, -30 + bob * 0.6, 2.5, 0, 7); ctx.fill();
+      blinkEye(-4.5, -26 + bob * 0.6, 1.5, ph);
+      blinkEye(-1, -26 + bob * 0.6, 1.5, ph);
+      // bracinho coçando a cabeça (sobe e desce)
+      const scratch = Math.sin(ph * 3) * 3;
+      ctx.strokeStyle = col; ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.moveTo(4, -14 + bob * 0.6); ctx.quadraticCurveTo(9, -24, 3, -31 + scratch + bob * 0.6); ctx.stroke();
       break;
     }
     case 'anaconda': case 'jiboia': case 'jararaca': {
@@ -1853,12 +1878,45 @@ function drawCritter(c) {
         if (i === 0) ctx.moveTo(sx, sy); else ctx.lineTo(sx, sy);
       }
       ctx.stroke();
+      // contorno cartoon do corpo
+      ctx.strokeStyle = 'rgba(20,25,15,.4)'; ctx.lineWidth = c.kind === 'anaconda' ? 8.5 : 6;
+      ctx.beginPath();
+      for (let i = 0; i <= len; i += 4) {
+        const sx = -len / 2 + i, sy = -5 + Math.sin(ph * 2 + i * 0.25) * 3.5;
+        if (i === 0) ctx.moveTo(sx, sy); else ctx.lineTo(sx, sy);
+      }
+      ctx.stroke();
+      ctx.strokeStyle = col; ctx.lineWidth = c.kind === 'anaconda' ? 7 : 4.5;
+      ctx.beginPath();
+      for (let i = 0; i <= len; i += 4) {
+        const sx = -len / 2 + i, sy = -5 + Math.sin(ph * 2 + i * 0.25) * 3.5;
+        if (i === 0) ctx.moveTo(sx, sy); else ctx.lineTo(sx, sy);
+      }
+      ctx.stroke();
+      // manchas do padrão
+      ctx.fillStyle = 'rgba(30,40,20,.4)';
+      for (let i = 6; i <= len - 4; i += 8) {
+        const sx = -len / 2 + i, sy = -5 + Math.sin(ph * 2 + i * 0.25) * 3.5;
+        ctx.beginPath(); ctx.ellipse(sx, sy, 2.6, 1.6, 0, 0, 7); ctx.fill();
+      }
+      const hx = -len / 2 - 3, hy = -5 + Math.sin(ph * 2) * 3.5;
       ctx.fillStyle = col;
-      ctx.beginPath(); ctx.ellipse(-len / 2 - 3, -5 + Math.sin(ph * 2) * 3.5, 5, 3.5, 0, 0, 7); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(hx, hy, 5, 3.5, 0, 0, 7); ctx.fill();
+      blinkEye(hx - 1.5, hy - 1, 1.4, ph);
+      // língua bifurcada em pulsos
+      if (Math.sin(ph * 3) > 0.7) {
+        ctx.strokeStyle = '#e0293c'; ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(hx - 4, hy); ctx.lineTo(hx - 9, hy - 1.5);
+        ctx.moveTo(hx - 4, hy); ctx.lineTo(hx - 9, hy + 1.5);
+        ctx.stroke();
+      }
       break;
     }
     case 'cascavel': {
-      ctx.strokeStyle = '#9a7b4f'; ctx.lineWidth = 5; ctx.lineCap = 'round';
+      // corpo enrolado com contorno
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = 'rgba(40,30,15,.45)'; ctx.lineWidth = 6.5;
       ctx.beginPath();
       for (let a = 0; a < 12; a += 0.3) {
         const r = 3 + a * 1.05;
@@ -1866,11 +1924,43 @@ function drawCritter(c) {
         if (a === 0) ctx.moveTo(sx, sy); else ctx.lineTo(sx, sy);
       }
       ctx.stroke();
-      const sh = Math.sin(ph * 6) * 2; // chocalho tremendo
-      ctx.fillStyle = '#c9b892';
-      ctx.fillRect(10 + sh, -27, 4, 9);
+      ctx.strokeStyle = '#9a7b4f'; ctx.lineWidth = 5;
+      ctx.beginPath();
+      for (let a = 0; a < 12; a += 0.3) {
+        const r = 3 + a * 1.05;
+        const sx = Math.cos(a) * r, sy = -6 + Math.sin(a) * r * 0.45;
+        if (a === 0) ctx.moveTo(sx, sy); else ctx.lineTo(sx, sy);
+      }
+      ctx.stroke();
+      // padrão de losangos ao longo do corpo
+      ctx.fillStyle = '#5a4326';
+      for (let a = 1; a < 12; a += 1.1) {
+        const r = 3 + a * 1.05;
+        const dx = Math.cos(a) * r, dy = -6 + Math.sin(a) * r * 0.45;
+        ctx.save(); ctx.translate(dx, dy); ctx.rotate(a);
+        ctx.beginPath(); ctx.moveTo(0, -2.2); ctx.lineTo(2.2, 0); ctx.lineTo(0, 2.2); ctx.lineTo(-2.2, 0); ctx.closePath(); ctx.fill();
+        ctx.restore();
+      }
+      // chocalho em gomos, tremendo
+      const sh = Math.sin(ph * 6) * 2.2;
+      ctx.fillStyle = '#e8dcc0'; ctx.strokeStyle = '#8a7a52'; ctx.lineWidth = 1;
+      for (let g = 0; g < 3; g++) {
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(9 + sh * (1 - g * 0.2), -27 + g * 3.2, 4.5, 3.5, 1); else ctx.rect(9 + sh, -27 + g * 3.2, 4.5, 3.5);
+        ctx.fill(); ctx.stroke();
+      }
+      // cabeça triangular + olho + língua
+      const chx = -12, chy = -16;
       ctx.fillStyle = '#9a7b4f';
-      ctx.beginPath(); ctx.ellipse(-12, -16, 5, 3.5, -0.4, 0, 7); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(chx + 4, chy - 3); ctx.lineTo(chx - 6, chy - 1); ctx.lineTo(chx + 4, chy + 3); ctx.closePath(); ctx.fill();
+      blinkEye(chx, chy - 1.5, 1.5, ph);
+      if (Math.sin(ph * 3) > 0.6) {
+        ctx.strokeStyle = '#e0293c'; ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(chx - 5, chy); ctx.lineTo(chx - 10, chy - 1.5);
+        ctx.moveTo(chx - 5, chy); ctx.lineTo(chx - 10, chy + 1.5);
+        ctx.stroke();
+      }
       break;
     }
     case 'tatu': {
@@ -1890,17 +1980,34 @@ function drawCritter(c) {
       break;
     }
     case 'tamandua': {
-      ctx.fillStyle = '#5a4a3a';
-      ctx.beginPath(); ctx.ellipse(2, -16 + bob, 16, 9, 0, 0, 7); ctx.fill();
       const sn = Math.sin(ph) * 2; // focinho fuçando
-      ctx.strokeStyle = '#5a4a3a'; ctx.lineWidth = 4;
-      ctx.beginPath(); ctx.moveTo(-14, -18 + bob); ctx.quadraticCurveTo(-24, -14, -30, -4 + sn); ctx.stroke();
-      ctx.fillStyle = '#4a3a2e'; // cauda-bandeira
+      // cauda-bandeira (atrás)
+      ctx.fillStyle = '#3a2e24';
       ctx.beginPath();
-      ctx.moveTo(14, -18 + bob); ctx.quadraticCurveTo(34, -34, 40, -12);
-      ctx.quadraticCurveTo(30, -6, 16, -10); ctx.closePath(); ctx.fill();
-      ctx.strokeStyle = '#d9cbb0'; ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.moveTo(-8, -24 + bob); ctx.lineTo(4, -10 + bob); ctx.stroke();
+      ctx.moveTo(14, -18 + bob); ctx.quadraticCurveTo(36, -36, 42, -10);
+      ctx.quadraticCurveTo(30, -4, 16, -10); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = '#6a5a44'; ctx.lineWidth = 1;
+      for (let i = 0; i < 5; i++) { ctx.beginPath(); ctx.moveTo(18 + i * 4, -14 - i); ctx.lineTo(24 + i * 4, -26 - i); ctx.stroke(); }
+      // corpo cinza-claro
+      ctx.fillStyle = '#b8ac96';
+      ctx.beginPath(); ctx.ellipse(2, -16 + bob, 16, 9, 0, 0, 7); ctx.fill();
+      // faixa preta diagonal característica (do peito ao dorso)
+      ctx.fillStyle = '#1e1812';
+      ctx.beginPath();
+      ctx.moveTo(-10, -8 + bob); ctx.lineTo(-4, -24 + bob); ctx.lineTo(4, -22 + bob); ctx.lineTo(-2, -6 + bob); ctx.closePath(); ctx.fill();
+      // contorno
+      ctx.strokeStyle = 'rgba(30,24,18,.5)'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.ellipse(2, -16 + bob, 16, 9, 0, 0, 7); ctx.stroke();
+      // focinho tubular longo
+      ctx.strokeStyle = '#8a7c64'; ctx.lineWidth = 4.5; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(-14, -18 + bob); ctx.quadraticCurveTo(-24, -14, -32, -3 + sn); ctx.stroke();
+      blinkEye(-12, -20 + bob, 1.5, ph);
+      // língua fininha lambendo o chão
+      if (Math.sin(ph * 2) > 0) {
+        ctx.strokeStyle = '#d1667a'; ctx.lineWidth = 1.2;
+        ctx.beginPath(); ctx.moveTo(-32, -3 + sn); ctx.quadraticCurveTo(-40, 2, -46, 0); ctx.stroke();
+      }
+      // pernas com garras
       ctx.strokeStyle = '#5a4a3a'; ctx.lineWidth = 4;
       ctx.beginPath();
       ctx.moveTo(-8, -12 + bob); ctx.lineTo(-8 + leg * 3, 0);
@@ -1916,22 +2023,34 @@ function drawCritter(c) {
       ctx.moveTo(8, -26 + bob); ctx.lineTo(8 + leg * 5, 0);
       ctx.moveTo(13, -26 + bob); ctx.lineTo(13 - leg * 5, 0);
       ctx.stroke();
+      // cauda comprida com PONTA BRANCA
+      ctx.strokeStyle = '#c1440e'; ctx.lineWidth = 6; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(14, -30 + bob); ctx.quadraticCurveTo(26, -30 + Math.sin(ph) * 3, 30, -18 + Math.sin(ph) * 3); ctx.stroke();
+      ctx.strokeStyle = '#f7f2e8'; ctx.lineWidth = 6;
+      ctx.beginPath(); ctx.moveTo(29, -21 + Math.sin(ph) * 3); ctx.lineTo(31, -16 + Math.sin(ph) * 3); ctx.stroke();
+      // corpo
       ctx.fillStyle = '#c1440e';
       ctx.beginPath(); ctx.ellipse(0, -30 + bob, 16, 7.5, 0, 0, 7); ctx.fill();
+      // CRINA eriçada no dorso (dente-de-serra escuro)
+      ctx.fillStyle = '#1e1a16';
+      ctx.beginPath();
+      ctx.moveTo(-8, -36 + bob);
+      for (let i = 0; i < 6; i++) { ctx.lineTo(-6 + i * 2.5, -42 - (i % 2) * 2 + bob); ctx.lineTo(-4 + i * 2.5, -36 + bob); }
+      ctx.closePath(); ctx.fill();
+      // pescoço + cabeça
+      ctx.fillStyle = '#c1440e';
       ctx.beginPath(); ctx.moveTo(-12, -32 + bob); ctx.lineTo(-20, -44 + bob); ctx.lineTo(-8, -34 + bob); ctx.closePath(); ctx.fill();
       ctx.beginPath(); ctx.arc(-20, -44 + bob, 5, 0, 7); ctx.fill();
+      // orelhas grandes
       ctx.beginPath();
       ctx.moveTo(-24, -47 + bob); ctx.lineTo(-23, -56 + bob); ctx.lineTo(-19, -48 + bob);
       ctx.moveTo(-18, -48 + bob); ctx.lineTo(-16, -56 + bob); ctx.lineTo(-13, -47 + bob);
       ctx.fill();
-      // gola escura do pescoço, olho e focinho
+      // gola escura do pescoço, focinho e olho que pisca
       ctx.fillStyle = '#1a1a1a';
       ctx.beginPath(); ctx.ellipse(-11, -34 + bob, 4, 6, -0.6, 0, 7); ctx.fill();
-      ctx.beginPath(); ctx.arc(-25, -44 + bob, 1.6, 0, 7); ctx.fill();
-      ctx.fillStyle = '#fff';
-      ctx.beginPath(); ctx.arc(-22, -45 + bob, 1.2, 0, 7); ctx.fill();
-      ctx.fillStyle = '#1a1a1a';
-      ctx.beginPath(); ctx.arc(-22, -45 + bob, 0.7, 0, 7); ctx.fill();
+      ctx.beginPath(); ctx.arc(-25, -44 + bob, 1.6, 0, 7); ctx.fill(); // narizinho
+      blinkEye(-22, -45 + bob, 1.5, ph);
       break;
     }
     case 'ema': case 'seriema': case 'tuiuiu': {
@@ -1985,36 +2104,84 @@ function drawCritter(c) {
       ctx.moveTo(-8, -10 + bob * 0.5); ctx.lineTo(-8 + leg * 2, 0);
       ctx.moveTo(8, -10 + bob * 0.5); ctx.lineTo(8 - leg * 2, 0);
       ctx.stroke();
+      const chew = Math.abs(Math.sin(ph * 4)) * 1.5; // mastigando
       ctx.fillStyle = '#8a6f4d';
       ctx.beginPath(); ctx.ellipse(0, -14 + bob * 0.5, 15, 9, 0, 0, 7); ctx.fill();
+      // cabeça retangular característica
       ctx.beginPath();
-      if (ctx.roundRect) ctx.roundRect(-24, -22 + bob * 0.5, 12, 10, 3); else ctx.rect(-24, -22 + bob * 0.5, 12, 10);
+      if (ctx.roundRect) ctx.roundRect(-24, -22 + bob * 0.5, 12, 10 + chew, 3); else ctx.rect(-24, -22 + bob * 0.5, 12, 10);
       ctx.fill();
-      ctx.beginPath(); ctx.arc(-14, -23 + bob * 0.5, 2, 0, 7); ctx.fill();
+      // contorno cartoon
+      ctx.strokeStyle = 'rgba(50,38,24,.45)'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.ellipse(0, -14 + bob * 0.5, 15, 9, 0, 0, 7); ctx.stroke();
+      // focinho + narina
+      ctx.fillStyle = '#5a4632';
+      ctx.beginPath(); ctx.ellipse(-24, -18 + bob * 0.5, 2, 2.5, 0, 0, 7); ctx.fill();
+      // orelhinha
+      ctx.fillStyle = '#8a6f4d';
+      ctx.beginPath(); ctx.arc(-13, -23 + bob * 0.5, 2.5, 0, 7); ctx.fill();
+      blinkEye(-17, -19 + bob * 0.5, 1.6, ph);
+      // tufo de capim saindo da boca, balançando ao mastigar
+      ctx.strokeStyle = '#5aa864'; ctx.lineWidth = 1.3;
+      ctx.beginPath();
+      ctx.moveTo(-25, -16 + bob * 0.5 + chew); ctx.lineTo(-31, -20 + bob * 0.5 - chew);
+      ctx.moveTo(-25, -15 + bob * 0.5 + chew); ctx.lineTo(-30, -12 + bob * 0.5);
+      ctx.stroke();
       break;
     }
     case 'tartaruga': {
+      const nod = Math.sin(ph * 0.8); // cabeça entra e sai
+      // casco em domo
       ctx.fillStyle = '#4a7a4a';
-      ctx.beginPath(); ctx.ellipse(0, -7, 11, 7, 0, Math.PI, 0); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(0, -7, 12, 8, 0, Math.PI, 0); ctx.fill();
+      // ESCUDOS (placas) no casco: hexágono central + placas ao redor
+      ctx.strokeStyle = '#2f4f2f'; ctx.lineWidth = 1.3; ctx.lineJoin = 'round';
+      ctx.beginPath(); // hexágono central
+      for (let i = 0; i < 6; i++) { const a = i / 6 * 6.283 - 1.57; const px = Math.cos(a) * 4, py = -9 + Math.sin(a) * 3; i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py); }
+      ctx.closePath(); ctx.stroke();
+      // placas radiais
+      for (let i = -2; i <= 2; i++) {
+        ctx.beginPath(); ctx.moveTo(i * 4, -14 + Math.abs(i)); ctx.lineTo(i * 4.5, -1); ctx.stroke();
+      }
+      ctx.strokeStyle = '#2f4f2f'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.ellipse(0, -7, 12, 8, 0, Math.PI, 0); ctx.stroke(); // borda do casco
+      // cabeça saindo com bico
       ctx.fillStyle = '#6a9a5a';
-      ctx.beginPath(); ctx.ellipse(-12, -5 + Math.sin(ph * 0.8), 4.5, 3, 0, 0, 7); ctx.fill();
-      ctx.strokeStyle = '#3a5a3a'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.ellipse(-13 + nod, -5, 5, 3.2, 0, 0, 7); ctx.fill();
+      blinkEye(-15 + nod, -6, 1.2, ph);
+      // patinhas
+      ctx.strokeStyle = '#4a7a4a'; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
       ctx.beginPath();
-      ctx.moveTo(-6, -2); ctx.lineTo(-7, 0);
-      ctx.moveTo(6, -2); ctx.lineTo(7, 0);
+      ctx.moveTo(-6, -1); ctx.lineTo(-8, 1);
+      ctx.moveTo(6, -1); ctx.lineTo(8, 1);
       ctx.stroke();
       break;
     }
     case 'ra': {
       const hop = Math.max(0, Math.sin(ph * 1.6)) * 8;
+      const croak = Math.max(0, Math.sin(ph * 2)); // papo inflando
+      // patas traseiras dobradas
+      ctx.strokeStyle = '#4a8a54'; ctx.lineWidth = 2.2; ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(5, -4 - hop); ctx.lineTo(10, -7 - hop); ctx.lineTo(9, -1);
+      ctx.moveTo(-5, -4 - hop); ctx.lineTo(-10, -7 - hop); ctx.lineTo(-9, -1);
+      ctx.stroke();
+      // papo (garganta) inflando abaixo do corpo
+      ctx.fillStyle = '#8fd08a';
+      ctx.beginPath(); ctx.ellipse(-1.5, -2 - hop + croak * 1.5, 4 + croak * 2.5, 3 + croak * 2, 0, 0, 7); ctx.fill();
+      // corpo
       ctx.fillStyle = '#5aa864';
       ctx.beginPath(); ctx.ellipse(0, -6 - hop, 7, 5, 0, 0, 7); ctx.fill();
-      ctx.fillStyle = '#fff';
-      ctx.beginPath(); ctx.arc(-4, -11 - hop, 2, 0, 7); ctx.arc(1, -11 - hop, 2, 0, 7); ctx.fill();
-      ctx.fillStyle = '#000';
-      ctx.beginPath(); ctx.arc(-4, -11 - hop, 0.9, 0, 7); ctx.arc(1, -11 - hop, 0.9, 0, 7); ctx.fill();
-      ctx.strokeStyle = '#4a8a54'; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.moveTo(5, -3 - hop); ctx.quadraticCurveTo(9, -1 - hop * 0.5, 11, 0); ctx.stroke();
+      ctx.strokeStyle = 'rgba(30,60,30,.4)'; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.ellipse(0, -6 - hop, 7, 5, 0, 0, 7); ctx.stroke();
+      // manchinhas
+      ctx.fillStyle = 'rgba(40,90,45,.5)';
+      ctx.beginPath(); ctx.arc(2, -5 - hop, 1, 0, 7); ctx.arc(-3, -4 - hop, 0.8, 0, 7); ctx.fill();
+      // olhos esbugalhados no topo
+      ctx.fillStyle = '#5aa864';
+      ctx.beginPath(); ctx.arc(-4, -12 - hop, 3, 0, 7); ctx.arc(2, -12 - hop, 3, 0, 7); ctx.fill();
+      blinkEye(-4, -12 - hop, 1.8, ph);
+      blinkEye(2, -12 - hop, 1.8, ph + 0.3);
       break;
     }
     case 'lagarto': {
@@ -2052,9 +2219,14 @@ function drawCritter(c) {
       const mouth = Math.max(0, Math.sin(ph * 0.5)) * 5; // boca abre devagar
       ctx.fillStyle = '#4a6a3a';
       ctx.beginPath(); ctx.ellipse(4, -6, 20, 5.5, 0, 0, 7); ctx.fill();
+      // escamas serrilhadas do dorso (fileira alta e pontuda)
+      ctx.fillStyle = '#3a5a2e';
       ctx.beginPath();
-      for (let i = -10; i <= 14; i += 6) { ctx.moveTo(i, -10); ctx.lineTo(i + 3, -14); ctx.lineTo(i + 6, -10); }
+      for (let i = -8; i <= 18; i += 5) { ctx.moveTo(i, -10); ctx.lineTo(i + 2.5, -16); ctx.lineTo(i + 5, -10); }
       ctx.fill();
+      // textura de escamas no corpo
+      ctx.strokeStyle = 'rgba(30,50,25,.5)'; ctx.lineWidth = 0.8;
+      for (let i = -14; i <= 20; i += 5) { ctx.beginPath(); ctx.arc(i, -5, 2, 3.6, 6.1); ctx.stroke(); }
       ctx.beginPath(); ctx.moveTo(-14, -8); ctx.lineTo(-34, -6 - mouth); ctx.lineTo(-14, -5); ctx.closePath(); ctx.fill();
       ctx.fillStyle = '#e8e3c8'; // papo amarelo!
       ctx.beginPath(); ctx.moveTo(-14, -4); ctx.lineTo(-32, -2 + mouth * 0.4); ctx.lineTo(-13, -1); ctx.closePath(); ctx.fill();
@@ -2069,11 +2241,15 @@ function drawCritter(c) {
         ctx.closePath();
         ctx.fill();
       }
-      // olho amarelo com pupila vertical
+      // olho SALIENTE: montículo verde + globo amarelo com pupila vertical
+      ctx.fillStyle = '#4a6a3a';
+      ctx.beginPath(); ctx.arc(-13, -12, 3.5, 0, 7); ctx.fill();
       ctx.fillStyle = '#ffd23f';
-      ctx.beginPath(); ctx.arc(-13, -10, 2, 0, 7); ctx.fill();
+      ctx.beginPath(); ctx.arc(-13, -13, 2.4, 0, 7); ctx.fill();
       ctx.fillStyle = '#1a1a1a';
-      ctx.fillRect(-13.5, -12, 1, 4);
+      ctx.fillRect(-13.6, -15, 1.2, 4.5);
+      ctx.fillStyle = '#fff';
+      ctx.beginPath(); ctx.arc(-11.8, -14, 0.7, 0, 7); ctx.fill();
       ctx.fillStyle = '#4a6a3a';
       ctx.beginPath();
       ctx.moveTo(22, -8); ctx.quadraticCurveTo(34, -6 + Math.sin(ph) * 2, 40, -3); ctx.lineTo(22, -3);
