@@ -1826,6 +1826,7 @@ function update() {
           });
         } else if (boss.attackKind === 'bite') {
           snakeBites.push({ x: W + 132, y: ty, vx: -20.5, life: 42, r: 42, ph: 0, lane: ty });
+          shake = Math.max(shake, 12);
         }
         boss.attackTimer = 96;
         boss.attackKind = '';
@@ -3866,8 +3867,9 @@ function drawSnakeBoss(b) {
   ctx.beginPath(); ctx.rect(-111, -43, 2, 13); ctx.rect(-79, -42, 2, 13); ctx.fill();
   ctx.strokeStyle = '#07170d'; ctx.lineWidth = 3;
   ctx.beginPath(); ctx.moveTo(-120, -47); ctx.lineTo(-101, -39); ctx.moveTo(-67, -46); ctx.lineTo(-86, -39); ctx.stroke();
-  // língua bifurcada como aviso
-  if (Math.sin(b.ph * 3) > 0.1) {
+  // língua pequena de idle; some quando a linguada grande está avisando/atacando.
+  const tongueStrikeActive = b.attackKind === 'tongue' || snakeWhips.length > 0;
+  if (!tongueStrikeActive && Math.sin(b.ph * 3) > 0.1) {
     ctx.strokeStyle = '#e11d48'; ctx.lineWidth = 3.5;
     ctx.beginPath(); ctx.moveTo(-138, -8); ctx.lineTo(-160, -11); ctx.moveTo(-160, -11); ctx.lineTo(-173, -19); ctx.moveTo(-160, -11); ctx.lineTo(-174, -3); ctx.stroke();
   }
@@ -4000,21 +4002,38 @@ function drawSnakeWhip(w) {
 function drawSnakeBite(bi) {
   ctx.save();
   ctx.translate(bi.x, bi.y);
-  ctx.fillStyle = '#06180d';
+  const fade = Math.min(1, bi.life / 18);
+  ctx.globalAlpha = 0.32 + fade * 0.5;
+  ctx.shadowColor = 'rgba(180,255,220,.8)';
+  ctx.shadowBlur = 18;
+  ctx.fillStyle = 'rgba(170,255,210,.18)';
+  for (let i = 0; i < 3; i++) {
+    const off = i * 18 + Math.sin(bi.ph + i) * 5;
+    ctx.beginPath();
+    ctx.ellipse(58 + off, Math.sin(bi.ph * 1.5 + i) * 8, 28 - i * 4, 14 - i * 2, 0, 0, 7);
+    ctx.fill();
+  }
+  ctx.fillStyle = 'rgba(190,255,225,.28)';
   ctx.beginPath(); ctx.roundRect ? ctx.roundRect(-8, -24, 120, 48, 24) : ctx.rect(-8, -24, 120, 48); ctx.fill();
-  ctx.fillStyle = '#184b29';
+  ctx.strokeStyle = 'rgba(220,255,235,.72)'; ctx.lineWidth = 2.4;
+  ctx.stroke();
+  ctx.fillStyle = 'rgba(126,224,138,.38)';
   ctx.beginPath(); ctx.ellipse(-18, 0, 52, 36, 0, 0, 7); ctx.fill();
-  ctx.fillStyle = '#0e2d19';
+  ctx.strokeStyle = 'rgba(235,255,245,.7)'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.ellipse(-18, 0, 52, 36, 0, 0, 7); ctx.stroke();
+  ctx.fillStyle = 'rgba(80,255,185,.22)';
   ctx.beginPath(); ctx.ellipse(-52, 0, 34, 21, 0, 0, 7); ctx.fill();
-  ctx.fillStyle = '#ff3b30';
+  ctx.fillStyle = 'rgba(255,255,255,.9)';
   ctx.beginPath(); ctx.ellipse(-35, -12, 6, 8, -0.2, 0, 7); ctx.ellipse(-35, 12, 6, 8, 0.2, 0, 7); ctx.fill();
-  ctx.fillStyle = '#111';
+  ctx.fillStyle = 'rgba(30,80,60,.9)';
   ctx.beginPath(); ctx.rect(-36, -17, 2, 10); ctx.rect(-36, 7, 2, 10); ctx.fill();
-  ctx.fillStyle = '#fdf6e3';
+  ctx.fillStyle = 'rgba(255,255,255,.78)';
   ctx.beginPath(); ctx.moveTo(-66, -19); ctx.lineTo(-44, -8); ctx.lineTo(-60, -2); ctx.closePath(); ctx.fill();
   ctx.beginPath(); ctx.moveTo(-66, 19); ctx.lineTo(-44, 8); ctx.lineTo(-60, 2); ctx.closePath(); ctx.fill();
-  ctx.strokeStyle = '#e11d48'; ctx.lineWidth = 4; ctx.lineCap = 'round';
+  ctx.strokeStyle = 'rgba(225,29,72,.62)'; ctx.lineWidth = 4; ctx.lineCap = 'round';
   ctx.beginPath(); ctx.moveTo(-70, 0); ctx.lineTo(-88, -8); ctx.moveTo(-70, 0); ctx.lineTo(-89, 8); ctx.stroke();
+  ctx.shadowBlur = 0;
+  ctx.globalAlpha = 1;
   ctx.restore();
 }
 // Nave do ET de Varginha (ideia 16 do Francisco): disco voador cruzando o céu
@@ -5511,7 +5530,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.13.9';
+const GAME_VERSION = '5.13.10';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
