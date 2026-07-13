@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.13.13` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.13.14` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -207,3 +207,5 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
   maior/larga com alarme mais visível e +2s de antecipação.
 - **v5.13.13** — mordida fantasma da Chefã Anaconda agora alterna corretamente entre as três faixas
   horizontais, em vez de ficar presa na faixa inferior.
+- **v5.13.14** — ritmo da Chefã Anaconda recalibrado: intervalo extra entre ataques reduzido para 2s
+  e linguada com alerta/execução mais rápidos.

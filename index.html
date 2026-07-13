@@ -1107,9 +1107,10 @@ let magicNight = 0, etCooldown = 0, etBonusTimer = 0;  // clicar no ET liga noit
 let ufo = null, ufoTimer = 700, etArrivalTimer = 0; // nave anuncia o ET; 5s depois ele surge na moita
 // ideia 13 do Francisco: CHEFÃO URUBU — aparece a cada 3 biomas + Pantanal ∞, joga ossos, dá bônus.
 let boss = null, bossTimer = 1500, bones = [], venom = [], snakeEggs = [], snakeWhips = [], snakeBites = [];
-const SNAKE_ATTACK_INTERVAL = 336; // era 96; +4s de respiro entre ataques
+const SNAKE_ATTACK_INTERVAL = 216; // era 96; +2s de respiro entre ataques
 const SNAKE_WARN_LEAD = 44;
-const SNAKE_TONGUE_WARN_LEAD = 164; // +2s de alarme antes da linguada
+const SNAKE_TONGUE_WARN_LEAD = 88; // aviso mais curto/ágil para a linguada
+const SNAKE_TONGUE_STRIKE_LIFE = 12;
 let bossPortal = null;       // tronco especial que avisa/transporta para a arena
 let bossArena = null;        // {kind, place, timer, phaseIdx, phaseDist}
 let nextBossKind = TEST_COBRA_SECOND_BIOME ? 'cobra' : 'urubu';  // alterna Urubu/Cobra a cada bossfight
@@ -1824,7 +1825,7 @@ function update() {
       if (--boss.attackTimer <= 0) {
         const tx = boss.warnX == null ? bird.x : boss.warnX, ty = boss.warnY == null ? bird.y : boss.warnY;
         if (boss.attackKind === 'tongue') {
-          snakeWhips.push({ x1: boss.x - 124, y1: boss.y - 12, x2: tx, y2: ty, life: 18, maxLife: 18, ph: 0 });
+          snakeWhips.push({ x1: boss.x - 124, y1: boss.y - 12, x2: tx, y2: ty, life: SNAKE_TONGUE_STRIKE_LIFE, maxLife: SNAKE_TONGUE_STRIKE_LIFE, ph: 0 });
         } else if (boss.attackKind === 'egg') {
           const lanes = [Math.max(90, ty - 34), ty, Math.min(H - GROUND_H - 48, ty + 34)];
           lanes.forEach((lane, i) => {
@@ -3996,7 +3997,7 @@ function drawSnakeEggProjectile(e) {
   ctx.restore();
 }
 function drawSnakeWhip(w) {
-  const a = Math.min(1, w.life / (w.maxLife || 18));
+  const a = Math.min(1, w.life / (w.maxLife || SNAKE_TONGUE_STRIKE_LIFE));
   const pulse = Math.sin(w.ph) * 2;
   ctx.save();
   ctx.globalAlpha = 0.45 + a * 0.5;
@@ -5554,7 +5555,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.13.13';
+const GAME_VERSION = '5.13.14';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
