@@ -1114,6 +1114,7 @@ const SNAKE_ATTACK_INTERVAL = 216; // era 96; +2s de respiro entre ataques
 const SNAKE_WARN_LEAD = 44;
 const SNAKE_TONGUE_WARN_LEAD = 88; // aviso mais curto/ágil para a linguada
 const SNAKE_TONGUE_STRIKE_LIFE = 12;
+const SNAKE_MOBILE_HEAD_TX = 110; // cabeça na borda direita; corpo fica fora da tela
 const URUBU_THROW_INTERVAL = 64; // 1/3 menor que 96
 const URUBU_SUPER_EGG_SPEED = 8.2;
 const URUBU_BONE_SPEED = URUBU_SUPER_EGG_SPEED * 1.2;
@@ -1155,7 +1156,10 @@ function enterBossArena(kind) {
 // entra o chefão voando/rastejando pela direita; conta a aparição (sobe a dificuldade +10%).
 function spawnBoss(kind) {
   kind = kind || nextBossKind || 'urubu';
-  boss = { kind, x: W + 100, y: kind === 'cobra' ? H - GROUND_H - 72 : 120, tx: W - 90, hp: 60, boneTimer: 70, venomTimer: 85, attackTimer: kind === 'cobra' ? SNAKE_ATTACK_INTERVAL : 70, attackIdx: 0, biteLaneIdx: 0, attackKind: '', life: bossArena ? bossArena.timer : 660, sign: 0, hurt: 0, ph: 0 };
+  const snakeMobileX = W + SNAKE_MOBILE_HEAD_TX;
+  const startX = kind === 'cobra' && isPortraitMobile() ? snakeMobileX : W + 100;
+  const targetX = kind === 'cobra' && isPortraitMobile() ? snakeMobileX : W - 90;
+  boss = { kind, x: startX, y: kind === 'cobra' ? H - GROUND_H - 72 : 120, tx: targetX, hp: 60, boneTimer: 70, venomTimer: 85, attackTimer: kind === 'cobra' ? SNAKE_ATTACK_INTERVAL : 70, attackIdx: 0, biteLaneIdx: 0, attackKind: '', life: bossArena ? bossArena.timer : 660, sign: 0, hurt: 0, ph: 0 };
   bossAppearances++;
   bannerTimer = 110; bannerText = kind === 'cobra' ? t('bossSnake') : t('bossUrubu');
   bannerSub = kind === 'cobra' ? t('bossDodgeVenom') : t('bossDodgeBones');
@@ -1848,9 +1852,11 @@ function update() {
   if (boss && gameMode !== 'tutorial') {
     boss.ph += 0.08;
     if (boss.kind === 'cobra') {
-      boss.tx = boss.attackKind === 'bite' ? W + 120 : W - 90;
+      const mobileSnake = isPortraitMobile();
+      boss.tx = boss.attackKind === 'bite' ? W + 120 : (mobileSnake ? W + SNAKE_MOBILE_HEAD_TX : W - 90);
       boss.x += (boss.tx - boss.x) * 0.035;
       boss.y = H - GROUND_H - 70 + Math.sin(boss.ph * 1.3) * 12;
+      const mouthX = mobileSnake ? Math.min(W - 14, boss.x - 124) : boss.x - 124, mouthY = boss.y - 12;
       const attacks = ['egg', 'tongue', 'bite'];
       const nextAttackKind = attacks[boss.attackIdx % attacks.length];
       const warnLead = nextAttackKind === 'tongue' ? SNAKE_TONGUE_WARN_LEAD : SNAKE_WARN_LEAD;
@@ -1868,11 +1874,11 @@ function update() {
       if (--boss.attackTimer <= 0) {
         const tx = boss.warnX == null ? bird.x : boss.warnX, ty = boss.warnY == null ? bird.y : boss.warnY;
         if (boss.attackKind === 'tongue') {
-          snakeWhips.push({ x1: boss.x - 124, y1: boss.y - 12, x2: tx, y2: ty, life: SNAKE_TONGUE_STRIKE_LIFE, maxLife: SNAKE_TONGUE_STRIKE_LIFE, ph: 0 });
+          snakeWhips.push({ x1: mouthX, y1: mouthY, x2: tx, y2: ty, life: SNAKE_TONGUE_STRIKE_LIFE, maxLife: SNAKE_TONGUE_STRIKE_LIFE, ph: 0 });
         } else if (boss.attackKind === 'egg') {
           const lanes = [Math.max(90, ty - 34), ty, Math.min(H - GROUND_H - 48, ty + 34)];
           lanes.forEach((lane, i) => {
-            const startX = boss.x - 116, startY = boss.y - 13;
+            const startX = mobileSnake ? Math.min(W - 18, mouthX + 8) : mouthX + 8, startY = mouthY - 1;
             const targetX = bird.x + 90, targetY = lane;
             const ang = Math.atan2(targetY - startY, targetX - startX);
             snakeEggs.push({
@@ -3873,25 +3879,41 @@ function drawBoss(b) {
 }
 function drawSnakeBoss(b) {
   ctx.save();
+  const mobileHeadOnly = isPortraitMobile();
+  if (mobileHeadOnly) {
+    ctx.beginPath();
+    ctx.rect(W - 112, 0, 146, H);
+    ctx.clip();
+  }
   ctx.translate(b.x, b.y);
   if (b.hurt > 0) ctx.globalAlpha = frames % 4 < 2 ? 0.5 : 1;
   ctx.lineCap = 'round'; ctx.lineJoin = 'round';
   // anaconda gigante, mais escura e ameaçadora
   ctx.strokeStyle = '#06180d'; ctx.lineWidth = 62;
   ctx.beginPath();
-  ctx.moveTo(92, 48);
-  ctx.quadraticCurveTo(42 + Math.sin(b.ph) * 14, 0, -12, 36);
-  ctx.quadraticCurveTo(-74, 74, -142, 28);
+  if (mobileHeadOnly) {
+    ctx.moveTo(120, 42);
+    ctx.quadraticCurveTo(38 + Math.sin(b.ph) * 8, 8, -72, 10);
+  } else {
+    ctx.moveTo(92, 48);
+    ctx.quadraticCurveTo(42 + Math.sin(b.ph) * 14, 0, -12, 36);
+    ctx.quadraticCurveTo(-74, 74, -142, 28);
+  }
   ctx.stroke();
   ctx.strokeStyle = '#1f5a2d'; ctx.lineWidth = 42;
   ctx.beginPath();
-  ctx.moveTo(82, 42);
-  ctx.quadraticCurveTo(32, 16, -10, 38);
-  ctx.quadraticCurveTo(-64, 60, -126, 30);
+  if (mobileHeadOnly) {
+    ctx.moveTo(106, 38);
+    ctx.quadraticCurveTo(28, 16, -76, 9);
+  } else {
+    ctx.moveTo(82, 42);
+    ctx.quadraticCurveTo(32, 16, -10, 38);
+    ctx.quadraticCurveTo(-64, 60, -126, 30);
+  }
   ctx.stroke();
   // manchas de anaconda no dorso
   ctx.fillStyle = '#101f13';
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < (mobileHeadOnly ? 2 : 6); i++) {
     const x = 64 - i * 34;
     const y = 28 + Math.sin(b.ph + i) * 9;
     ctx.beginPath(); ctx.ellipse(x, y, 13, 8, 0.2, 0, 7); ctx.fill();
@@ -5598,7 +5620,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.13.18';
+const GAME_VERSION = '5.13.19';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
