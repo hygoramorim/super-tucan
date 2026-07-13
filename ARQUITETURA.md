@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.13.14` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.13.15` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -209,3 +209,6 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
   horizontais, em vez de ficar presa na faixa inferior.
 - **v5.13.14** — ritmo da Chefã Anaconda recalibrado: intervalo extra entre ataques reduzido para 2s
   e linguada com alerta/execução mais rápidos.
+- **v5.13.15** — arquitetura dos bosses ajustada: Cobra obrigatória entra direto no Pampas sem portal,
+  Urubu volta a ser portal opcional, mordida fantasma atravessa a tela e ossos do Urubu ficam rápidos
+  em linha reta, sem gravidade.

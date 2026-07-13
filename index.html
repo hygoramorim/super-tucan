@@ -528,7 +528,7 @@ const PHASES = [
   }
 ];
 const LAST = PHASES.length - 1;
-const TEST_COBRA_SECOND_BIOME = true; // temporário: facilita testar a Cobra antes do Urubu
+const PAMPAS_PHASE_IDX = 4;
 // Fase final infinita: +1 nível a cada 15 s, com teto calibrado para ser
 // difícil porém vencível por um jogador de alto nível (nunca impossível)
 const P3_LEVEL_FRAMES = 900;
@@ -1113,7 +1113,7 @@ const SNAKE_TONGUE_WARN_LEAD = 88; // aviso mais curto/ágil para a linguada
 const SNAKE_TONGUE_STRIKE_LIFE = 12;
 let bossPortal = null;       // tronco especial que avisa/transporta para a arena
 let bossArena = null;        // {kind, place, timer, phaseIdx, phaseDist}
-let nextBossKind = TEST_COBRA_SECOND_BIOME ? 'cobra' : 'urubu';  // alterna Urubu/Cobra a cada bossfight
+let nextBossKind = 'urubu';  // portal opcional é sempre do Urubu; Cobra é obrigatória no Pampas
 let bossBonusTimer = 0; // celebração temporária no HUD após vencer boss
 let bossBadgeText = '';
 let urubuBonusTimer = 0; // recompensa temporária do Urubu; evita 5× permanente quebrando tentativa longa
@@ -1121,15 +1121,15 @@ let urubuBonusTimer = 0; // recompensa temporária do Urubu; evita 5× permanent
 // a cada aparição do boss (permanente naquela partida). bossAppearances = quantas vezes
 // o urubu já apareceu; o multiplicador é 1.1^appearances aplicado à velocidade do jogo.
 let bossAppearances = 0;
-let bossQueued = 0; // frames até o boss entrar após uma transição de fase (deixa o banner de fase aparecer)
+let bossQueued = 0; // frames até o portal opcional do Urubu entrar após uma transição de fase
+let mandatorySnakeQueued = 0; // Cobra obrigatória entra direto no Pampas, sem portal
 // +10% por aparição, ACUMULATIVO, porém com TETO de 5 aparições (1.10^5 ≈ 1.61×) para
 // não explodir em sessões longas de Pantanal ∞ (onde o boss reaparece por timer). Junto
 // com o teto de velocidade final em currentDiff(), o jogo fica bem mais difícil mas jogável.
 function bossDiffMult() { return Math.pow(1.10, Math.min(bossAppearances, 5)); }
 function queueBossPortal() {
   if (boss || bossPortal || bossArena || gameMode === 'tutorial') return;
-  bossPortal = { x: bird.x + SPAWN_AHEAD, y: H / 2, kind: nextBossKind, timer: 180, ph: 0, age: 0 };
-  if (TEST_COBRA_SECOND_BIOME && phaseIdx === 1 && nextBossKind === 'cobra') nextBossKind = 'urubu';
+  bossPortal = { x: bird.x + SPAWN_AHEAD, y: H / 2, kind: 'urubu', timer: 180, ph: 0, age: 0 };
   obstacles = obstacles.filter(o => o.x < bird.x - 60);
   eggs = eggs.filter(e => e.x < bird.x - 60);
   powerups = powerups.filter(pu => pu.x < bird.x - 60);
@@ -1165,7 +1165,7 @@ function finishBossArena() {
   sfx.milestone();
   boss = null; bossArena = null; bones = []; venom = []; snakeEggs = []; snakeWhips = []; snakeBites = [];
   bossTimer = 2200;
-  nextBossKind = kind === 'urubu' ? 'cobra' : 'urubu';
+  nextBossKind = 'urubu';
   bannerTimer = 100; bannerText = t('bossClear'); bannerSub = t('bossFair');
 }
 // é noite? (evento NOITE OU noite mágica do ET) — controla fauna e visual noturnos
@@ -1260,9 +1260,9 @@ function resetGame() {
   ufo = null; ufoTimer = 700; etArrivalTimer = 0;
   boss = null; bossTimer = 1500; bones = []; venom = []; snakeEggs = []; snakeWhips = []; snakeBites = [];
   bossPortal = null; bossArena = null;
-  nextBossKind = TEST_COBRA_SECOND_BIOME ? 'cobra' : 'urubu';
+  nextBossKind = 'urubu';
   bossBonusTimer = 0; bossBadgeText = ''; urubuBonusTimer = 0;
-  bossAppearances = 0; bossQueued = 0;
+  bossAppearances = 0; bossQueued = 0; mandatorySnakeQueued = 0;
   petTrail = [];
   floaters = [];
   nextMilestone = 50;
@@ -1779,8 +1779,11 @@ function update() {
   }
 
   // Chefões: aparecem por um PORTAL primeiro. Isso dá leitura, pausa ovos/galhos
-  // e transporta para uma arena própria (Urubu=Cemitério, Cobra=Toca).
+  // e transporta para uma arena própria. Urubu é opcional via portal; Cobra entra obrigatória no Pampas.
   if (phaseIdx === LAST && gameMode !== 'tutorial' && !boss && !bossPortal && !bossArena && --bossTimer <= 0) queueBossPortal();
+  if (mandatorySnakeQueued > 0 && gameMode !== 'tutorial') {
+    if (--mandatorySnakeQueued === 0 && !boss && !bossPortal && !bossArena) enterBossArena('cobra');
+  }
   if (bossQueued > 0 && gameMode !== 'tutorial') { if (--bossQueued === 0) queueBossPortal(); }
   if (bossPortal) {
     bossPortal.x -= Math.max(2.8, currentDiff().speed);
@@ -1841,7 +1844,7 @@ function update() {
             });
           });
         } else if (boss.attackKind === 'bite') {
-          snakeBites.push({ x: W + 132, y: ty, vx: -20.5, life: 42, r: 42, ph: 0, lane: ty });
+          snakeBites.push({ x: W + 132, y: ty, vx: -20.5, life: Math.ceil((W + 340) / 20.5), r: 42, ph: 0, lane: ty });
           shake = Math.max(shake, 12);
         }
         boss.attackTimer = SNAKE_ATTACK_INTERVAL;
@@ -1859,7 +1862,7 @@ function update() {
         boss.boneTimer = 96;
         const tx = boss.warnX == null ? bird.x : boss.warnX, ty = boss.warnY == null ? bird.y : boss.warnY;
         const ang = Math.atan2(ty - boss.y, tx - boss.x);
-        bones.push({ x: boss.x - 20, y: boss.y, vx: Math.cos(ang) * 4.8, vy: Math.sin(ang) * 4.8, rot: 0, ph: 0 });
+        bones.push({ x: boss.x - 20, y: boss.y, vx: Math.cos(ang) * 8.2, vy: Math.sin(ang) * 8.2, rot: 0, ph: 0 });
         boss.warnX = boss.warnY = null;
         sfx.chirp();
       }
@@ -1869,7 +1872,7 @@ function update() {
   }
   // move os ossos e checa colisão (escudo protege)
   if (bones.length) {
-    for (const bo of bones) { bo.x += bo.vx; bo.y += bo.vy; bo.vy += 0.05; bo.rot += 0.25; }
+    for (const bo of bones) { bo.x += bo.vx; bo.y += bo.vy; bo.rot += 0.32; }
     bones = bones.filter(bo => bo.x > -30 && bo.y < H + 30 && bo.y > -30);
     if (state === 'play' && invuln <= 0) {
       for (const bo of bones) {
@@ -1985,10 +1988,8 @@ function update() {
     sfx.phase();
     startMusic(phaseIdx);
     celebrate([np.beak[0], np.leaf, '#ffffff', '#ffd23f']);
-    // Teste temporário: Cobra entra já no segundo bioma para validação visual/gameplay.
-    // Fluxo normal: boss a cada 3 biomas completados.
-    const shouldQueueBoss = (TEST_COBRA_SECOND_BIOME && phaseIdx === 1) || phaseIdx % 3 === 0;
-    if (shouldQueueBoss && !boss && !bossPortal && !bossArena) bossQueued = 140;
+    if (phaseIdx === PAMPAS_PHASE_IDX && !boss && !bossPortal && !bossArena) mandatorySnakeQueued = 140;
+    else if (phaseIdx % 3 === 0 && !boss && !bossPortal && !bossArena) bossQueued = 140;
   }
 
   // Pantanal infinito: +1 nível a cada 15 s até o teto (nível 10 = tudo no máximo);
@@ -5555,7 +5556,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.13.14';
+const GAME_VERSION = '5.13.15';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
