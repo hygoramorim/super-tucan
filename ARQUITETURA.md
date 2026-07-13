@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.13.11` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.13.12` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -203,3 +203,5 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
   fantasma/espiritual e causa tremor de tela ao ser lançada.
 - **v5.13.11** — revisão/otimização leve: estrelas noturnas pré-calculadas e checagem de distância
   entre itens sem alocação temporária por tentativa.
+- **v5.13.12** — Chefã Anaconda com +4s entre ataques, ovos em trajetória curva/não linear e linguada
+  maior/larga com alarme mais visível e +2s de antecipação.

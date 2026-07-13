@@ -1107,6 +1107,9 @@ let magicNight = 0, etCooldown = 0, etBonusTimer = 0;  // clicar no ET liga noit
 let ufo = null, ufoTimer = 700, etArrivalTimer = 0; // nave anuncia o ET; 5s depois ele surge na moita
 // ideia 13 do Francisco: CHEFÃO URUBU — aparece a cada 3 biomas + Pantanal ∞, joga ossos, dá bônus.
 let boss = null, bossTimer = 1500, bones = [], venom = [], snakeEggs = [], snakeWhips = [], snakeBites = [];
+const SNAKE_ATTACK_INTERVAL = 336; // era 96; +4s de respiro entre ataques
+const SNAKE_WARN_LEAD = 44;
+const SNAKE_TONGUE_WARN_LEAD = 164; // +2s de alarme antes da linguada
 let bossPortal = null;       // tronco especial que avisa/transporta para a arena
 let bossArena = null;        // {kind, place, timer, phaseIdx, phaseDist}
 let nextBossKind = TEST_COBRA_SECOND_BIOME ? 'cobra' : 'urubu';  // alterna Urubu/Cobra a cada bossfight
@@ -1144,7 +1147,7 @@ function enterBossArena(kind) {
 // entra o chefão voando/rastejando pela direita; conta a aparição (sobe a dificuldade +10%).
 function spawnBoss(kind) {
   kind = kind || nextBossKind || 'urubu';
-  boss = { kind, x: W + 100, y: kind === 'cobra' ? H - GROUND_H - 72 : 120, tx: W - 90, hp: 60, boneTimer: 70, venomTimer: 85, attackTimer: 70, attackIdx: 0, attackKind: '', life: bossArena ? bossArena.timer : 660, sign: 0, hurt: 0, ph: 0 };
+  boss = { kind, x: W + 100, y: kind === 'cobra' ? H - GROUND_H - 72 : 120, tx: W - 90, hp: 60, boneTimer: 70, venomTimer: 85, attackTimer: kind === 'cobra' ? SNAKE_ATTACK_INTERVAL : 70, attackIdx: 0, attackKind: '', life: bossArena ? bossArena.timer : 660, sign: 0, hurt: 0, ph: 0 };
   bossAppearances++;
   bannerTimer = 110; bannerText = kind === 'cobra' ? t('bossSnake') : t('bossUrubu');
   bannerSub = kind === 'cobra' ? t('bossDodgeVenom') : t('bossDodgeBones');
@@ -1804,9 +1807,12 @@ function update() {
       boss.tx = boss.attackKind === 'bite' ? W + 120 : W - 90;
       boss.x += (boss.tx - boss.x) * 0.035;
       boss.y = H - GROUND_H - 70 + Math.sin(boss.ph * 1.3) * 12;
-      if (boss.attackTimer === 44) {
-        const attacks = ['egg', 'tongue', 'bite'];
-        boss.attackKind = attacks[boss.attackIdx % attacks.length];
+      const attacks = ['egg', 'tongue', 'bite'];
+      const nextAttackKind = attacks[boss.attackIdx % attacks.length];
+      const warnLead = nextAttackKind === 'tongue' ? SNAKE_TONGUE_WARN_LEAD : SNAKE_WARN_LEAD;
+      if (!boss.attackKind && boss.attackTimer === warnLead) {
+        boss.attackKind = nextAttackKind;
+        boss.attackWarnLead = warnLead;
         const laneIdx = boss.attackIdx % 3;
         boss.attackIdx++;
         boss.warnLane = boss.attackKind === 'bite'
@@ -1828,6 +1834,7 @@ function update() {
             snakeEggs.push({
               x: startX, y: startY,
               vx: Math.cos(ang) * 7.4, vy: Math.sin(ang) * 7.4, delay: i * 11,
+              curve: (i - 1) * 0.055 + (rng() - 0.5) * 0.035,
               r: i === 1 ? 10 : 9, rot: 0, ph: 0, age: 0,
               good: i === 1, snake: i !== 1, taken: false, golden: i === 1
             });
@@ -1836,9 +1843,9 @@ function update() {
           snakeBites.push({ x: W + 132, y: ty, vx: -20.5, life: 42, r: 42, ph: 0, lane: ty });
           shake = Math.max(shake, 12);
         }
-        boss.attackTimer = 96;
+        boss.attackTimer = SNAKE_ATTACK_INTERVAL;
         boss.attackKind = '';
-        boss.warnX = boss.warnY = boss.warnLane = null;
+        boss.warnX = boss.warnY = boss.warnLane = boss.attackWarnLead = null;
         sfx.chirp();
       }
     } else {
@@ -1889,6 +1896,7 @@ function update() {
   if (snakeEggs.length) {
     for (const se of snakeEggs) {
       if (se.delay > 0) { se.delay--; se.ph += 0.18; continue; }
+      se.vy += se.curve || 0;
       se.x += se.vx; se.y += se.vy; se.rot += 0.34; se.ph += 0.18; se.age++;
     }
     snakeEggs = snakeEggs.filter(se => se.x > -30 && se.y < H + 30 && se.y > -30);
@@ -1913,7 +1921,7 @@ function update() {
         const t = Math.max(0, Math.min(1, ((bird.x - sw.x1) * dx + (bird.y - sw.y1) * dy) / len2));
         const px = sw.x1 + dx * t, py = sw.y1 + dy * t;
         const hitDx = bird.x - px, hitDy = bird.y - py;
-        if (hitDx * hitDx + hitDy * hitDy < (bird.r + 10) * (bird.r + 10) && sw.life > 4) {
+        if (hitDx * hitDx + hitDy * hitDy < (bird.r + 14) * (bird.r + 14) && sw.life > 4) {
           if (hasShield()) { useShield(); sw.life = 0; break; }
           die(); return;
         }
@@ -3882,23 +3890,30 @@ function drawSnakeBoss(b) {
     ctx.strokeStyle = '#e11d48'; ctx.lineWidth = 3.5;
     ctx.beginPath(); ctx.moveTo(-138, -8); ctx.lineTo(-160, -11); ctx.moveTo(-160, -11); ctx.lineTo(-173, -19); ctx.moveTo(-160, -11); ctx.lineTo(-174, -3); ctx.stroke();
   }
-  if (bossArena && b.attackTimer <= 44 && b.warnX !== null && b.warnX !== undefined) {
-    const a = 1 - b.attackTimer / 44;
+  if (bossArena && b.attackKind && b.warnX !== null && b.warnX !== undefined) {
+    const lead = b.attackWarnLead || SNAKE_WARN_LEAD;
+    const a = 1 - Math.min(1, b.attackTimer / lead);
     const kind = b.attackKind || 'egg';
     ctx.globalAlpha = 0.32 + a * 0.55;
     ctx.lineWidth = 2 + a * 2;
     ctx.setLineDash([7, 7]);
     if (kind === 'tongue') {
       const gy = (b.warnY || bird.y) - b.y;
-      ctx.strokeStyle = '#e11d48';
+      ctx.strokeStyle = '#ff1744';
+      ctx.lineWidth = 5 + a * 6;
       ctx.beginPath(); ctx.moveTo(-138, -8); ctx.lineTo(b.warnX - b.x, gy); ctx.stroke();
       ctx.setLineDash([]);
-      ctx.fillStyle = 'rgba(225,29,72,.26)';
-      ctx.beginPath(); ctx.arc(b.warnX - b.x, gy, 18 + a * 10, 0, 7); ctx.fill();
-      ctx.fillStyle = '#e11d48';
-      ctx.font = "900 24px Bungee, 'Courier New', monospace";
+      ctx.fillStyle = 'rgba(255,23,68,.24)';
+      ctx.fillRect(-W, gy - 34 - a * 12, W * 2, 68 + a * 24);
+      ctx.strokeStyle = 'rgba(255,255,255,.9)';
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(b.warnX - b.x, gy, 24 + a * 18, 0, 7); ctx.stroke();
+      ctx.fillStyle = '#ff1744';
+      ctx.font = "900 34px Bungee, 'Courier New', monospace";
       ctx.textAlign = 'center';
-      ctx.fillText('!!!', b.warnX - b.x, gy - 28);
+      ctx.fillText('!!!', b.warnX - b.x, gy - 42);
+      ctx.font = "900 13px Bungee, 'Courier New', monospace";
+      ctx.fillText('LINGUA!', b.warnX - b.x, gy + 48);
     } else if (kind === 'bite') {
       ctx.strokeStyle = '#ff2e93';
       const gy = (b.warnY || b.warnLane || bird.y) - b.y;
@@ -3985,26 +4000,26 @@ function drawSnakeWhip(w) {
   const pulse = Math.sin(w.ph) * 2;
   ctx.save();
   ctx.globalAlpha = 0.45 + a * 0.5;
-  ctx.strokeStyle = '#7f1026'; ctx.lineWidth = 16 + pulse; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.strokeStyle = '#7f1026'; ctx.lineWidth = 24 + pulse; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
   ctx.beginPath();
   ctx.moveTo(w.x1, w.y1);
   ctx.quadraticCurveTo((w.x1 + w.x2) / 2, (w.y1 + w.y2) / 2 - 12 + pulse, w.x2, w.y2);
   ctx.stroke();
-  ctx.strokeStyle = '#e11d48'; ctx.lineWidth = 8 + pulse * 0.5;
+  ctx.strokeStyle = '#e11d48'; ctx.lineWidth = 14 + pulse * 0.5;
   ctx.beginPath();
   ctx.moveTo(w.x1 + 4, w.y1);
   ctx.quadraticCurveTo((w.x1 + w.x2) / 2, (w.y1 + w.y2) / 2 - 10 + pulse, w.x2, w.y2);
   ctx.stroke();
-  ctx.strokeStyle = '#ff8aa3'; ctx.lineWidth = 4;
+  ctx.strokeStyle = '#ff8aa3'; ctx.lineWidth = 6;
   const dx = w.x2 - w.x1, dy = w.y2 - w.y1;
   const len = Math.hypot(dx, dy) || 1;
   const ux = dx / len, uy = dy / len;
   const px = -uy, py = ux;
   ctx.beginPath();
   ctx.moveTo(w.x2, w.y2);
-  ctx.lineTo(w.x2 + ux * 12 + px * 8, w.y2 + uy * 12 + py * 8);
+  ctx.lineTo(w.x2 + ux * 18 + px * 12, w.y2 + uy * 18 + py * 12);
   ctx.moveTo(w.x2, w.y2);
-  ctx.lineTo(w.x2 + ux * 12 - px * 8, w.y2 + uy * 12 - py * 8);
+  ctx.lineTo(w.x2 + ux * 18 - px * 12, w.y2 + uy * 18 - py * 12);
   ctx.stroke();
   ctx.restore();
 }
@@ -5539,7 +5554,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.13.11';
+const GAME_VERSION = '5.13.12';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
