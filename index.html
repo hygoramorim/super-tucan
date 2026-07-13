@@ -3379,14 +3379,15 @@ function drawCameo(cm) {
   const col = conf[0], face = conf[1], kind = conf[2];
   ctx.save();
   ctx.translate(cm.x, cm.y);
-  // TRONCO grosso nascendo do chão, subindo até o bichinho no topo (primeiro plano)
+  // TRONCO grosso de primeiríssimo plano: sangra para fora da tela, sem mostrar base.
   const groundLocal = (H - GROUND_H) - cm.y; // y do solo em coordenadas locais
+  const screenBottomLocal = H - cm.y + 90;
   ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-  // casca: tronco com leve curvinha, da base do solo até ~y=34 (logo abaixo do bicho)
+  // casca: tronco com leve curvinha, vindo de fora da tela até ~y=34 (logo abaixo do bicho)
   ctx.strokeStyle = '#5a3d24';
   ctx.lineWidth = 34;
   ctx.beginPath();
-  ctx.moveTo(6, groundLocal);
+  ctx.moveTo(6, screenBottomLocal);
   ctx.quadraticCurveTo(-8, groundLocal - 60, 12, 34);
   ctx.stroke();
   // textura de casca (traços verticais mais escuros)
@@ -3394,16 +3395,10 @@ function drawCameo(cm) {
   ctx.lineWidth = 3;
   [-9, 0, 9].forEach(off => {
     ctx.beginPath();
-    ctx.moveTo(6 + off, groundLocal - 6);
+    ctx.moveTo(6 + off, screenBottomLocal - 10);
     ctx.quadraticCurveTo(-8 + off, groundLocal - 60, 12 + off * 0.6, 40);
     ctx.stroke();
   });
-  // raízes na base
-  ctx.strokeStyle = '#5a3d24'; ctx.lineWidth = 9;
-  ctx.beginPath();
-  ctx.moveTo(-2, groundLocal - 4); ctx.lineTo(-20, groundLocal + 4);
-  ctx.moveTo(14, groundLocal - 4); ctx.lineTo(30, groundLocal + 4);
-  ctx.stroke();
   // galho lateral saindo do tronco
   ctx.lineWidth = 12;
   ctx.beginPath();
@@ -5456,7 +5451,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.13.5';
+const GAME_VERSION = '5.13.6';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
