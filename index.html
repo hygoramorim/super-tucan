@@ -1349,14 +1349,22 @@ function starRand(seed) {
   const x = Math.sin(seed * 127.1 + 311.7) * 43758.5453;
   return x - Math.floor(x);
 }
+const NIGHT_STARS = Array.from({ length: NIGHT_STAR_COUNT }, (_, i) => ({
+  x: starRand(i + 1),
+  y: starRand(i + 101),
+  size: starRand(i + 201) > 0.82 ? 2.1 : 1.2 + starRand(i + 301) * 0.8,
+  speed: 0.025 + starRand(i + 401) * 0.025,
+  warm: starRand(i + 501) > 0.78
+}));
 function canPlaceItemAt(x, y, placed) {
   const min2 = ITEM_MIN_DISTANCE * ITEM_MIN_DISTANCE;
-  const items = [...eggs, ...powerups, ...(placed || [])];
-  return !items.some(it => {
+  const blockedBy = it => {
     if (!it || it.taken) return false;
     const dx = x - it.x, dy = y - it.y;
     return dx * dx + dy * dy < min2;
-  });
+  };
+  if (eggs.some(blockedBy) || powerups.some(blockedBy)) return false;
+  return !(placed || []).some(blockedBy);
 }
 function placeEggItem(item, placed) {
   if (!canPlaceItemAt(item.x, item.y, placed)) return false;
@@ -2202,15 +2210,16 @@ function drawBackground(p) {
     ctx.beginPath(); ctx.arc(mx, my, 26, 0, 7); ctx.fill();
     ctx.fillStyle = 'rgba(210,200,170,.5)';
     ctx.beginPath(); ctx.arc(mx - 8, my - 6, 5, 0, 7); ctx.arc(mx + 7, my + 4, 4, 0, 7); ctx.arc(mx - 2, my + 10, 3, 0, 7); ctx.fill();
-    for (let i = 0; i < NIGHT_STAR_COUNT; i++) {
-      const sx = 18 + starRand(i + 1) * (W - 36);
-      const sy = 18 + starRand(i + 101) * Math.max(80, H - GROUND_H - 150);
-      const size = starRand(i + 201) > 0.82 ? 2.1 : 1.2 + starRand(i + 301) * 0.8;
-      const tw = 0.35 + 0.65 * Math.abs(Math.sin(frames * (0.025 + starRand(i + 401) * 0.025) + i));
+    const starH = Math.max(80, H - GROUND_H - 150);
+    for (let i = 0; i < NIGHT_STARS.length; i++) {
+      const st = NIGHT_STARS[i];
+      const sx = 18 + st.x * (W - 36);
+      const sy = 18 + st.y * starH;
+      const tw = 0.35 + 0.65 * Math.abs(Math.sin(frames * st.speed + i));
       ctx.globalAlpha = fade * tw;
-      ctx.fillStyle = starRand(i + 501) > 0.78 ? '#fff7c2' : '#ffffff';
+      ctx.fillStyle = st.warm ? '#fff7c2' : '#ffffff';
       ctx.beginPath();
-      ctx.arc(sx, sy, size, 0, 7);
+      ctx.arc(sx, sy, st.size, 0, 7);
       ctx.fill();
     }
     const shootAge = frames % SHOOTING_STAR_INTERVAL;
@@ -5530,7 +5539,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.13.10';
+const GAME_VERSION = '5.13.11';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
