@@ -873,6 +873,10 @@ function clearFood() { food = null; foodTimer = 0; foodSpeed = 1; foodSize = 1; 
 // Eventos climáticos
 let event = null, eventTimer = 0, eventCooldown = 900, alertTimer = 0;
 let fireballs = [], quakePhase = 0; // ideia 3+4: bolas de fogo do vulcão + tremor
+let magicNight = 0, etCooldown = 0;  // ideia 19: clicar no ET liga noite mágica 15s (com cooldown)
+let ufo = null, ufoTimer = 700;      // ideia 16: nave do ET cruza o céu de vez em quando
+// é noite? (evento NOITE OU noite mágica do ET) — controla fauna e visual noturnos
+function isNight() { return event === 'NOITE' || magicNight > 0; }
 // Celebrações
 let floaters = []; // textos flutuantes {x, y, text, color, life}
 let nextMilestone = 50;
@@ -915,6 +919,8 @@ function resetGame() {
   obsSinceItem = 5;
   event = null; eventTimer = 0; eventCooldown = 900; alertTimer = 0;
   fireballs = []; quakePhase = 0;
+  magicNight = 0; etCooldown = 0;
+  ufo = null; ufoTimer = 700;
   floaters = [];
   nextMilestone = 50;
   tutIdx = 0;
@@ -946,7 +952,35 @@ document.addEventListener('keydown', e => {
     flap();
   }
 });
-canvas.addEventListener('pointerdown', () => { audio(); flap(); });
+// ideia 19 do Francisco: clicar no ET (quando ele está espiando, fora da moita)
+// ativa a NOITE MÁGICA por 15s. Tem cooldown pra não farmar, e NÃO faz o tucano voar.
+function tryClickET(clientX, clientY) {
+  if (!cameo || !cameo.isET || state !== 'play' || etCooldown > 0) return false;
+  const peek = Math.max(0, Math.sin(cameo.ph * 0.8));
+  if (peek < 0.5) return false; // só clicável quando está bem pra fora da moita
+  const rect = canvas.getBoundingClientRect();
+  const lx = (clientX - rect.left) / rect.width * W;
+  const ly = (clientY - rect.top) / rect.height * H;
+  // a cabeça do ET fica em (cameo.x, cameo.y + headY) — área de toque generosa
+  const groundLocal = (H - GROUND_H) - cameo.y;
+  const headY = cameo.y + (groundLocal - 18 - peek * 40);
+  const dx = lx - cameo.x, dy = ly - headY;
+  if (dx * dx + dy * dy < 55 * 55) {
+    magicNight = 900;          // 15s de noite mágica
+    etCooldown = 1800;         // 30s de cooldown (anti-farm)
+    floater('🛸 O ET TROUXE A NOITE MÁGICA!', '#c9a0ff', W / 2, H / 2 - 100);
+    celebrate(['#c9a0ff', '#8fb89a', '#ffd23f'], 40);
+    sfx.power();
+    cameo = null;              // o ET some depois de ser tocado
+    return true;
+  }
+  return false;
+}
+canvas.addEventListener('pointerdown', (e) => {
+  audio();
+  if (tryClickET(e.clientX, e.clientY)) return; // clicou no ET: não voa
+  flap();
+});
 
 // ---------- Obstáculos (galhos) e ovos ----------
 // Obstáculos surgem a distância FIXA do tucano (não da borda da tela):
@@ -1076,7 +1110,7 @@ function update() {
     critterTimer = 320 + Math.random() * 430; // fauna mais espaçada (−40%)
     if (critters.length < 4) {
       // à noite, a fauna noturna substitui a diurna
-      const kinds = event === 'NOITE' ? NIGHT_FAUNA[phase().deco] : FAUNA[phase().deco];
+      const kinds = isNight() ? NIGHT_FAUNA[phase().deco] : FAUNA[phase().deco];
       const kind = kinds[Math.floor(Math.random() * kinds.length)];
       critters.push({
         kind,
@@ -1116,7 +1150,7 @@ function update() {
   if (--flockTimer <= 0) {
     flockTimer = 1000 + Math.random() * 1500;
     // à noite, revoadas de morcegos em vez de aves
-    const night = event === 'NOITE';
+    const night = isNight();
     const sets = night ? [['#1a1a2a']] : FLOCKS[phase().deco];
     flocks.push({
       x: W + 140,
@@ -1148,6 +1182,20 @@ function update() {
     cameo.x -= fSpeed * 1.55; // primeiro plano passa mais rápido (parallax)
     cameo.ph += 0.06;
     if (cameo.x < -240) cameo = null;
+  }
+
+  // ideia 16 do Francisco: a NAVE do ET de Varginha cruza o céu de vez em quando
+  if (!ufo && --ufoTimer <= 0) {
+    ufoTimer = 900 + Math.random() * 900;
+    ufo = { x: W + 60, y: 70 + Math.random() * 130, ph: 0, beam: 0 };
+  }
+  if (ufo) {
+    ufo.x -= (state === 'play' ? fSpeed * 0.6 : 0.8) + 1.4;
+    ufo.y += Math.sin(ufo.ph) * 0.6; // flutua
+    ufo.ph += 0.05;
+    if (Math.random() < 0.02) ufo.beam = 30; // acende o raio-trator às vezes
+    if (ufo.beam > 0) ufo.beam--;
+    if (ufo.x < -80) ufo = null;
   }
 
   // partículas (confetes giram; penas caem devagar balançando)
@@ -1211,6 +1259,8 @@ function update() {
   if (agua > 0) agua--;
   if (bookTimer > 0) { bookTimer--; if (bookTimer === 0) { bookMod = 1; bookJump = 1; bookScore = 1; } }
   if (foodTimer > 0) { foodTimer--; if (foodTimer === 0) clearFood(); }
+  if (magicNight > 0) magicNight--;  // ideia 19: noite mágica do ET
+  if (etCooldown > 0) etCooldown--;
 
   // textos flutuantes
   floaters = floaters.filter(f => { f.y -= 0.7; f.life--; return f.life > 0; });
@@ -1984,7 +2034,7 @@ function blinkEye(x, y, r, ph) {
 function drawBug(b) {
   ctx.save();
   ctx.translate(b.x, b.y);
-  if (event === 'NOITE') {
+  if (isNight()) {
     // vaga-lume: pontinho amarelo-esverdeado com halo pulsante
     const glow = 0.4 + 0.6 * Math.abs(Math.sin(b.ph * 2));
     ctx.globalAlpha = glow;
@@ -2881,6 +2931,39 @@ function drawPowerup(pu) {
 }
 
 // Pássaros inimigos: silhuetas simples, 3 espécies, voando para a esquerda
+// Nave do ET de Varginha (ideia 16 do Francisco): disco voador cruzando o céu
+function drawUFO(u) {
+  ctx.save();
+  ctx.translate(u.x, u.y);
+  // raio-trator (quando aceso)
+  if (u.beam > 0) {
+    const a = Math.min(1, u.beam / 30) * 0.4;
+    const g = ctx.createLinearGradient(0, 8, 0, 120);
+    g.addColorStop(0, 'rgba(150,255,180,' + a + ')');
+    g.addColorStop(1, 'rgba(150,255,180,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.moveTo(-8, 8); ctx.lineTo(8, 8); ctx.lineTo(26, 120); ctx.lineTo(-26, 120); ctx.closePath(); ctx.fill();
+  }
+  // cúpula
+  ctx.fillStyle = 'rgba(180,240,255,.85)';
+  ctx.beginPath(); ctx.ellipse(0, -6, 12, 10, 0, Math.PI, 0); ctx.fill();
+  // ETzinho na cúpula
+  ctx.fillStyle = '#8fb89a';
+  ctx.beginPath(); ctx.arc(0, -8, 4.5, 0, 7); ctx.fill();
+  ctx.fillStyle = '#0a0a0a';
+  ctx.beginPath(); ctx.ellipse(-1.8, -8, 1.2, 2, 0.3, 0, 7); ctx.ellipse(1.8, -8, 1.2, 2, -0.3, 0, 7); ctx.fill();
+  // corpo do disco
+  ctx.fillStyle = '#9aa6b2';
+  ctx.beginPath(); ctx.ellipse(0, 3, 26, 9, 0, 0, 7); ctx.fill();
+  ctx.fillStyle = '#6b7784';
+  ctx.beginPath(); ctx.ellipse(0, 5, 26, 6, 0, 0, 7); ctx.fill();
+  // luzinhas piscando na borda
+  for (let i = -2; i <= 2; i++) {
+    ctx.fillStyle = (Math.floor(frames / 8) + i) % 2 ? '#ffd23f' : '#ff2e93';
+    ctx.beginPath(); ctx.arc(i * 9, 6, 1.8, 0, 7); ctx.fill();
+  }
+  ctx.restore();
+}
 // Bola de fogo do vulcão (ideia 3 do Francisco): cai do céu com rastro e brilho
 function drawFireball(fb) {
   ctx.save();
@@ -3379,6 +3462,7 @@ function draw() {
   if (shake > 0) ctx.translate((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake);
 
   drawBackground(p);
+  if (ufo) drawUFO(ufo);         // nave do ET cruzando o céu (ideia 16), atrás dos obstáculos
   critters.forEach(drawCritter); // fauna do bioma, atrás dos obstáculos
   bugs.forEach(drawBug);         // insetos decorativos voando baixo
   eggs.forEach(e => { if (!e.taken && e.jewel) drawJewelGlow(e); });
@@ -3485,9 +3569,12 @@ function draw() {
       ctx.quadraticCurveTo(rx + 30, ry - 6, rx + 60, ry);
       ctx.stroke();
     }
-  } else if (event === 'NOITE') {
-    // véu noturno: escurece a cena com gradiente azul-marinho → violeta (entra/sai suave)
-    const fade = Math.min(1, (600 - Math.min(eventTimer, 600)) / 40) * Math.min(1, eventTimer / 40 + 0.3);
+  }
+  if (isNight()) {
+    // véu noturno: escurece a cena com gradiente azul-marinho → violeta (entra/sai suave).
+    // funciona para o evento NOITE (eventTimer) e para a NOITE MÁGICA do ET (magicNight).
+    const nt = magicNight > 0 ? magicNight : eventTimer;
+    const fade = Math.min(1, nt / 40) * 0.85 + 0.15;
     const g = ctx.createLinearGradient(0, 0, 0, H);
     g.addColorStop(0, 'rgba(10,14,40,' + (0.62 * fade) + ')');
     g.addColorStop(0.6, 'rgba(30,18,54,' + (0.52 * fade) + ')');
@@ -3983,7 +4070,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '3.1';
+const GAME_VERSION = '3.2';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 resetGame();
