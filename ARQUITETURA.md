@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.9` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.9.1` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -95,6 +95,8 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
 - **Eventos:** ventania, tempestade, vulcão (bolas de fogo), noite. + nave do ET e clique no ET
   (noite mágica 15s).
 - **Economia de ovos:** carteira persistente (`superTucan_eggBank`) → loja de acessórios e pets.
+- **Amiguinhos:** aves equipadas seguem o tucano e têm hitbox apenas de coleta (ovos/power-ups);
+  não colidem com galhos, inimigos ou projéteis.
 - **Ranking:** duas leituras do nó `players/` — recordistas (ovos) e veteranos (XP).
 
 ## 6. ⚠️ CONSTRAINTS que NÃO podem ser quebrados
@@ -164,3 +166,5 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
 - **v5.9** — onda de polimento: HUD mais legível, contornos cartoon no tucano/galhos, telegráficos
   de boss com alvo travado, selo cosmético de boss vencido e refactors seguros em loja/pets, `draw()`
   e cobras decorativas.
+- **v5.9.1** — hitbox do tucano reforçada como proporcional ao tamanho das comidas; amiguinhos equipados
+  agora coletam ovos e power-ups com hitbox própria.

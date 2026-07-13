@@ -15,6 +15,7 @@ Um Flappy Bird brasileiro, cartoon e cheio de vida — voe com o tucano por 6 bi
 - Eventos: ventania, tempestade, vulcão com bolas de fogo, e a noite
 - Bossfights com portal, arena do Cemitério, Urubu, Cobra, ranking global (ovos e XP), lojinha, conquistas e aves companheiras
 - HUD e arte com leitura mobile-first: contornos cartoon, telegráficos de boss e recompensas cosméticas
+- Amiguinhos equipados ajudam a coletar ovos e power-ups com hitbox própria
 - 4 idiomas: 🇧🇷 🇺🇸 🇪🇸 🇨🇳
 
 ## 💡 Sugestões da comunidade

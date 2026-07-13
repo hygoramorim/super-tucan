@@ -892,7 +892,8 @@ function equippedItem() { return localStorage.getItem('superTucan_equipped') || 
 function equipItem(id) { toggleStoredId('superTucan_equipped', id); }
 
 // AVES COMPANHEIRAS (ideia 15 do Francisco): aves brasileiras que seguem o tucano.
-// Compradas com ovos, na aba "amiguinhos" da lojinha. São cosméticas (sem hitbox).
+// Compradas com ovos, na aba "amiguinhos" da lojinha. São companheiras:
+// não colidem com perigos, mas têm hitbox de coleta para ovos e power-ups.
 const PET_ITEMS = [
   { id: 'bentevi',  emoji: '🐤', nome: 'BEM-TE-VI',   preco: 80,  cor: '#f5c542', peito: '#8a5a2a' },
   { id: 'sabia',    emoji: '🐦', nome: 'SABIÁ-LARANJEIRA', preco: 150, cor: '#6a4a3a', peito: '#d9743a' },
@@ -905,6 +906,12 @@ function buyPet(id) { return buyStored('superTucan_pets', PET_ITEMS, id); }
 function equippedPet() { return localStorage.getItem('superTucan_pet') || ''; }
 function equipPet(id) { toggleStoredId('superTucan_pet', id); }
 let petTrail = []; // buffer de posições do tucano p/ a companheira seguir com defesagem
+function petCollectPoint() {
+  const id = equippedPet();
+  if (!id || !bird) return null;
+  const t = petTrail.length > 30 ? petTrail[petTrail.length - 30] : { x: bird.x - 60, y: bird.y - 20 };
+  return { x: t.x - 6, y: t.y - 22, r: id === 'araraazul' ? 20 : id === 'beijaflor' ? 15 : 17 };
+}
 
 const ITEM_NAMES = {
   oculos: { pt:'ÓCULOS ESCUROS', en:'SUNGLASSES', es:'GAFAS DE SOL', zh:'太阳镜' },
@@ -976,6 +983,7 @@ let combo = 0; // ovos coletados em sequência sem deixar nenhum passar
 // ideia 10 do Francisco: multiplicador do combo sobe +1× a cada 5 ovos, com TETO ×4
 // (5 ovos = ×2, 10 = ×3, 15+ = ×4). Teto protege o ranking de inflar.
 function comboMult(c) { return Math.min(4, 1 + Math.floor(c / 5)); }
+function dist2(ax, ay, bx, by) { const dx = ax - bx, dy = ay - by; return dx * dx + dy * dy; }
 // Pássaros inimigos da fase final: voam em sentido contrário com velocidade
 // própria FIXA (igual à velocidade do jogador no começo do jogo), sem escalar.
 let enemies = [];
@@ -1397,6 +1405,43 @@ function circleRect(cx, cy, r, rx, ry, rw, rh) {
   const ny = Math.max(ry, Math.min(cy, ry + rh));
   const dx = cx - nx, dy = cy - ny;
   return dx * dx + dy * dy < r * r;
+}
+
+function collectPowerup(pu, py) {
+  pu.taken = true;
+  sfx.power();
+  if (pu.type === 'pena') { pena = 600; floater('🪶 ' + t('featherFx'), '#ff9f1c'); }
+  else if (pu.type === 'escudo') { shield = 1; floater('🛡 ' + t('shieldFx'), '#7ee08a'); }
+  else if (pu.type === 'relogio') { slowmo = 900; floater('⏰ ' + t('slowFx'), '#7dd3fc'); }
+  else if (pu.type === 'livro') {
+    // LIVRO DAS MALDIÇÕES (ideia 5): sorteia 1 de 4 feitiços por 10s
+    bookMod = 1; bookJump = 1; bookScore = 1;
+    const spell = Math.floor(rng() * 4);
+    if (spell === 0) { bookMod = 2; floater('🔥 ' + t('bookFast'), '#ff2e93'); }
+    else if (spell === 1) { bookMod = 0.5; floater('🐌 ' + t('bookSlow'), '#7dd3fc'); }
+    else if (spell === 2) { bookJump = 1.5; floater('🦘 ' + t('bookJump'), '#a7f432'); }
+    else { bookScore = 4; floater('💎 ' + t('bookScore'), '#ffd23f'); }
+    bookTimer = 600;
+  }
+  else if (pu.type === 'agua') { agua = 600; floater('💧 ' + t('waterFx'), '#38bdf8'); }
+  else if (pu.type === 'food') { applyFood(pu.food); } // COMIDAS DO BRASIL (ideia 21)
+  burst(pu.x, py, pu.type === 'food' ? (FOODS[pu.food].cor) : '#ffffff', 14);
+}
+
+function collectEgg(e, ey) {
+  e.taken = true;
+  combo++;
+  // ideia 10 do Francisco: o combo sobe +1× a cada 5 ovos, com teto ×4
+  const newMult = comboMult(combo);
+  if (newMult > comboMult(combo - 1) && newMult > 1) {
+    floater('🔥 COMBO ×' + newMult + '!', '#ff2e93'); sfx.comboUp();
+  }
+  // combo e PENA multiplicam; HARDCORE multiplica ovos por 3 (ideia 12)
+  const mult = newMult * (pena > 0 ? 2 : 1) * (gameMode === 'hardcore' ? 3 : 1) * bookScore;
+  score += (e.jewel ? 10 : e.golden ? 5 : 1) * mult;
+  unlockAchievement('firstEgg');
+  burst(e.x, ey, e.jewel ? '#7dd3fc' : e.golden ? '#ffd23f' : '#ffffff', e.jewel ? 30 : e.golden ? 16 : 8);
+  if (e.jewel) sfx.jewel(); else if (e.golden) sfx.gold(); else sfx.egg();
 }
 
 // ---------- Lógica ----------
@@ -1823,30 +1868,14 @@ function update() {
   });
 
   // move e coleta power-ups
+  const petCollector = petCollectPoint();
   powerups.forEach(pu => { pu.x -= d.speed; pu.age++; });
   powerups = powerups.filter(pu => pu.x > -40 && !pu.taken);
   for (const pu of powerups) {
-    const px = bird.x - pu.x, py = bird.y - (pu.y + Math.sin(frames * 0.07 + pu.bob) * 5);
-    if (px * px + py * py < 26 * 26) {
-      pu.taken = true;
-      sfx.power();
-      if (pu.type === 'pena') { pena = 600; floater('🪶 ' + t('featherFx'), '#ff9f1c'); }
-      else if (pu.type === 'escudo') { shield = 1; floater('🛡 ' + t('shieldFx'), '#7ee08a'); }
-      else if (pu.type === 'relogio') { slowmo = 900; floater('⏰ ' + t('slowFx'), '#7dd3fc'); }
-      else if (pu.type === 'livro') {
-        // LIVRO DAS MALDIÇÕES (ideia 5): sorteia 1 de 4 feitiços por 10s
-        bookMod = 1; bookJump = 1; bookScore = 1;
-        const spell = Math.floor(rng() * 4);
-        if (spell === 0) { bookMod = 2; floater('🔥 ' + t('bookFast'), '#ff2e93'); }
-        else if (spell === 1) { bookMod = 0.5; floater('🐌 ' + t('bookSlow'), '#7dd3fc'); }
-        else if (spell === 2) { bookJump = 1.5; floater('🦘 ' + t('bookJump'), '#a7f432'); }
-        else { bookScore = 4; floater('💎 ' + t('bookScore'), '#ffd23f'); }
-        bookTimer = 600;
-      }
-      else if (pu.type === 'agua') { agua = 600; floater('💧 ' + t('waterFx'), '#38bdf8'); }
-      else if (pu.type === 'food') { applyFood(pu.food); } // COMIDAS DO BRASIL (ideia 21)
-      burst(pu.x, pu.y, pu.type === 'food' ? (FOODS[pu.food].cor) : '#ffffff', 14);
-    }
+    const py = pu.y + Math.sin(frames * 0.07 + pu.bob) * 5;
+    const birdHit = dist2(bird.x, bird.y, pu.x, py) < 26 * 26;
+    const petHit = petCollector && dist2(petCollector.x, petCollector.y, pu.x, py) < (petCollector.r + 14) * (petCollector.r + 14);
+    if (birdHit || petHit) collectPowerup(pu, py);
   }
 
   // "quase!" — passou raspando no galho
@@ -1903,23 +1932,10 @@ function update() {
   const tipY = bird.y + 32 * Math.sin(bird.rot) - 7 * Math.cos(bird.rot);
   for (const e of eggs) {
     const ey = e.y + Math.sin(frames * 0.08 + e.bob) * 4; // mesma posição do desenho
-    const dx = bird.x - e.x, dy = bird.y - ey;
-    const tx = tipX - e.x, ty = tipY - ey;
-    if (dx * dx + dy * dy < (bird.r + 11) * (bird.r + 11) || tx * tx + ty * ty < 18 * 18) {
-      e.taken = true;
-      combo++;
-      // ideia 10 do Francisco: o combo sobe +1× a cada 5 ovos, com teto ×4
-      const newMult = comboMult(combo);
-      if (newMult > comboMult(combo - 1) && newMult > 1) {
-        floater('🔥 COMBO ×' + newMult + '!', '#ff2e93'); sfx.comboUp();
-      }
-      // combo e PENA multiplicam; HARDCORE multiplica ovos por 3 (ideia 12)
-      const mult = newMult * (pena > 0 ? 2 : 1) * (gameMode === 'hardcore' ? 3 : 1) * bookScore;
-      score += (e.jewel ? 10 : e.golden ? 5 : 1) * mult;
-      unlockAchievement('firstEgg');
-      burst(e.x, ey, e.jewel ? '#7dd3fc' : e.golden ? '#ffd23f' : '#ffffff', e.jewel ? 30 : e.golden ? 16 : 8);
-      if (e.jewel) sfx.jewel(); else if (e.golden) sfx.gold(); else sfx.egg();
-    }
+    const birdHit = dist2(bird.x, bird.y, e.x, ey) < (bird.r + 11) * (bird.r + 11);
+    const beakHit = dist2(tipX, tipY, e.x, ey) < 18 * 18;
+    const petHit = petCollector && dist2(petCollector.x, petCollector.y, e.x, ey) < (petCollector.r + 11) * (petCollector.r + 11);
+    if (birdHit || beakHit || petHit) collectEgg(e, ey);
   }
 }
 
@@ -4175,6 +4191,18 @@ function drawPet() {
   ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(10.5, -7, 1, 0, 7); ctx.fill();
   ctx.restore();
 }
+function drawPetCollectAura() {
+  const pc = petCollectPoint();
+  if (!pc || state !== 'play') return;
+  ctx.save();
+  ctx.globalAlpha = 0.22 + 0.08 * Math.sin(frames * 0.18);
+  ctx.strokeStyle = '#ffd23f';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(pc.x, pc.y, pc.r + 11, 0, 7);
+  ctx.stroke();
+  ctx.restore();
+}
 // desenha o acessório equipado no referencial local do tucano (cabeça ~ (8,-10))
 function drawAccessory(id) {
   if (!id) return;
@@ -4432,7 +4460,7 @@ function draw() {
 
   drawParticles();
 
-  if (state === 'play' || state === 'ready') drawPet(); // ave companheira atrás do tucano (ideia 15)
+  if (state === 'play' || state === 'ready') { drawPetCollectAura(); drawPet(); } // ave companheira atrás do tucano (ideia 15)
   drawToucan(p);
 
   // bolha do escudo / piscada de invencibilidade
@@ -5092,7 +5120,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.9';
+const GAME_VERSION = '5.9.1';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
