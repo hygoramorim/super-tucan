@@ -2176,15 +2176,45 @@ function drawBackground(p) {
   ctx.fillStyle = sky;
   ctx.fillRect(0, 0, W, H);
 
-  // sol (cada bioma tem o seu)
-  const sun = p.deco === 'cerrado' ? ['rgba(255,120,40,.85)', 46]
-    : p.deco === 'pampas' ? ['rgba(255,110,160,.9)', 52]
-    : p.deco === 'caatinga' ? ['rgba(255,252,230,.95)', 40]
-    : ['rgba(255,240,180,.8)', 34];
-  ctx.fillStyle = sun[0];
-  ctx.beginPath();
-  ctx.arc(W - 90, 85, sun[1], 0, 7);
-  ctx.fill();
+  if (isNight()) {
+    // Céu noturno no layer mais fundo: nada da lua/estrelas sobrepõe elementos do jogo.
+    const nt = magicNight > 0 ? magicNight : eventTimer;
+    const fade = Math.min(1, nt / 40) * 0.85 + 0.15;
+    const ng = ctx.createLinearGradient(0, 0, 0, H);
+    ng.addColorStop(0, 'rgba(10,14,40,' + (0.62 * fade) + ')');
+    ng.addColorStop(0.6, 'rgba(30,18,54,' + (0.52 * fade) + ')');
+    ng.addColorStop(1, 'rgba(12,20,30,' + (0.45 * fade) + ')');
+    ctx.fillStyle = ng;
+    ctx.fillRect(0, 0, W, H);
+    // LUA no fundo, antes de nuvens/parallax/obstáculos/personagens.
+    const mx = W - 80, my = 120;
+    ctx.globalAlpha = fade;
+    ctx.fillStyle = 'rgba(255,250,220,.18)';
+    ctx.beginPath(); ctx.arc(mx, my, 44, 0, 7); ctx.fill();
+    ctx.fillStyle = '#f7f2d8';
+    ctx.beginPath(); ctx.arc(mx, my, 26, 0, 7); ctx.fill();
+    ctx.fillStyle = 'rgba(210,200,170,.5)';
+    ctx.beginPath(); ctx.arc(mx - 8, my - 6, 5, 0, 7); ctx.arc(mx + 7, my + 4, 4, 0, 7); ctx.arc(mx - 2, my + 10, 3, 0, 7); ctx.fill();
+    ctx.fillStyle = '#fff';
+    for (let i = 0; i < 40; i++) {
+      const sx = (i * 137.5) % W;
+      const sy = (i * 73.3) % (H - GROUND_H - 120);
+      const tw = 0.4 + 0.6 * Math.abs(Math.sin(frames * 0.04 + i));
+      ctx.globalAlpha = fade * tw;
+      ctx.fillRect(sx, sy, i % 5 === 0 ? 2 : 1.3, i % 5 === 0 ? 2 : 1.3);
+    }
+    ctx.globalAlpha = 1;
+  } else {
+    // sol (cada bioma tem o seu)
+    const sun = p.deco === 'cerrado' ? ['rgba(255,120,40,.85)', 46]
+      : p.deco === 'pampas' ? ['rgba(255,110,160,.9)', 52]
+      : p.deco === 'caatinga' ? ['rgba(255,252,230,.95)', 40]
+      : ['rgba(255,240,180,.8)', 34];
+    ctx.fillStyle = sun[0];
+    ctx.beginPath();
+    ctx.arc(W - 90, 85, sun[1], 0, 7);
+    ctx.fill();
+  }
 
   // nuvens
   ctx.fillStyle = 'rgba(255,255,255,.75)';
@@ -4865,37 +4895,6 @@ function draw() {
       ctx.stroke();
     }
   }
-  if (isNight()) {
-    // véu noturno: escurece a cena com gradiente azul-marinho → violeta (entra/sai suave).
-    // funciona para o evento NOITE (eventTimer) e para a NOITE MÁGICA do ET (magicNight).
-    const nt = magicNight > 0 ? magicNight : eventTimer;
-    const fade = Math.min(1, nt / 40) * 0.85 + 0.15;
-    const g = ctx.createLinearGradient(0, 0, 0, H);
-    g.addColorStop(0, 'rgba(10,14,40,' + (0.62 * fade) + ')');
-    g.addColorStop(0.6, 'rgba(30,18,54,' + (0.52 * fade) + ')');
-    g.addColorStop(1, 'rgba(12,20,30,' + (0.45 * fade) + ')');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, W, H);
-    // LUA no alto à direita, com halo
-    const mx = W - 80, my = 120;
-    ctx.globalAlpha = fade;
-    ctx.fillStyle = 'rgba(255,250,220,.18)';
-    ctx.beginPath(); ctx.arc(mx, my, 44, 0, 7); ctx.fill();
-    ctx.fillStyle = '#f7f2d8';
-    ctx.beginPath(); ctx.arc(mx, my, 26, 0, 7); ctx.fill();
-    ctx.fillStyle = 'rgba(210,200,170,.5)'; // crateras
-    ctx.beginPath(); ctx.arc(mx - 8, my - 6, 5, 0, 7); ctx.arc(mx + 7, my + 4, 4, 0, 7); ctx.arc(mx - 2, my + 10, 3, 0, 7); ctx.fill();
-    // ESTRELAS (posições determinísticas, cintilam)
-    ctx.fillStyle = '#fff';
-    for (let i = 0; i < 40; i++) {
-      const sx = (i * 137.5) % W;
-      const sy = (i * 73.3) % (H - GROUND_H - 120);
-      const tw = 0.4 + 0.6 * Math.abs(Math.sin(frames * 0.04 + i));
-      ctx.globalAlpha = fade * tw;
-      ctx.fillRect(sx, sy, i % 5 === 0 ? 2 : 1.3, i % 5 === 0 ? 2 : 1.3);
-    }
-    ctx.globalAlpha = 1;
-  }
   if (slowmo > 0 && state === 'play') {
     ctx.fillStyle = 'rgba(125,211,252,.08)';
     ctx.fillRect(0, 0, W, H);
@@ -5476,7 +5475,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.13.7';
+const GAME_VERSION = '5.13.8';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
