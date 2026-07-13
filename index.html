@@ -396,6 +396,7 @@ function currentDiff() {
   if (pena > 0) k *= 1.3;
   if (event === 'VULCÃO') k *= 1.1;
   if (bookTimer > 0) k *= bookMod; // LIVRO: +vel (1.3) ou -vel (0.7)
+  if (foodTimer > 0) k *= foodSpeed; // COMIDAS: café/pimenta aceleram, maracujá desacelera
   d.speed *= k;
   return d;
 }
@@ -839,6 +840,36 @@ let bookMod = 1;   // multiplicador de velocidade (2× rápido / 0.5× lento)
 let bookJump = 1;  // multiplicador do pulo (1.5× mais alto)
 let bookScore = 1; // multiplicador de pontos (4×)
 let bookTimer = 0; // duração do efeito do LIVRO (10 s)
+// COMIDAS DO BRASIL (ideia 21 do Francisco): item que dá 1 efeito por 15s
+let food = null;   // tipo da comida ativa (café/maracuja/brigadeiro/alface/cenoura/pimenta)
+let foodTimer = 0; // duração (900 frames = 15s)
+let foodSpeed = 1; // multiplicador de velocidade
+let foodSize = 1;  // multiplicador de tamanho do tucano (afeta desenho E hitbox)
+let foodJump = 1;  // multiplicador do pulo (alface deixa mais leve)
+let foodVis = null; // efeito visual: 'saturado' (cenoura) | 'pimenta'
+// catálogo das comidas: emoji, cor, rótulo e efeitos que aplica
+const FOODS = {
+  cafe:       { emoji: '☕', cor: '#6f4e37', label: 'CAFÉ! ACELEROU!',        speed: 1.4 },
+  maracuja:   { emoji: '🍈', cor: '#f5c542', label: 'MARACUJÁ! RELAXOU...',   speed: 0.65 },
+  brigadeiro: { emoji: '🍫', cor: '#4a2c2a', label: 'BRIGADEIRO! CRESCEU!',   size: 1.5 },
+  alface:     { emoji: '🥬', cor: '#7ec850', label: 'ALFACE! LEVINHO!',       size: 0.65, jump: 1.25 },
+  cenoura:    { emoji: '🥕', cor: '#ff8c2b', label: 'CENOURA! VISÃO NÍTIDA!', vis: 'saturado' },
+  pimenta:    { emoji: '🌶️', cor: '#e01e1e', label: 'PIMENTA! ARDE TUDO!',    speed: 1.35, vis: 'pimenta' }
+};
+const FOOD_KINDS = Object.keys(FOODS);
+const BIRD_R = 15; // raio base do tucano (hitbox)
+// aplica uma comida: zera os efeitos anteriores e liga os desta (por 15s)
+function applyFood(kind) {
+  const f = FOODS[kind];
+  food = kind; foodTimer = 900;
+  foodSpeed = f.speed || 1;
+  foodSize = f.size || 1;
+  foodJump = f.jump || 1;
+  foodVis = f.vis || null;
+  bird.r = BIRD_R * foodSize; // hitbox acompanha o tamanho (justo)
+  floater(f.emoji + ' ' + f.label, f.cor);
+}
+function clearFood() { food = null; foodTimer = 0; foodSpeed = 1; foodSize = 1; foodJump = 1; foodVis = null; if (typeof bird !== 'undefined' && bird) bird.r = BIRD_R; }
 // Eventos climáticos
 let event = null, eventTimer = 0, eventCooldown = 900, alertTimer = 0;
 let fireballs = [], quakePhase = 0; // ideia 3+4: bolas de fogo do vulcão + tremor
@@ -880,6 +911,7 @@ function resetGame() {
   cameo = null; cameoTimer = 420;
   pena = 0; shield = 0; slowmo = 0; invuln = 0;
   agua = 0; bookMod = 1; bookJump = 1; bookScore = 1; bookTimer = 0;
+  clearFood();
   obsSinceItem = 5;
   event = null; eventTimer = 0; eventCooldown = 900; alertTimer = 0;
   fireballs = []; quakePhase = 0;
@@ -900,8 +932,8 @@ function phase() { return PHASES[phaseIdx]; }
 function flap() {
   if (state === 'ready') state = 'play'; // 1º toque inicia a física
   if (state !== 'play') return;
-  // força do pulo: ÁGUA (+alto), LIVRO-pulo (×1.5), e TEMPESTADE reduz (ideia 7 do Francisco)
-  let jump = -7.2 * (agua > 0 ? 1.35 : 1) * bookJump;
+  // força do pulo: ÁGUA (+alto), LIVRO-pulo (×1.5), ALFACE (+leve), TEMPESTADE reduz (ideia 7)
+  let jump = -7.2 * (agua > 0 ? 1.35 : 1) * bookJump * foodJump;
   if (event === 'TEMPESTADE') jump *= 0.78; // vento contra: pulo mais baixo
   bird.vy = jump;
   bird.flapAnim = 10;
@@ -967,15 +999,21 @@ function spawnObstacle() {
     const by = Math.max(120, Math.min(H - GROUND_H - 60, gapY + (rng() * 140 - 70)));
     eggs.push({ x: ob.x + d.spacing / 2, y: by, golden: false, taken: false, bob: Math.random() * 6.28, age: 0 });
   }
-  // Power-up ocasional — nunca no hardcore/tutorial. Ideia 22 do Francisco:
+  // Power-up / comida ocasional — nunca no hardcore/tutorial. Ideia 22 do Francisco:
   // itens ficam a pelo menos ITEM_MIN_GAP galhos de distância um do outro.
   obsSinceItem++;
   if (gameMode !== 'hardcore' && gameMode !== 'tutorial' && !jewelBetween
-      && obsSinceItem >= ITEM_MIN_GAP && rng() < 0.30) {
-    const r2 = rng();
-    const type = r2 < 0.28 ? 'pena' : r2 < 0.5 ? 'escudo' : r2 < 0.68 ? 'relogio' : r2 < 0.84 ? 'livro' : 'agua';
+      && obsSinceItem >= ITEM_MIN_GAP && rng() < 0.32) {
     const py = Math.max(130, Math.min(H - GROUND_H - 70, gapY + (rng() * 160 - 80)));
-    powerups.push({ x: ob.x + d.spacing * 0.35, y: py, type, bob: Math.random() * 6.28, age: 0, taken: false });
+    // 40% das vezes é uma COMIDA do Brasil (ideia 21); senão, um power-up clássico
+    if (rng() < 0.4) {
+      const fk = FOOD_KINDS[Math.floor(rng() * FOOD_KINDS.length)];
+      powerups.push({ x: ob.x + d.spacing * 0.35, y: py, type: 'food', food: fk, bob: Math.random() * 6.28, age: 0, taken: false });
+    } else {
+      const r2 = rng();
+      const type = r2 < 0.28 ? 'pena' : r2 < 0.5 ? 'escudo' : r2 < 0.68 ? 'relogio' : r2 < 0.84 ? 'livro' : 'agua';
+      powerups.push({ x: ob.x + d.spacing * 0.35, y: py, type, bob: Math.random() * 6.28, age: 0, taken: false });
+    }
     obsSinceItem = 0;
   }
 }
@@ -1172,6 +1210,7 @@ function update() {
   if (invuln > 0) invuln--;
   if (agua > 0) agua--;
   if (bookTimer > 0) { bookTimer--; if (bookTimer === 0) { bookMod = 1; bookJump = 1; bookScore = 1; } }
+  if (foodTimer > 0) { foodTimer--; if (foodTimer === 0) clearFood(); }
 
   // textos flutuantes
   floaters = floaters.filter(f => { f.y -= 0.7; f.life--; return f.life > 0; });
@@ -1347,7 +1386,8 @@ function update() {
         bookTimer = 600;
       }
       else if (pu.type === 'agua') { agua = 600; floater('💧 HIDRATADO! PULO +ALTO', '#38bdf8'); }
-      burst(pu.x, pu.y, '#ffffff', 14);
+      else if (pu.type === 'food') { applyFood(pu.food); } // COMIDAS DO BRASIL (ideia 21)
+      burst(pu.x, pu.y, pu.type === 'food' ? (FOODS[pu.food].cor) : '#ffffff', 14);
     }
   }
 
@@ -2812,6 +2852,7 @@ function drawPowerup(pu) {
     : pu.type === 'escudo' ? ['#2e9e5b', '🛡']
     : pu.type === 'relogio' ? ['#0ea5e9', '⏰']
     : pu.type === 'livro' ? ['#8b5cf6', '📖']
+    : pu.type === 'food' ? [FOODS[pu.food].cor, FOODS[pu.food].emoji]
     : ['#38bdf8', '💧'];
   ctx.save();
   ctx.globalAlpha = Math.min(1, pu.age / 15);
@@ -3105,6 +3146,7 @@ function drawToucan(p) {
   ctx.save();
   ctx.translate(bird.x, bird.y);
   ctx.rotate(bird.rot);
+  if (foodSize !== 1) ctx.scale(foodSize, foodSize); // COMIDAS: brigadeiro/alface mudam o tamanho
 
   // cauda
   ctx.fillStyle = p.body;
@@ -3279,7 +3321,12 @@ function drawHUD(p) {
     else if (bookMod < 1) { bico = '🐌 2× LENTO'; bcor = '#7dd3fc'; }
     else if (bookJump > 1) { bico = '🦘 PULO+'; bcor = '#a7f432'; }
     else if (bookScore > 1) { bico = '💎 PONTOS ×4'; bcor = '#ffd23f'; }
-    ctx.fillStyle = bcor; ctx.fillText('📖 ' + bico + ' · ' + Math.ceil(bookTimer / 60) + 's', 14, fxY);
+    ctx.fillStyle = bcor; ctx.fillText('📖 ' + bico + ' · ' + Math.ceil(bookTimer / 60) + 's', 14, fxY); fxY += 15;
+  }
+  if (foodTimer > 0 && food) {
+    const f = FOODS[food];
+    ctx.fillStyle = f.cor === '#4a2c2a' ? '#c98a6a' : f.cor; // brigadeiro escuro → tom legível
+    ctx.fillText(f.emoji + ' ' + food.toUpperCase() + ' · ' + Math.ceil(foodTimer / 60) + 's', 14, fxY);
   }
 
   // fase + barra de progresso — encolhe em telas estreitas (celular em pé)
@@ -3470,6 +3517,24 @@ function draw() {
   if (slowmo > 0 && state === 'play') {
     ctx.fillStyle = 'rgba(125,211,252,.08)';
     ctx.fillRect(0, 0, W, H);
+  }
+
+  // efeitos visuais das COMIDAS (ideia 21 do Francisco)
+  if (foodVis && state === 'play') {
+    if (foodVis === 'pimenta') {
+      // pimenta: tela avermelhada + vinheta forte (só enxerga o que está perto)
+      ctx.fillStyle = 'rgba(200,20,10,.16)';
+      ctx.fillRect(0, 0, W, H);
+      const vg = ctx.createRadialGradient(bird.x, bird.y, 60, bird.x, bird.y, Math.max(W, H) * 0.55);
+      vg.addColorStop(0, 'rgba(120,0,0,0)');
+      vg.addColorStop(1, 'rgba(80,0,0,.72)');
+      ctx.fillStyle = vg;
+      ctx.fillRect(0, 0, W, H);
+    } else if (foodVis === 'saturado') {
+      // cenoura: um verniz dourado quente que "realça" as cores
+      ctx.fillStyle = 'rgba(255,180,40,.07)';
+      ctx.fillRect(0, 0, W, H);
+    }
   }
 
   // faixa do evento (borda superior, piscando) — vermelha p/ perigo, azul p/ noite
@@ -3918,7 +3983,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '3.0';
+const GAME_VERSION = '3.1';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 resetGame();
