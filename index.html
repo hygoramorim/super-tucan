@@ -841,6 +841,7 @@ let bookScore = 1; // multiplicador de pontos (4×)
 let bookTimer = 0; // duração do efeito do LIVRO (10 s)
 // Eventos climáticos
 let event = null, eventTimer = 0, eventCooldown = 900, alertTimer = 0;
+let fireballs = [], quakePhase = 0; // ideia 3+4: bolas de fogo do vulcão + tremor
 // Celebrações
 let floaters = []; // textos flutuantes {x, y, text, color, life}
 let nextMilestone = 50;
@@ -881,6 +882,7 @@ function resetGame() {
   agua = 0; bookMod = 1; bookJump = 1; bookScore = 1; bookTimer = 0;
   obsSinceItem = 5;
   event = null; eventTimer = 0; eventCooldown = 900; alertTimer = 0;
+  fireballs = []; quakePhase = 0;
   floaters = [];
   nextMilestone = 50;
   tutIdx = 0;
@@ -1188,13 +1190,39 @@ function update() {
   if (gameMode !== 'tutorial' && phaseIdx >= 2) {
     if (!event && --eventCooldown <= 0) {
       event = ['VENTANIA', 'TEMPESTADE', 'VULCÃO', 'NOITE'][Math.floor(rng() * 4)];
-      eventTimer = event === 'NOITE' ? 600 : 480; // noite dura ~10s (respiro)
+      // ideia 2 do Francisco: noite mais longa (15s). Vulcão dura um pouco mais tb.
+      eventTimer = event === 'NOITE' ? 900 : (event === 'VULCÃO' ? 540 : 480);
       alertTimer = 160;
       sfx.alert();
+      if (event === 'VULCÃO') { fireballs = []; quakePhase = 0; }
     }
     if (event && --eventTimer <= 0) {
       event = null;
       eventCooldown = 1400 + rng() * 1500;
+      fireballs = [];
+    }
+  }
+  // ideia 3+4 (fundidas): o VULCÃO treme a tela e chove bolas de fogo do céu
+  if (event === 'VULCÃO' && state === 'play') {
+    quakePhase += 0.5;
+    shake = Math.max(shake, 2 + Math.sin(quakePhase) * 1.5); // tremor constante
+    // depois de ~1,5s de tremor-aviso, começa a soltar bolas de fogo
+    if (eventTimer < 540 - 90 && frames % 34 === 0) {
+      fireballs.push({ x: bird.x + 120 + Math.random() * (W * 0.5), y: -20, vy: 3 + Math.random() * 2, r: 11 + Math.random() * 6, ph: Math.random() * 6.28 });
+    }
+  }
+  // move as bolas de fogo e checa colisão (escudo protege — ideia 8)
+  if (fireballs.length) {
+    for (const fb of fireballs) { fb.y += fb.vy; fb.vy += 0.08; fb.ph += 0.3; }
+    fireballs = fireballs.filter(fb => fb.y < H - GROUND_H + 20);
+    if (state === 'play' && invuln <= 0) {
+      for (const fb of fireballs) {
+        const dx = bird.x - fb.x, dy = bird.y - fb.y;
+        if (dx * dx + dy * dy < (bird.r + fb.r - 4) * (bird.r + fb.r - 4)) {
+          if (shield > 0) { useShield(); fb.y = H + 999; break; }
+          die(); return;
+        }
+      }
     }
   }
 
@@ -1363,7 +1391,7 @@ function update() {
       if (circleRect(bird.x, bird.y, hitR, rx, 0, o.w, topH) ||
           circleRect(bird.x, bird.y, hitR, rx, botY, o.w, H - GROUND_H - botY)) {
         if (shield > 0) {
-          useShield(); // ESCUDO: atravessa este tronco (ideia 8)
+          useShield(); break; // ESCUDO: atravessa este tronco (ideia 8) — para de checar após gastar
         } else {
           die();
           return;
@@ -2812,6 +2840,31 @@ function drawPowerup(pu) {
 }
 
 // Pássaros inimigos: silhuetas simples, 3 espécies, voando para a esquerda
+// Bola de fogo do vulcão (ideia 3 do Francisco): cai do céu com rastro e brilho
+function drawFireball(fb) {
+  ctx.save();
+  ctx.translate(fb.x, fb.y);
+  // rastro
+  ctx.fillStyle = 'rgba(255,140,30,.25)';
+  ctx.beginPath(); ctx.ellipse(0, -fb.r * 1.6, fb.r * 0.7, fb.r * 1.8, 0, 0, 7); ctx.fill();
+  // halo
+  ctx.fillStyle = 'rgba(255,90,20,.4)';
+  ctx.beginPath(); ctx.arc(0, 0, fb.r + 4 + Math.sin(fb.ph) * 2, 0, 7); ctx.fill();
+  // núcleo
+  const g = ctx.createRadialGradient(-fb.r * 0.3, -fb.r * 0.3, 1, 0, 0, fb.r);
+  g.addColorStop(0, '#fff2b0'); g.addColorStop(0.5, '#ff9f1c'); g.addColorStop(1, '#e0532f');
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(0, 0, fb.r, 0, 7); ctx.fill();
+  // chamas flamejando no topo
+  ctx.fillStyle = '#ffd23f';
+  for (let i = -1; i <= 1; i++) {
+    ctx.beginPath();
+    ctx.moveTo(i * fb.r * 0.5, -fb.r * 0.5);
+    ctx.quadraticCurveTo(i * fb.r * 0.5 + Math.sin(fb.ph + i) * 3, -fb.r * 1.4, i * fb.r * 0.3, -fb.r * 0.6);
+    ctx.fill();
+  }
+  ctx.restore();
+}
 function drawEnemy(en) {
   const s = en.species === 1 ? 1.3 : en.species === 2 ? 1.1 : 0.85;
   const col = ['#1d3557', '#d62828', '#f1faee'][en.species]; // andorinha, arara, garça
@@ -3328,6 +3381,9 @@ function draw() {
     ctx.stroke();
   }
 
+  // bolas de fogo do vulcão, na frente de tudo (ideia 3 do Francisco)
+  fireballs.forEach(drawFireball);
+
   // COMBO ativo: linhas de velocidade estilo mangá, girando devagar ao redor
   // do tucano — o "momento de poder" fica evidente sem esconder o jogo
   if (combo >= 5 && state === 'play') {
@@ -3425,7 +3481,10 @@ function draw() {
     ctx.fillStyle = '#fff';
     ctx.font = (W < 460 ? 11 : 13) + "px Bungee, 'Courier New', monospace";
     ctx.textAlign = 'center';
-    ctx.fillText(noite ? '🌙 CAIU A NOITE' : '⚠ ALERTA: ' + event, W / 2, 114);
+    const bannerTxt = noite ? '🌙 CAIU A NOITE'
+      : event === 'VULCÃO' ? '🌋 VULCÃO! DESVIE DAS BOLAS DE FOGO!'
+      : '⚠ ALERTA: ' + event;
+    ctx.fillText(bannerTxt, W / 2, 114);
     ctx.globalAlpha = 1;
   }
 
@@ -3859,7 +3918,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '2.9';
+const GAME_VERSION = '3.0';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 resetGame();
