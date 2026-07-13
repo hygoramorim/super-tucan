@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.8` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.8.1` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -160,3 +160,4 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
 - **v5.8** — plano das sugestões: portal de boss, arena Cemitério/Toca da Cobra, chefã Cobra alternada
   com o Urubu, bossfight sem ovos, recompensa sem inflar ranking, conquistas e tradução expandida para
   gameplay, loja, amigos, ranking e pós-jogo.
+- **v5.8.1** — bossfight reduzida de 45s para 30s.

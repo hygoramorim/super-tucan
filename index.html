@@ -1101,7 +1101,7 @@ function queueBossPortal() {
 }
 function enterBossArena(kind) {
   const oldPhaseIdx = phaseIdx, oldPhaseDist = phaseDist;
-  bossArena = { kind, place: kind === 'cobra' ? 'snake' : 'cemetery', timer: 2700, phaseIdx: oldPhaseIdx, phaseDist: oldPhaseDist };
+  bossArena = { kind, place: kind === 'cobra' ? 'snake' : 'cemetery', timer: 1800, phaseIdx: oldPhaseIdx, phaseDist: oldPhaseDist };
   obstacles = []; eggs = []; powerups = []; enemies = []; bones = []; venom = []; fireballs = [];
   event = null; eventTimer = 0; alertTimer = 0;
   bird.y = H / 2; bird.vy = 0; invuln = Math.max(invuln, 90);
@@ -5043,7 +5043,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.8';
+const GAME_VERSION = '5.8.1';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
