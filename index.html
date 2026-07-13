@@ -253,6 +253,10 @@
       </div>
       <div id="ranking">
         <h2>&#127942; RANKING GLOBAL &middot; TOP 10</h2>
+        <div id="rankTabs" style="display:flex;gap:6px;justify-content:center;margin-bottom:8px">
+          <button class="tab active" id="rankTabEggs">&#129370; RECORDISTAS</button>
+          <button class="tab" id="rankTabXp">&#11088; VETERANOS</button>
+        </div>
         <ol id="rankList"></ol>
       </div>
       <p class="hint">ESPAÇO / CLIQUE / TOQUE para voar &middot; E ou P pausa</p>
@@ -585,55 +589,62 @@ function dayKey() {
   const d = new Date();
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 }
-// Ranking ÚNICO E GLOBAL: todos os modos competitivos pontuam no mesmo TOP 10
-function cachedScores() {
-  try { return JSON.parse(localStorage.getItem('superTucan_top10')) || []; }
+// RANKING: uma entrada por pessoa (ideias 6 e 20 do Francisco). Lê o nó /players
+// (único por nome, com {best, xp}) e ordena no cliente por OVOS ou por XP.
+// Duas abas: RECORDISTAS (recorde de ovos) e VETERANOS (XP acumulado).
+let rankMode = 'eggs'; // 'eggs' | 'xp'
+function cachedPlayers() {
+  try { return JSON.parse(localStorage.getItem('superTucan_players')) || []; }
   catch (e) { return []; }
 }
-async function fetchScores() {
+// Baixa todos os jogadores (base pequena) e devolve lista [{name, best, xp}]
+async function fetchPlayers() {
   try {
-    const r = await fetch(DB_URL + '/scores.json?orderBy=%22score%22&limitToLast=10');
+    const r = await fetch(DB_URL + '/players.json');
     if (!r.ok) throw new Error(r.status);
     const data = await r.json();
-    const list = data ? Object.values(data) : [];
-    list.sort((a, b) => b.score - a.score);
-    const top = list.slice(0, 10);
-    localStorage.setItem('superTucan_top10', JSON.stringify(top));
-    return { list: top, online: true };
+    const list = data
+      ? Object.keys(data).map(name => ({ name, best: data[name].best || 0, xp: data[name].xp || 0 }))
+      : [];
+    localStorage.setItem('superTucan_players', JSON.stringify(list));
+    return { list, online: true };
   } catch (e) {
-    return { list: cachedScores(), online: false };
+    return { list: cachedPlayers(), online: false };
   }
 }
-async function submitScore(name, score) {
-  let online = true;
-  try {
-    const r = await fetch(DB_URL + '/scores.json', {
-      method: 'POST',
-      body: JSON.stringify({ name, score, date: new Date().toISOString().slice(0, 10) })
-    });
-    if (!r.ok) throw new Error(r.status);
-  } catch (e) { online = false; }
-  const res = await fetchScores();
-  const pos = res.list.findIndex(e => e.name === name && e.score === score) + 1; // posição (1-based) ou 0
-  return { pos, online: online && res.online };
+function rankTop(list, mode) {
+  const key = mode === 'xp' ? 'xp' : 'best';
+  return list.filter(e => e[key] > 0).sort((a, b) => b[key] - a[key]).slice(0, 10);
 }
-function rankHTML(list) {
+function rankHTML(list, mode) {
+  const key = mode === 'xp' ? 'xp' : 'best';
+  const icon = mode === 'xp' ? '&#11088;' : '&#129370;';
   return list.map((e, i) =>
-    `<li><span>${String(i + 1).padStart(2, '0')}. ${e.name}</span><span class="pts">${e.score} &#129370;</span></li>`
+    `<li><span>${String(i + 1).padStart(2, '0')}. ${e.name}</span><span class="pts">${e[key]} ${icon}</span></li>`
   ).join('');
+}
+// submitScore agora GRAVA o recorde único por nome (PUT em /players) via publishPlayer,
+// que já é chamado no fim do jogo. Aqui só recalcula a posição do jogador no ranking.
+async function submitScore(name, score, mode) {
+  const res = await fetchPlayers();
+  const ranked = rankTop(res.list, 'eggs');
+  const pos = ranked.findIndex(e => e.name === name) + 1; // posição no ranking de OVOS
+  return { pos, online: res.online };
 }
 async function renderRanking() {
   const ol = document.getElementById('rankList');
-  const cached = cachedScores();
-  ol.innerHTML = cached.length ? rankHTML(cached) : '<li class="empty">Carregando ranking...</li>';
-  const res = await fetchScores();
-  if (!res.list.length) {
+  const cached = cachedPlayers();
+  const cTop = rankTop(cached, rankMode);
+  ol.innerHTML = cTop.length ? rankHTML(cTop, rankMode) : '<li class="empty">Carregando ranking...</li>';
+  const res = await fetchPlayers();
+  const top = rankTop(res.list, rankMode);
+  if (!top.length) {
     ol.innerHTML = '<li class="empty">' + (res.online
       ? 'Nenhuma pontuação ainda. Seja o primeiro do mundo!'
       : 'Sem conexão — ranking indisponível.') + '</li>';
     return;
   }
-  ol.innerHTML = rankHTML(res.list);
+  ol.innerHTML = rankHTML(top, rankMode);
 }
 
 // ---------- Identidade: nome único vinculado a IP + aparelho ----------
@@ -702,14 +713,29 @@ const XP_LEVELS = [
   [0, 'BEBÊ', '🐣'], [300, 'FILHOTE', '🐥'], [1200, 'JOVEM', '🦜'],
   [3500, 'ADULTO', '🦅'], [9000, 'ANCIÃO', '🦉']
 ];
+const ANCIAO = XP_LEVELS.length - 1;      // índice do nível máximo base
+const PRESTIGE_STEP = 2500;               // ideia 18: a cada 2500 XP após ancião → ANCIÃO +N
 function levelFromXp(xp) {
   let i = 0;
   while (i + 1 < XP_LEVELS.length && xp >= XP_LEVELS[i + 1][0]) i++;
-  return i;
+  return i; // 0..4 (indexável em XP_LEVELS)
 }
-// Publica o cartão público do jogador (visto pelos amigos)
+// Prestígio pós-ancião: quantos "+N" o jogador tem acima de 9000 XP
+function prestige(xp) {
+  if (xp < XP_LEVELS[ANCIAO][0]) return 0;
+  return Math.floor((xp - XP_LEVELS[ANCIAO][0]) / PRESTIGE_STEP);
+}
+// Título completo com sufixo de prestígio (ex.: "ANCIÃO +3 🦉")
+function levelLabel(xp) {
+  const lv = XP_LEVELS[levelFromXp(xp)];
+  const p = prestige(xp);
+  return { name: lv[1] + (p > 0 ? ' +' + p : ''), emoji: lv[2], plus: p };
+}
+// Publica o cartão público do jogador — é a ÚNICA fonte do ranking agora
+// (um registro por nome: best = recorde de ovos, xp = XP acumulado). Ideias 6 e 20.
 function publishPlayer(name, st) {
-  fetch(DB_URL + '/players/' + name + '.json', {
+  if (isGenericName(name)) return Promise.resolve(); // convidado não entra no ranking
+  return fetch(DB_URL + '/players/' + name + '.json', {
     method: 'PUT',
     body: JSON.stringify({ best: st.pb, xp: st.xp || 0 })
   }).catch(() => { /* offline */ });
@@ -1339,7 +1365,8 @@ function update() {
       e.taken = true;
       combo++;
       if (combo === 5) { floater('🔥 COMBO ×2!', '#ff2e93'); sfx.comboUp(); }
-      const mult = (combo >= 5 ? 2 : 1) * (pena > 0 ? 2 : 1); // combo e PENA dobram
+      // combo e PENA dobram; HARDCORE multiplica ovos por 3 (ideia 12 do Francisco)
+      const mult = (combo >= 5 ? 2 : 1) * (pena > 0 ? 2 : 1) * (gameMode === 'hardcore' ? 3 : 1);
       score += (e.jewel ? 10 : e.golden ? 5 : 1) * mult;
       burst(e.x, ey, e.jewel ? '#7dd3fc' : e.golden ? '#ffd23f' : '#ffffff', e.jewel ? 30 : e.golden ? 16 : 8);
       if (e.jewel) sfx.jewel(); else if (e.golden) sfx.gold(); else sfx.egg();
@@ -3552,20 +3579,21 @@ function showGameOver() {
     st.level = p3Level;
   }
 
-  // XP da partida (várias fontes) e nível do jogador
+  // XP da partida (várias fontes) e nível do jogador.
+  // HARDCORE dá 3× (ideia 12): o 'score' já vem ×3 dos ovos, então multiplicamos
+  // só as outras fontes por 3 pra o XP total ficar coerente com o esforço.
+  const isHC = gameMode === 'hardcore';
   const oldXp = st.xp || 0;
-  const gained = score + phaseIdx * 20
-    + (gameMode === 'daily' ? 30 : 0)
-    + (gameMode === 'hardcore' ? 60 : 0)
-    + (score > pb ? 40 : 0);
+  const gained = score + (phaseIdx * 20 + (gameMode === 'daily' ? 30 : 0) + (score > pb ? 40 : 0)) * (isHC ? 3 : 1)
+    + (isHC ? 60 : 0);
   st.xp = oldXp + gained;
   saveStats(playerName, st);
-  publishPlayer(playerName, st);
-  const oldLv = levelFromXp(oldXp), newLv = levelFromXp(st.xp);
+  const oldLbl = levelLabel(oldXp), newLbl = levelLabel(st.xp);
   const elXP = document.getElementById('goXP');
-  elXP.textContent = '+' + gained + ' XP';
-  if (newLv > oldLv) {
-    elXP.textContent += ' · ⬆ SUBIU DE NÍVEL: ' + XP_LEVELS[newLv][1] + ' ' + XP_LEVELS[newLv][2] + '!';
+  elXP.textContent = '+' + gained + ' XP' + (isHC ? ' (HARDCORE ×3!)' : '');
+  // subiu de nível OU ganhou um prestígio novo (ANCIÃO +N)
+  if (newLbl.name !== oldLbl.name) {
+    elXP.textContent += ' · ⬆ AGORA: ' + newLbl.name + ' ' + newLbl.emoji + '!';
     celebrate(['#7ee08a', '#ffd23f', '#ffffff'], 60);
     sfx.milestone();
   }
@@ -3574,13 +3602,14 @@ function showGameOver() {
   rec.classList.add('hidden');
   document.getElementById('goRank').textContent = 'Enviando ao ranking (' + modeLabel + ')...' + level;
   elGO.classList.remove('hidden');
-  submitScore(playerName, score, gameMode).then(res => {
+  // grava o recorde no /players e SÓ ENTÃO calcula a posição (evita ler antes de propagar)
+  publishPlayer(playerName, st).then(() => submitScore(playerName, score, gameMode)).then(res => {
     rec.classList.toggle('hidden', res.pos !== 1);
     document.getElementById('goRank').textContent = (!res.online
-      ? 'Sem conexão — pontuação não entrou no ranking.'
+      ? 'Sem conexão — recorde salvo só neste aparelho.'
       : res.pos > 0
-        ? playerName + ' entrou no ' + modeLabel + ' em ' + res.pos + 'º lugar!'
-        : 'Não entrou no ' + modeLabel + ' desta vez.') + level;
+        ? playerName + ' está em ' + res.pos + 'º no TOP 10 MUNDIAL de ovos! 🏆'
+        : 'Continue jogando pra entrar no TOP 10 de ovos!') + level;
   });
 }
 
@@ -3644,8 +3673,8 @@ async function fLoadFriends() {
     for (const n of names) {
       let info = null;
       try { info = await (await fetch(DB_URL + '/players/' + n + '.json')).json(); } catch (e) { /* segue sem info */ }
-      const lv = XP_LEVELS[levelFromXp((info && info.xp) || 0)];
-      html += frow('<span>' + lv[2] + ' <b>' + n + '</b> <small>' + lv[1] + '</small></span><span class="pts">' + ((info && info.best) || 0) + ' 🥚</span>');
+      const lv = levelLabel((info && info.xp) || 0);
+      html += frow('<span>' + lv.emoji + ' <b>' + n + '</b> <small>' + lv.name + '</small></span><span class="pts">' + ((info && info.best) || 0) + ' 🥚</span>');
     }
     box.innerHTML = html;
   } catch (e) { box.innerHTML = '<div class="fempty">Sem conexão.</div>'; }
@@ -3762,11 +3791,11 @@ function updateMenuPB() {
   if (!name) { el.textContent = ''; return; }
   const st = getStats(name);
   if (!st.pb && st.phase < 0 && !st.xp) { el.textContent = ''; return; }
-  const lv = XP_LEVELS[levelFromXp(st.xp)];
+  const lv = levelLabel(st.xp);
   const dist = st.phase >= 0
     ? PHASES[st.phase].name + (st.phase === LAST && st.level > 0 ? ' NV ' + (st.level + 1) : '')
     : '—';
-  el.textContent = lv[2] + ' ' + lv[1] + ' (' + st.xp + ' XP) · RECORDE: ' + st.pb + ' 🥚 · CHEGOU EM: ' + dist;
+  el.textContent = lv.emoji + ' ' + lv.name + ' (' + st.xp + ' XP) · RECORDE: ' + st.pb + ' 🥚 · CHEGOU EM: ' + dist;
 }
 
 // ---------- Início ----------
@@ -3776,7 +3805,21 @@ if (document.fonts && document.fonts.load) {
     document.fonts.load(f).catch(() => {});
   });
 }
-const GAME_VERSION = '2.6';
+// abas do ranking: RECORDISTAS (ovos) e VETERANOS (XP) — ideia 20 do Francisco
+document.getElementById('rankTabEggs').addEventListener('click', () => {
+  rankMode = 'eggs';
+  document.getElementById('rankTabEggs').classList.add('active');
+  document.getElementById('rankTabXp').classList.remove('active');
+  renderRanking();
+});
+document.getElementById('rankTabXp').addEventListener('click', () => {
+  rankMode = 'xp';
+  document.getElementById('rankTabXp').classList.add('active');
+  document.getElementById('rankTabEggs').classList.remove('active');
+  renderRanking();
+});
+
+const GAME_VERSION = '2.7';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 resetGame();
