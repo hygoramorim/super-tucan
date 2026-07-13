@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.13.17` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.13.18` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -216,3 +216,5 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
   lançamento aleatório de super ovos de Urubu coletáveis valendo 25 pontos.
 - **v5.13.17** — Urubu arremessa 1/3 mais frequentemente; ossos voam 20% mais rápido que super ovos;
   super ovo ganhou festa visual com luzes, confetes e `+25` grande piscando.
+- **v5.13.18** — Vulcão mais justo: bolas de fogo menos numerosas, mais diagonais e mais lentas; no
+  celular vertical, arremessos do Urubu ficam 30% mais lentos e espaçados.
