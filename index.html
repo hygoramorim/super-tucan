@@ -834,8 +834,11 @@ let shield = 0;    // ESCUDO: atravessa 1 tronco
 let slowmo = 0;    // RELÓGIO: tudo mais lento (15 s)
 let invuln = 0;    // invencibilidade breve após usar escudo / tutorial
 let agua = 0;      // ÁGUA: batida de asa impulsiona mais alto (10 s)
-let bookMod = 1;   // LIVRO: multiplicador de velocidade (0.7 lento / 1.3 rápido)
-let bookTimer = 0; // duração do efeito do LIVRO (8 s)
+// LIVRO DAS MALDIÇÕES (ideia 5 do Francisco): 1 de 4 efeitos aleatórios por 10s
+let bookMod = 1;   // multiplicador de velocidade (2× rápido / 0.5× lento)
+let bookJump = 1;  // multiplicador do pulo (1.5× mais alto)
+let bookScore = 1; // multiplicador de pontos (4×)
+let bookTimer = 0; // duração do efeito do LIVRO (10 s)
 // Eventos climáticos
 let event = null, eventTimer = 0, eventCooldown = 900, alertTimer = 0;
 // Celebrações
@@ -875,7 +878,8 @@ function resetGame() {
   bugs = []; bugTimer = 60;
   cameo = null; cameoTimer = 420;
   pena = 0; shield = 0; slowmo = 0; invuln = 0;
-  agua = 0; bookMod = 1; bookTimer = 0;
+  agua = 0; bookMod = 1; bookJump = 1; bookScore = 1; bookTimer = 0;
+  obsSinceItem = 5;
   event = null; eventTimer = 0; eventCooldown = 900; alertTimer = 0;
   floaters = [];
   nextMilestone = 50;
@@ -894,7 +898,10 @@ function phase() { return PHASES[phaseIdx]; }
 function flap() {
   if (state === 'ready') state = 'play'; // 1º toque inicia a física
   if (state !== 'play') return;
-  bird.vy = -7.2 * (agua > 0 ? 1.35 : 1); // ÁGUA: pulo mais alto
+  // força do pulo: ÁGUA (+alto), LIVRO-pulo (×1.5), e TEMPESTADE reduz (ideia 7 do Francisco)
+  let jump = -7.2 * (agua > 0 ? 1.35 : 1) * bookJump;
+  if (event === 'TEMPESTADE') jump *= 0.78; // vento contra: pulo mais baixo
+  bird.vy = jump;
   bird.flapAnim = 10;
   sfx.flap();
 }
@@ -912,6 +919,8 @@ canvas.addEventListener('pointerdown', () => { audio(); flap(); });
 // telas largas deixam de dar segundos extras de antecipação no ranking.
 const SPAWN_AHEAD = 460;
 let lastGapY = 320;
+const ITEM_MIN_GAP = 5;   // ideia 22: itens a no mínimo 5 galhos de distância
+let obsSinceItem = 5;     // começa liberado (permite item logo nos primeiros galhos)
 function spawnObstacle() {
   const d = currentDiff();
   const margin = 90;
@@ -956,12 +965,16 @@ function spawnObstacle() {
     const by = Math.max(120, Math.min(H - GROUND_H - 60, gapY + (rng() * 140 - 70)));
     eggs.push({ x: ob.x + d.spacing / 2, y: by, golden: false, taken: false, bob: Math.random() * 6.28, age: 0 });
   }
-  // Power-up ocasional (12%): PENA, ESCUDO ou RELÓGIO — nunca no hardcore/tutorial
-  if (gameMode !== 'hardcore' && gameMode !== 'tutorial' && !jewelBetween && rng() < 0.17) {
+  // Power-up ocasional — nunca no hardcore/tutorial. Ideia 22 do Francisco:
+  // itens ficam a pelo menos ITEM_MIN_GAP galhos de distância um do outro.
+  obsSinceItem++;
+  if (gameMode !== 'hardcore' && gameMode !== 'tutorial' && !jewelBetween
+      && obsSinceItem >= ITEM_MIN_GAP && rng() < 0.30) {
     const r2 = rng();
     const type = r2 < 0.28 ? 'pena' : r2 < 0.5 ? 'escudo' : r2 < 0.68 ? 'relogio' : r2 < 0.84 ? 'livro' : 'agua';
     const py = Math.max(130, Math.min(H - GROUND_H - 70, gapY + (rng() * 160 - 80)));
     powerups.push({ x: ob.x + d.spacing * 0.35, y: py, type, bob: Math.random() * 6.28, age: 0, taken: false });
+    obsSinceItem = 0;
   }
 }
 
@@ -1156,7 +1169,7 @@ function update() {
   if (slowmo > 0) slowmo--;
   if (invuln > 0) invuln--;
   if (agua > 0) agua--;
-  if (bookTimer > 0) { bookTimer--; if (bookTimer === 0) bookMod = 1; }
+  if (bookTimer > 0) { bookTimer--; if (bookTimer === 0) { bookMod = 1; bookJump = 1; bookScore = 1; } }
 
   // textos flutuantes
   floaters = floaters.filter(f => { f.y -= 0.7; f.life--; return f.life > 0; });
@@ -1296,10 +1309,14 @@ function update() {
       else if (pu.type === 'escudo') { shield = 1; floater('🛡 ESCUDO!', '#7ee08a'); }
       else if (pu.type === 'relogio') { slowmo = 900; floater('⏰ CÂMERA LENTA!', '#7dd3fc'); }
       else if (pu.type === 'livro') {
-        // surpresa: 70% desacelera (bom), 30% acelera (desafio)
-        if (Math.random() < 0.7) { bookMod = 0.7; floater('😴 SONECA... −VELOCIDADE', '#7dd3fc'); }
-        else { bookMod = 1.3; floater('📖 ESTUDOU! +VELOCIDADE', '#ff9f1c'); }
-        bookTimer = 480;
+        // LIVRO DAS MALDIÇÕES (ideia 5): sorteia 1 de 4 feitiços por 10s
+        bookMod = 1; bookJump = 1; bookScore = 1;
+        const spell = Math.floor(Math.random() * 4);
+        if (spell === 0) { bookMod = 2; floater('🔥 MALDIÇÃO: 2× MAIS RÁPIDO!', '#ff2e93'); }
+        else if (spell === 1) { bookMod = 0.5; floater('🐌 MALDIÇÃO: 2× MAIS LENTO!', '#7dd3fc'); }
+        else if (spell === 2) { bookJump = 1.5; floater('🦘 MALDIÇÃO: PULO 1,5×!', '#a7f432'); }
+        else { bookScore = 4; floater('💎 MALDIÇÃO: PONTOS 4×!', '#ffd23f'); }
+        bookTimer = 600;
       }
       else if (pu.type === 'agua') { agua = 600; floater('💧 HIDRATADO! PULO +ALTO', '#38bdf8'); }
       burst(pu.x, pu.y, '#ffffff', 14);
@@ -1371,7 +1388,7 @@ function update() {
         floater('🔥 COMBO ×' + newMult + '!', '#ff2e93'); sfx.comboUp();
       }
       // combo e PENA multiplicam; HARDCORE multiplica ovos por 3 (ideia 12)
-      const mult = newMult * (pena > 0 ? 2 : 1) * (gameMode === 'hardcore' ? 3 : 1);
+      const mult = newMult * (pena > 0 ? 2 : 1) * (gameMode === 'hardcore' ? 3 : 1) * bookScore;
       score += (e.jewel ? 10 : e.golden ? 5 : 1) * mult;
       burst(e.x, ey, e.jewel ? '#7dd3fc' : e.golden ? '#ffd23f' : '#ffffff', e.jewel ? 30 : e.golden ? 16 : 8);
       if (e.jewel) sfx.jewel(); else if (e.golden) sfx.gold(); else sfx.egg();
@@ -3203,7 +3220,14 @@ function drawHUD(p) {
   if (shield > 0) { ctx.fillStyle = '#7ee08a'; ctx.fillText('🛡 ESCUDO PRONTO', 14, fxY); fxY += 15; }
   if (slowmo > 0) { ctx.fillStyle = '#7dd3fc'; ctx.fillText('⏰ LENTO · ' + Math.ceil(slowmo / 60) + 's', 14, fxY); fxY += 15; }
   if (agua > 0) { ctx.fillStyle = '#38bdf8'; ctx.fillText('💧 ÁGUA · ' + Math.ceil(agua / 60) + 's', 14, fxY); fxY += 15; }
-  if (bookTimer > 0) { ctx.fillStyle = bookMod < 1 ? '#7dd3fc' : '#ff9f1c'; ctx.fillText((bookMod < 1 ? '😴' : '📖') + ' LIVRO · ' + Math.ceil(bookTimer / 60) + 's', 14, fxY); }
+  if (bookTimer > 0) {
+    let bico = '📖', bcor = '#c9a0ff';
+    if (bookMod > 1) { bico = '🔥 2× RÁPIDO'; bcor = '#ff2e93'; }
+    else if (bookMod < 1) { bico = '🐌 2× LENTO'; bcor = '#7dd3fc'; }
+    else if (bookJump > 1) { bico = '🦘 PULO+'; bcor = '#a7f432'; }
+    else if (bookScore > 1) { bico = '💎 PONTOS ×4'; bcor = '#ffd23f'; }
+    ctx.fillStyle = bcor; ctx.fillText('📖 ' + bico + ' · ' + Math.ceil(bookTimer / 60) + 's', 14, fxY);
+  }
 
   // fase + barra de progresso — encolhe em telas estreitas (celular em pé)
   const narrow = W < 460;
@@ -3835,7 +3859,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '2.8';
+const GAME_VERSION = '2.9';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 resetGame();
