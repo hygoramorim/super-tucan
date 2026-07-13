@@ -25,8 +25,8 @@ const EXPOSE = `
 /* ===== PREVIEW HOOK (injetado por gerar-preview.js — não existe no jogo publicado) ===== */
 window.__PREVIEW__ = {
   // funções de desenho
-  drawCritter, drawToucan, drawET, drawBoss, drawUFO, drawPet, drawAccessory,
-  drawPowerup, drawEgg, drawBug, drawEnemy, blinkEye,
+  drawCritter, drawToucan, drawET, drawBoss, drawSnakeBoss, drawBossPortal, drawVenom,
+  drawUFO, drawPet, drawAccessory, drawPowerup, drawEgg, drawBug, drawEnemy, blinkEye,
   // catálogos / dados
   PHASES, FAUNA, NIGHT_FAUNA, SHOP_ITEMS, PET_ITEMS, FOODS, FOOD_KINDS,
   // permite ao preview posicionar o "bird" e mexer no relógio da animação

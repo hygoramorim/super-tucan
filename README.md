@@ -13,7 +13,7 @@ Um Flappy Bird brasileiro, cartoon e cheio de vida — voe com o tucano por 6 bi
 - 6 biomas brasileiros com fauna nativa animada, o ET de Varginha escondido e sua nave
 - Itens: pena, escudo, relógio, água, o Livro das Maldições e 6 Comidas do Brasil (café, brigadeiro, pimenta…)
 - Eventos: ventania, tempestade, vulcão com bolas de fogo, e a noite
-- Chefão Urubu, ranking global (ovos e XP), lojinha de acessórios e aves companheiras
+- Bossfights com portal, arena do Cemitério, Urubu, Cobra, ranking global (ovos e XP), lojinha, conquistas e aves companheiras
 - 4 idiomas: 🇧🇷 🇺🇸 🇪🇸 🇨🇳
 
 ## 💡 Sugestões da comunidade

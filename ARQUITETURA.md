@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.3` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.8` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -62,11 +62,11 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
 | **RNG com seed** — `mulberry32`, `rng()` | 862 | ⚠️ **CRÍTICO** (ver §6). |
 | FAUNA / NIGHT_FAUNA | 893, 911 | Fauna decorativa por bioma (dia/noite). Cosmética: usa `Math.random`, nunca `rng()`. |
 | FOODS (comidas do Brasil) | 946 | 6 comidas com efeitos +/− por 15s. |
-| **spawnBoss()** | 981 | Cria o chefão urubu, `bossAppearances++`, banner+sfx. |
+| **queueBossPortal() / spawnBoss()** | 981 | Portal de boss, arena própria e chefões Urubu/Cobra alternados. |
 | resetGame() | 1003 | Zera TODO o estado da partida. Ao adicionar variável de partida nova, resete aqui. |
 | update() (loop de física/lógica) | 1209 | Coração do jogo. Transição de fase, boss, eventos, colisão, itens. |
 | drawET | 3000 | ET de Varginha atrás da moita (clip esconde o corpo agachado). |
-| drawBoss | 3143 | Urubu: asas simétricas grandes, planando. |
+| drawBoss / drawSnakeBoss | 3143 | Urubu planando e Cobra chefã. |
 | drawToucan | 3516 | Protagonista. Recebe a PHASE inteira como `p` (cores). Chama drawAccessory. |
 | drawPet | 3662 | Aves companheiras. Arara-azul e beija-flor têm desenho próprio; resto é genérico. |
 | drawAccessory | 3772 | Óculos (grandes, de sol), cartola, capa (Superman), coroa, gravata, laço. |
@@ -77,17 +77,19 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
 
 - **Biomas:** 1–5 têm distância fixa (`p.dist`); ao percorrer, `phaseIdx++`. O 6º (Pantanal) é
   infinito e ganha "níveis" a cada 15s (`p3Level`, teto 10).
-- **Chefão Urubu** (ideia 13 do Cisco): **aparece a cada 3 biomas completados** (`phaseIdx % 3 === 0`
-  na transição) **e** periodicamente no Pantanal (timer). Cada aparição sobe a dificuldade **+10%
-  permanente e acumulativo** naquela partida via `bossDiffMult() = 1.10 ^ min(bossAppearances, 6)`
-  (aplicado à velocidade em `currentDiff()`). O update do boss roda em QUALQUER bioma (`if (boss ...)`),
-  não só no Pantanal.
-  - **Tetos (importantes — não remover):** o multiplicador do boss trava em 6 aparições (≈1.77×) e há
+- **Bossfights Urubu/Cobra** (ideias do Cisco/Tucano/Guilherme): depois do 3º bioma e no Pantanal,
+  o jogo agenda um **portal em tronco oco**. Galhos/ovos/power-ups param durante a leitura do portal;
+  entrar pelo buraco teleporta para uma arena curta: Cemitério Cartoon para o Urubu, Toca da Cobra para
+  a Cobra. Não há ovos dentro da bossfight, e a recompensa é de progresso/celebração/conquista, sem
+  multiplicador permanente de score para manter o ranking honesto.
+  - Cada boss aumenta a dificuldade **+10% permanente e acumulativa** naquela partida via
+    `bossDiffMult() = 1.10 ^ min(bossAppearances, 5)` (aplicado à velocidade em `currentDiff()`).
+  - **Tetos (importantes — não remover):** o multiplicador do boss trava em 5 aparições e há
     um teto de velocidade **final** `d.speed = Math.min(d.speed, 7.0)` em `currentDiff()`. Sem eles, o
     `Math.min(5.6, ...)` do Pantanal (que roda ANTES de aplicar `k`) não segura o multiplicador do boss
     e sessões longas ficam injogáveis. (achado do code review da v5.2).
-  - Ao nascer numa **transição de fase**, o boss é ENFILEIRADO (`bossQueued`, ~140 frames) em vez de
-    entrar já, para o jogador ver primeiro o banner do novo bioma (senão o banner do boss o sobrescreve).
+  - Ao nascer numa **transição de fase**, o portal é ENFILEIRADO (`bossQueued`, ~140 frames) em vez de
+    entrar já, para o jogador ver primeiro o banner do novo bioma.
 - **Power-ups:** pena (veloc.+pontos), escudo, relógio (câmera lenta), água (pulo alto), livro das
   maldições (4 efeitos aleatórios), 6 comidas.
 - **Eventos:** ventania, tempestade, vulcão (bolas de fogo), noite. + nave do ET e clique no ET
@@ -155,3 +157,6 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
   aparição. + galeria de preview de personagens (`gerar-preview.js`).
 - **v5.3** — campo de texto da tela 💡 IDEIAS ampliado de 240 para 720 caracteres (3×), mantendo
   sincronização Firebase → `SUGESTOES.txt`/README.
+- **v5.8** — plano das sugestões: portal de boss, arena Cemitério/Toca da Cobra, chefã Cobra alternada
+  com o Urubu, bossfight sem ovos, recompensa sem inflar ranking, conquistas e tradução expandida para
+  gameplay, loja, amigos, ranking e pós-jogo.
