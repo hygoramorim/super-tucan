@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.13.8` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.13.9` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -197,3 +197,5 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
   entre itens coletáveis para evitar sobreposição visual.
 - **v5.13.8** — lua e estrelas da noite foram movidas para o layer de fundo do cenário, antes de
   nuvens, parallax, obstáculos e personagens.
+- **v5.13.9** — estrelas do céu noturno distribuídas de forma pseudoaleatória e estrela cadente no
+  fundo a cada 8 segundos.

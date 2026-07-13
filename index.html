@@ -1343,6 +1343,12 @@ let lastGapY = 320;
 const ITEM_MIN_GAP = 5;   // ideia 22: itens a no mínimo 5 galhos de distância
 const ITEM_MIN_DISTANCE = 200; // ovos/frutas/power-ups não podem embolar visualmente
 let obsSinceItem = 5;     // começa liberado (permite item logo nos primeiros galhos)
+const NIGHT_STAR_COUNT = 58;
+const SHOOTING_STAR_INTERVAL = 480; // 8s a 60fps
+function starRand(seed) {
+  const x = Math.sin(seed * 127.1 + 311.7) * 43758.5453;
+  return x - Math.floor(x);
+}
 function canPlaceItemAt(x, y, placed) {
   const min2 = ITEM_MIN_DISTANCE * ITEM_MIN_DISTANCE;
   const items = [...eggs, ...powerups, ...(placed || [])];
@@ -2195,13 +2201,43 @@ function drawBackground(p) {
     ctx.beginPath(); ctx.arc(mx, my, 26, 0, 7); ctx.fill();
     ctx.fillStyle = 'rgba(210,200,170,.5)';
     ctx.beginPath(); ctx.arc(mx - 8, my - 6, 5, 0, 7); ctx.arc(mx + 7, my + 4, 4, 0, 7); ctx.arc(mx - 2, my + 10, 3, 0, 7); ctx.fill();
-    ctx.fillStyle = '#fff';
-    for (let i = 0; i < 40; i++) {
-      const sx = (i * 137.5) % W;
-      const sy = (i * 73.3) % (H - GROUND_H - 120);
-      const tw = 0.4 + 0.6 * Math.abs(Math.sin(frames * 0.04 + i));
+    for (let i = 0; i < NIGHT_STAR_COUNT; i++) {
+      const sx = 18 + starRand(i + 1) * (W - 36);
+      const sy = 18 + starRand(i + 101) * Math.max(80, H - GROUND_H - 150);
+      const size = starRand(i + 201) > 0.82 ? 2.1 : 1.2 + starRand(i + 301) * 0.8;
+      const tw = 0.35 + 0.65 * Math.abs(Math.sin(frames * (0.025 + starRand(i + 401) * 0.025) + i));
       ctx.globalAlpha = fade * tw;
-      ctx.fillRect(sx, sy, i % 5 === 0 ? 2 : 1.3, i % 5 === 0 ? 2 : 1.3);
+      ctx.fillStyle = starRand(i + 501) > 0.78 ? '#fff7c2' : '#ffffff';
+      ctx.beginPath();
+      ctx.arc(sx, sy, size, 0, 7);
+      ctx.fill();
+    }
+    const shootAge = frames % SHOOTING_STAR_INTERVAL;
+    if (shootAge < 44) {
+      const shootCycle = Math.floor(frames / SHOOTING_STAR_INTERVAL);
+      const startX = W * (0.15 + starRand(700 + shootCycle) * 0.65);
+      const startY = 34 + starRand(800 + shootCycle) * Math.max(70, H - GROUND_H - 210);
+      const len = 86 + starRand(900 + shootCycle) * 42;
+      const t = shootAge / 44;
+      const x = startX + t * 150;
+      const y = startY + t * 58;
+      const alpha = fade * Math.sin(Math.PI * t);
+      ctx.globalAlpha = alpha;
+      const sg = ctx.createLinearGradient(x - len, y - len * 0.36, x, y);
+      sg.addColorStop(0, 'rgba(255,255,255,0)');
+      sg.addColorStop(0.65, 'rgba(255,255,255,.55)');
+      sg.addColorStop(1, 'rgba(255,247,194,1)');
+      ctx.strokeStyle = sg;
+      ctx.lineWidth = 2.4;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(x - len, y - len * 0.36);
+      ctx.lineTo(x, y);
+      ctx.stroke();
+      ctx.fillStyle = '#fff7c2';
+      ctx.beginPath();
+      ctx.arc(x, y, 2.4, 0, 7);
+      ctx.fill();
     }
     ctx.globalAlpha = 1;
   } else {
@@ -5475,7 +5511,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.13.8';
+const GAME_VERSION = '5.13.9';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
