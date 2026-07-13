@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.10` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.10.1` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -171,3 +171,5 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
 - **v5.10** — rodada Cisco: vulcão com bolas de fogo centralizadas/letais, noite de 30s, ET com bônus
   `×2` por 15s, combo zerando ao perder ovo comum/dourado, Urubu com `×5` temporário pós-boss e Cobra
   com ciclo de ataques por veneno, rabada, ovo e mordida.
+- **v5.10.1** — galhos ajustados visualmente: copas de folhas cobrem as pontas da madeira para não
+  deixar tocos aparentes na abertura segura.
