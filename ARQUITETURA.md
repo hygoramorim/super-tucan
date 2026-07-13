@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.13.6` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.13.7` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -193,3 +193,5 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
   e visual da cobra mais escuro/agressivo.
 - **v5.13.6** — árvores de primeiríssimo plano agora têm troncos prolongados para fora da tela, sem
   raízes ou base visível.
+- **v5.13.7** — ovos, joias, frutas e power-ups comuns passam a respeitar distância mínima de 200px
+  entre itens coletáveis para evitar sobreposição visual.

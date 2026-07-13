@@ -1341,10 +1341,33 @@ canvas.addEventListener('pointerdown', (e) => {
 const SPAWN_AHEAD = 460;
 let lastGapY = 320;
 const ITEM_MIN_GAP = 5;   // ideia 22: itens a no mínimo 5 galhos de distância
+const ITEM_MIN_DISTANCE = 200; // ovos/frutas/power-ups não podem embolar visualmente
 let obsSinceItem = 5;     // começa liberado (permite item logo nos primeiros galhos)
+function canPlaceItemAt(x, y, placed) {
+  const min2 = ITEM_MIN_DISTANCE * ITEM_MIN_DISTANCE;
+  const items = [...eggs, ...powerups, ...(placed || [])];
+  return !items.some(it => {
+    if (!it || it.taken) return false;
+    const dx = x - it.x, dy = y - it.y;
+    return dx * dx + dy * dy < min2;
+  });
+}
+function placeEggItem(item, placed) {
+  if (!canPlaceItemAt(item.x, item.y, placed)) return false;
+  eggs.push(item);
+  if (placed) placed.push(item);
+  return true;
+}
+function placePowerupItem(item, placed) {
+  if (!canPlaceItemAt(item.x, item.y, placed)) return false;
+  powerups.push(item);
+  if (placed) placed.push(item);
+  return true;
+}
 function spawnObstacle() {
   if (bossPortal || bossArena) return; // durante entrada/arena do chefe não há galhos/ovos comuns
   const d = currentDiff();
+  const placedItems = [];
   const margin = 90;
   const lo = margin + d.gap / 2;
   const hi = H - GROUND_H - margin - d.gap / 2 + margin; // = 480 - gap/2 com H=640
@@ -1364,7 +1387,7 @@ function spawnObstacle() {
   const eggY = golden
     ? gapY + (rng() < 0.5 ? -1 : 1) * (d.gap / 2 - 26)
     : gapY + (rng() * 40 - 20);
-  eggs.push({ x: ob.x + ob.w / 2, y: eggY, golden, taken: false, bob: rng() * 6.28, age: 0 });
+  placeEggItem({ x: ob.x + ob.w / 2, y: eggY, golden, taken: false, bob: rng() * 6.28, age: 0 }, placedItems);
   // OVO-JOIA azul (15%): vale 10 pontos e SEMPRE nasce em lugar muito
   // desafiador — borda apertadíssima da abertura, colado no teto (que mata)
   // ou rente ao chão. Brilha com um halo enorme para ser visto de longe.
@@ -1380,12 +1403,13 @@ function spawnObstacle() {
     } else {
       jx = ob.x + d.spacing / 2; jy = H - GROUND_H - 42; jewelBetween = true; // rente ao chão
     }
-    eggs.push({ x: jx, y: jy, jewel: true, golden: false, taken: false, bob: rng() * 6.28, age: 0 });
+    const placed = placeEggItem({ x: jx, y: jy, jewel: true, golden: false, taken: false, bob: rng() * 6.28, age: 0 }, placedItems);
+    jewelBetween = jewelBetween && placed;
   }
   // Ovo bônus entre obstáculos, sempre perto da linha de voo plausível
   if (rng() < 0.35 && !jewelBetween) {
     const by = Math.max(120, Math.min(H - GROUND_H - 60, gapY + (rng() * 140 - 70)));
-    eggs.push({ x: ob.x + d.spacing / 2, y: by, golden: false, taken: false, bob: rng() * 6.28, age: 0 });
+    placeEggItem({ x: ob.x + d.spacing / 2, y: by, golden: false, taken: false, bob: rng() * 6.28, age: 0 }, placedItems);
   }
   // Power-up / comida ocasional — nunca no hardcore/tutorial. Ideia 22 do Francisco:
   // itens ficam a pelo menos ITEM_MIN_GAP galhos de distância um do outro.
@@ -1393,16 +1417,17 @@ function spawnObstacle() {
   if (gameMode !== 'hardcore' && gameMode !== 'tutorial' && !jewelBetween
       && obsSinceItem >= ITEM_MIN_GAP && rng() < 0.32) {
     const py = Math.max(130, Math.min(H - GROUND_H - 70, gapY + (rng() * 160 - 80)));
+    let powerupPlaced = false;
     // 40% das vezes é uma COMIDA do Brasil (ideia 21); senão, um power-up clássico
     if (rng() < 0.4) {
       const fk = FOOD_KINDS[Math.floor(rng() * FOOD_KINDS.length)];
-      powerups.push({ x: ob.x + d.spacing * 0.35, y: py, type: 'food', food: fk, bob: rng() * 6.28, age: 0, taken: false });
+      powerupPlaced = placePowerupItem({ x: ob.x + d.spacing * 0.35, y: py, type: 'food', food: fk, bob: rng() * 6.28, age: 0, taken: false }, placedItems);
     } else {
       const r2 = rng();
       const type = r2 < 0.28 ? 'pena' : r2 < 0.5 ? 'escudo' : r2 < 0.68 ? 'relogio' : r2 < 0.84 ? 'livro' : 'agua';
-      powerups.push({ x: ob.x + d.spacing * 0.35, y: py, type, bob: rng() * 6.28, age: 0, taken: false });
+      powerupPlaced = placePowerupItem({ x: ob.x + d.spacing * 0.35, y: py, type, bob: rng() * 6.28, age: 0, taken: false }, placedItems);
     }
-    obsSinceItem = 0;
+    if (powerupPlaced) obsSinceItem = 0;
   }
 }
 
@@ -5451,7 +5476,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.13.6';
+const GAME_VERSION = '5.13.7';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
