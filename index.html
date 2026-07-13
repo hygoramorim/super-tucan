@@ -1147,7 +1147,7 @@ function enterBossArena(kind) {
 // entra o chefão voando/rastejando pela direita; conta a aparição (sobe a dificuldade +10%).
 function spawnBoss(kind) {
   kind = kind || nextBossKind || 'urubu';
-  boss = { kind, x: W + 100, y: kind === 'cobra' ? H - GROUND_H - 72 : 120, tx: W - 90, hp: 60, boneTimer: 70, venomTimer: 85, attackTimer: kind === 'cobra' ? SNAKE_ATTACK_INTERVAL : 70, attackIdx: 0, attackKind: '', life: bossArena ? bossArena.timer : 660, sign: 0, hurt: 0, ph: 0 };
+  boss = { kind, x: W + 100, y: kind === 'cobra' ? H - GROUND_H - 72 : 120, tx: W - 90, hp: 60, boneTimer: 70, venomTimer: 85, attackTimer: kind === 'cobra' ? SNAKE_ATTACK_INTERVAL : 70, attackIdx: 0, biteLaneIdx: 0, attackKind: '', life: bossArena ? bossArena.timer : 660, sign: 0, hurt: 0, ph: 0 };
   bossAppearances++;
   bannerTimer = 110; bannerText = kind === 'cobra' ? t('bossSnake') : t('bossUrubu');
   bannerSub = kind === 'cobra' ? t('bossDodgeVenom') : t('bossDodgeBones');
@@ -1813,8 +1813,8 @@ function update() {
       if (!boss.attackKind && boss.attackTimer === warnLead) {
         boss.attackKind = nextAttackKind;
         boss.attackWarnLead = warnLead;
-        const laneIdx = boss.attackIdx % 3;
         boss.attackIdx++;
+        const laneIdx = boss.attackKind === 'bite' ? boss.biteLaneIdx++ % 3 : boss.attackIdx % 3;
         boss.warnLane = boss.attackKind === 'bite'
           ? [H * 0.24, H * 0.48, H - GROUND_H - 74][laneIdx]
           : (boss.attackKind === 'tongue' ? bird.y : bird.y);
@@ -5554,7 +5554,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.13.12';
+const GAME_VERSION = '5.13.13';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
