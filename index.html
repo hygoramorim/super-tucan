@@ -277,7 +277,7 @@
         <p class="sub" style="max-width:360px"><b>Cisco (Francisco, 9 anos)</b> é o <b>Game Designer</b> do Super Tucan &#127918;. Mas o jogo cresce com a criatividade de todo mundo — <b>qualquer jogador pode colaborar com a evolução do jogo enviando ideias e sugestões!</b> &#127881;</p>
         <p class="hint" style="margin-top:10px">Tem uma ideia pra deixar o jogo ainda melhor? Manda pra gente:</p>
       </div>
-      <textarea id="ideaText" maxlength="240" placeholder="Escreva sua ideia aqui..." rows="3" style="width:280px;max-width:86vw;font-family:inherit;font-size:14px;background:#10281a;color:#e8f5ea;border:2px solid #2e6e3e;border-radius:8px;padding:8px;outline:none;resize:none"></textarea>
+      <textarea id="ideaText" maxlength="720" placeholder="Escreva sua ideia aqui..." rows="3" style="width:280px;max-width:86vw;font-family:inherit;font-size:14px;background:#10281a;color:#e8f5ea;border:2px solid #2e6e3e;border-radius:8px;padding:8px;outline:none;resize:none"></textarea>
       <div class="hint" style="margin-bottom:2px">SEU NOME (opcional)</div>
       <input id="ideaWho" maxlength="16" autocomplete="off" placeholder="QUEM SUGERIU" style="width:200px;text-align:center;font-family:inherit;font-size:15px;text-transform:uppercase;background:#10281a;color:#ffd23f;border:2px solid #7ee08a;border-radius:8px;padding:6px;outline:none">
       <div class="hint" id="ideaMsg" style="min-height:16px"></div>
@@ -4500,7 +4500,7 @@ document.getElementById('btnIdeaSend').addEventListener('click', async () => {
   const msg = document.getElementById('ideaMsg');
   if (txt.length < 4) { msg.textContent = '✍️ Escreva um pouquinho mais...'; return; }
   msg.textContent = 'ENVIANDO...';
-  const idea = { text: txt.slice(0, 240), who, date: new Date().toISOString().slice(0, 10) };
+  const idea = { text: txt.slice(0, 720), who, date: new Date().toISOString().slice(0, 10) };
   // 1) guarda SEMPRE localmente (a sugestão nunca se perde, mesmo offline)
   try {
     const l = JSON.parse(localStorage.getItem('superTucan_ideas')) || [];
@@ -4656,7 +4656,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.2';
+const GAME_VERSION = '5.3';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)

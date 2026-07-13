@@ -1,17 +1,48 @@
 SUPER TUCAN — SUGESTÕES DOS JOGADORES
 =====================================
 
-Este arquivo reúne as sugestões e ideias enviadas pelos jogadores pela tela
-"💡 IDEIAS" do jogo. O agente de programação DEVE LER este arquivo a cada nova
-versão, para considerar as sugestões da comunidade na evolução do jogo.
-
-Game Designer: Cisco (Francisco, 9 anos).
-Qualquer jogador pode colaborar enviando ideias pela tela de IDEIAS no jogo.
+Sincronizado do Firebase (nó /ideas). Game Designer: Cisco (Francisco, 9 anos).
+Total de sugestões: 20
 
 ---------------------------------------------------------------------------
-COMO ATUALIZAR ESTE ARQUIVO (para o agente):
-  Rode, na pasta do repo:   node ler-sugestoes.js
-  Ele baixa as sugestões do Firebase (nó /ideas) e as escreve abaixo.
----------------------------------------------------------------------------
 
-(nenhuma sugestão sincronizada ainda)
+1. [2026-07-13] GUILHERME:
+   De Gui- acho que poderia ter algum item que te deixa ou com a visão melhorada ou com a visão piorada
+2. [2026-07-13] GUILHERME:
+   De Gui- Não é bem uma dica mas as vozes de quando você trombava sairam
+3. [2026-07-13] GUILHERME:
+   De Gui- a minha dica é que uma cobra seria um chefão
+4. [2026-07-13] TUCANO:
+   O Boss está impossível de batalhar contra, quando ele aparecer um galho diferente aparecerá: ele terá um buraco bem no meio com uma placa indicando para entrar lá, quando ele aparecer (depois do 3 bioma ele aparecerá aleatoriamente)
+5. [2026-07-13] TUCANO:
+   Quando esse galho aparecer todos galhos pararão de aparecer por 3s e ele será mais lento, Quando vc começar a Bossfight vc será teletransportado para outro lugar
+6. [2026-07-13] TUCANO:
+   Quero o espaço do feedback maior
+7. [2026-07-13] TUCANO:
+   Quero que o espaço do feedback seja sem fim, infinito, não tenha limite, ou que o limite seja +500
+8. [2026-07-13] TUCANO:
+   Quando entrar no Boss os galhos voltaram e vc será teleportado para O CIMITÉRIO e o Boss jogará ossos em você, depois de 45s vc voltará aonde estava com um bônus de 3x permanente
+9. [2026-07-13] TUCANO:
+   Quando entrar no Boss os galhos voltaram e vc será teleportado para O CIMITÉRIO e o Boss jogará ossos em você, depois de 45s vc voltará aonde estava com um bônus de 3x permanente
+10. [2026-07-13] TUCANO:
+   Quando entrar no Boss os galhos voltaram e vc será teleportado para O CIMITÉRIO e o Boss jogará ossos em você, depois de 45s vc voltará aonde estava com um bônus de 3x permanente
+11. [2026-07-13] TUCANO:
+   Quando entrar no Boss os galhos voltaram e vc será teleportado para O CIMITÉRIO e o Boss jogará ossos em você, depois de 45s vc voltará aonde estava com um bônus de 3x permanente
+12. [2026-07-13] TUCANO:
+   Quando entrar no Boss os galhos voltaram e vc será teleportado para O CIMITÉRIO e o Boss jogará ossos em você, depois de 45s vc voltará aonde estava com um bônus de 3x permanente
+13. [2026-07-13] TUCANO:
+   No boss não terá ovos
+14. [2026-07-13] TUCANO:
+   No boss não terá ovos
+15. [2026-07-13] TUCANO:
+   No boss não terá ovos
+16. [2026-07-13] TUCANO:
+   No boss não terá ovos
+17. [2026-07-13] TUCANO:
+   Não terão ovos no meio da bossfight
+18. [2026-07-13] TUCANO:
+   O Boss te da um bonûs de 5x para o resto da tentativa
+19. [2026-07-13] TUCANO:
+   EU. QUERO. QUERO. CONQISTASSSSSS!
+20. [2026-07-13] TUCANO:
+   A tradução do jogo n está completa

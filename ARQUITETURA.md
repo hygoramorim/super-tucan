@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.2` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.3` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -153,3 +153,5 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
   simétricas/planando; movimento das cobras corrigido; arara-azul e beija-flor redesenhados; óculos de
   sol grandes; capa estilo Superman). + **Boss a cada 3 biomas** com dificuldade +10% acumulativa por
   aparição. + galeria de preview de personagens (`gerar-preview.js`).
+- **v5.3** — campo de texto da tela 💡 IDEIAS ampliado de 240 para 720 caracteres (3×), mantendo
+  sincronização Firebase → `SUGESTOES.txt`/README.
