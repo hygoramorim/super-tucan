@@ -1,1 +1,5 @@
 .sugestoes-vistas.json
+# artefato gerado pelo gerar-preview.js (regenerável com `node gerar-preview.js`)
+preview/jogo-para-preview.html
+# planos internos do fluxo de desenvolvimento
+docs/superpowers/

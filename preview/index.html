@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SUPER TUCAN — Galeria de Personagens (preview local)</title>
+<style>
+  :root { --bg:#0f1216; --card:#191d24; --line:#2a2f38; --txt:#e7ebf0; --dim:#8b93a1; --accent:#ffb020; --flag:#e0532f; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: system-ui, -apple-system, Segoe UI, sans-serif; background:var(--bg); color:var(--txt); }
+  header { padding:22px 20px 8px; }
+  h1 { margin:0 0 4px; font-size:22px; letter-spacing:.5px; }
+  .sub { color:var(--dim); font-size:13px; max-width:70ch; line-height:1.5; }
+  .bar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; padding:10px 20px 4px; }
+  .bar button { background:var(--card); color:var(--txt); border:1px solid var(--line); border-radius:8px; padding:7px 12px; font-size:13px; cursor:pointer; }
+  .bar button:hover { border-color:var(--accent); }
+  .bar .count { color:var(--dim); font-size:12px; margin-left:auto; }
+  h2 { margin:26px 20px 6px; font-size:15px; color:var(--accent); text-transform:uppercase; letter-spacing:1px; border-bottom:1px solid var(--line); padding-bottom:6px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(150px,1fr)); gap:12px; padding:8px 20px 4px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:10px 10px 8px; display:flex; flex-direction:column; align-items:center; gap:6px; transition:border-color .15s; }
+  .card.flagged { border-color:var(--flag); box-shadow:0 0 0 1px var(--flag) inset; }
+  .card canvas { border-radius:8px; background:radial-gradient(circle at 50% 40%, #232a33, #12161c); image-rendering:auto; }
+  .nm { font-size:13px; font-weight:600; text-align:center; }
+  .id { font-size:10px; color:var(--dim); font-family:ui-monospace,monospace; }
+  .flag { font-size:11px; color:var(--dim); display:flex; align-items:center; gap:5px; cursor:pointer; user-select:none; }
+  .flag input { accent-color:var(--flag); }
+  #status { padding:6px 20px; color:var(--dim); font-size:12px; }
+  #out { position:fixed; inset:auto 16px 16px auto; background:#111; border:1px solid var(--accent); border-radius:10px; padding:10px 12px; font-size:12px; max-width:360px; max-height:50vh; overflow:auto; display:none; white-space:pre-wrap; }
+  footer { color:var(--dim); font-size:11px; padding:20px; line-height:1.5; }
+  iframe#game { position:absolute; width:480px; height:640px; left:-9999px; top:-9999px; visibility:hidden; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🦜 SUPER TUCAN — Galeria de Personagens</h1>
+  <div class="sub">Cada desenho abaixo é renderizado pela função de arte <b>real do jogo</b> (Canvas 2D, sem IA). Marque <b>“ajustar”</b> nos que você quer mudar; clique em <b>Copiar feedback</b> no fim para gerar a lista do que revisar. Preview 100% local, custo zero.</div>
+</header>
+<div class="bar">
+  <button id="toggleNight">🌙 Alternar dia/noite</button>
+  <button id="copyFb">📋 Copiar feedback (marcados)</button>
+  <button id="reload">↻ Recarregar arte</button>
+  <span class="count" id="count"></span>
+</div>
+<div id="status">Carregando o motor do jogo…</div>
+<main id="gallery"></main>
+<pre id="out"></pre>
+<footer>
+  Gerado por <code>gerar-preview.js</code> a partir do <code>index.html</code>. Rode <code>node gerar-preview.js</code> de novo se mudar a arte do jogo.<br>
+  As anotações “ajustar” ficam salvas no seu navegador (localStorage) até você limpar.
+</footer>
+
+<iframe id="game" src="jogo-para-preview.html"></iframe>
+
+<script>
+const SECTIONS = [
+  { title: '⭐ Protagonista e skins por bioma', kind: 'toucan' },
+  { title: '👽 ET de Varginha & Nave', kind: 'special' },
+  { title: '💀 Chefão Urubu', kind: 'boss' },
+  { title: '🐾 Fauna dos biomas (dia)', kind: 'fauna' },
+  { title: '🌙 Fauna noturna', kind: 'night' },
+  { title: '🐦 Aves companheiras (loja)', kind: 'pets' },
+  { title: '🎩 Acessórios (loja)', kind: 'accessories' },
+  { title: '✨ Itens & power-ups', kind: 'powerups' },
+];
+
+const FLAG_KEY = 'superTucanPreviewFlags';
+let flags = {};
+try { flags = JSON.parse(localStorage.getItem(FLAG_KEY)) || {}; } catch(e){ flags = {}; }
+function saveFlags(){ localStorage.setItem(FLAG_KEY, JSON.stringify(flags)); }
+
+let NIGHT = false;
+let P = null;          // window.__PREVIEW__ do iframe
+let animItems = [];    // {ctx, draw} para animar
+
+function makeCard(parent, id, name, w, h, drawFn) {
+  const card = document.createElement('div');
+  card.className = 'card' + (flags[id] ? ' flagged' : '');
+  const cv = document.createElement('canvas');
+  cv.width = w; cv.height = h;
+  const ctx = cv.getContext('2d');
+  const nm = document.createElement('div'); nm.className = 'nm'; nm.textContent = name;
+  const idl = document.createElement('div'); idl.className = 'id'; idl.textContent = id;
+  const lab = document.createElement('label'); lab.className = 'flag';
+  const chk = document.createElement('input'); chk.type = 'checkbox'; chk.checked = !!flags[id];
+  chk.onchange = () => { if (chk.checked) flags[id] = name; else delete flags[id]; saveFlags(); card.classList.toggle('flagged', chk.checked); updateCount(); };
+  lab.appendChild(chk); lab.appendChild(document.createTextNode('ajustar'));
+  card.append(cv, nm, idl, lab);
+  parent.appendChild(card);
+  animItems.push({ ctx, w, h, drawFn });
+}
+
+function centerAndDraw(o, t) {
+  const { ctx, w, h, drawFn } = o;
+  ctx.clearRect(0, 0, w, h);
+  ctx.save();
+  P.useCtx(ctx);           // redireciona o ctx do jogo para este mini-canvas
+  P.setFrames(t);
+  try { drawFn(ctx, w, h, t); } catch(e) { /* desenho isolado não derruba o loop */ }
+  ctx.restore();
+  P.restoreCtx();          // devolve o ctx real ao jogo
+}
+
+function buildGallery() {
+  const g = document.getElementById('gallery');
+  g.innerHTML = ''; animItems = [];
+  const NAMES = {
+    // fauna (pt-BR bonito)
+    onca:'Onça-pintada', bugio:'Bugio', macaco:'Macaco-prego', anaconda:'Sucuri', anta:'Anta',
+    tamandua:'Tamanduá', lobo:'Lobo-guará', tatu:'Tatu', ema:'Ema', jiboia:'Jiboia', gaviao:'Gavião',
+    oncaparda:'Onça-parda (suçuarana)', mico:'Mico-leão', jaguatirica:'Jaguatirica',
+    seriema:'Seriema', lagarto:'Lagarto (teiú)', cascavel:'Cascavel', veado:'Veado-campeiro',
+    capivara:'Capivara', tartaruga:'Tartaruga', ra:'Rã', jararaca:'Jararaca',
+    jacare:'Jacaré', tuiuiu:'Tuiuiú',
+    coruja:'Coruja', morcego:'Morcego', gamba:'Gambá', oncapintada:'Onça-pintada (noite)'
+  };
+
+  for (const sec of SECTIONS) {
+    const h2 = document.createElement('h2'); h2.textContent = sec.title; g.appendChild(h2);
+    const grid = document.createElement('div'); grid.className = 'grid'; g.appendChild(grid);
+
+    if (sec.kind === 'toucan') {
+      P.PHASES.forEach((ph, i) => {
+        makeCard(grid, 'skin:'+i, 'Tucano — ' + ph.name, 150, 130, (ctx, w, h, t) => {
+          P.forceEquip(''); P.forcePet('');
+          // drawToucan usa a global bird.x/bird.y para posicionar; centralizamos no card
+          P.setBird({ x: w/2, y: h/2, rot: Math.sin(t*0.03)*0.12, vy:0, wing: t, flapAnim: 0, r:15 });
+          P.drawToucan(ph);          // o "p" é a própria PHASE (tem body/beak/eye)
+        });
+      });
+      // uma variação com acessório de exemplo (capa animada)
+      makeCard(grid, 'skin:capa', 'Tucano + Capa de Herói', 150, 130, (ctx,w,h,t) => {
+        P.forceEquip('capa'); P.forcePet('');
+        P.setBird({ x:w/2, y:h/2, rot:0, vy:0, wing:t, flapAnim:0, r:15 });
+        P.drawToucan(P.PHASES[0]); P.drawAccessory('capa');
+        P.forceEquip('');
+      });
+    }
+
+    if (sec.kind === 'special') {
+      makeCard(grid, 'et', 'ET de Varginha', 150, 150, (ctx,w,h,t) => {
+        // A cabeça do ET fica sempre em y absoluto ≈ (H-GROUND_H)-18, independente
+        // de cm.y (o cm.y se cancela na conta interna). Só cm.x desloca no eixo x.
+        // Então transladamos o ctx pra trazer esse y absoluto pro meio-baixo do card.
+        const headAbsY = (P.gameH() - P.groundH()) - 18;
+        ctx.save();
+        ctx.translate(w/2, (h*0.62) - headAbsY);
+        P.drawET({ x: 0, y: 0, ph: t*0.05, kind:'et' });
+        ctx.restore();
+      });
+      makeCard(grid, 'ufo', 'Nave (UFO)', 160, 110, (ctx,w,h,t) => {
+        P.drawUFO({ x: w/2, y: h/2, ph: t*0.05 });
+      });
+    }
+
+    if (sec.kind === 'boss') {
+      makeCard(grid, 'boss', 'Chefão Urubu', 170, 150, (ctx,w,h,t) => {
+        P.drawBoss({ x: w/2, y: h/2, ph: t*0.08, hp:60, hurt:0, sign:0, life:660 });
+      });
+    }
+
+    if (sec.kind === 'fauna' || sec.kind === 'night') {
+      const table = sec.kind === 'fauna' ? P.FAUNA : P.NIGHT_FAUNA;
+      const seen = new Set();
+      Object.keys(table).forEach(biome => {
+        table[biome].forEach(kind => {
+          if (seen.has(kind)) return; seen.add(kind);
+          const nice = NAMES[kind] || kind;
+          makeCard(grid, sec.kind+':'+kind, nice, 150, 130, (ctx,w,h,t) => {
+            const flyer = kind==='gaviao'||kind==='coruja'||kind==='morcego';
+            // drawCritter translada p/ (x, groundY) no chão ou (x, hy) se voa.
+            // Reposicionamos o desenho pro centro-baixo do card com um translate do ctx.
+            ctx.save();
+            if (flyer) {
+              // voadores: hy é a altura; jogamos hy no meio do card
+              P.drawCritter({ kind, x: w/2, y: h/2, hy: h*0.5, s: 1.15, ph: t*0.08 });
+            } else {
+              // andarilhos: o bicho é desenhado ACIMA da linha do chão (y negativo),
+              // então colocamos a linha do chão perto da base do card.
+              ctx.translate(0, (h - 20) - P.groundY());
+              P.drawCritter({ kind, x: w/2, y: 0, hy: 0, s: 1.15, ph: t*0.08 });
+            }
+            ctx.restore();
+          });
+        });
+      });
+    }
+
+    if (sec.kind === 'pets') {
+      P.PET_ITEMS.forEach(pet => {
+        makeCard(grid, 'pet:'+pet.id, pet.nome + ' · ' + pet.preco + '🥚', 150, 120, (ctx,w,h,t) => {
+          P.forcePet(pet.id);
+          if (P.clearPetTrail) P.clearPetTrail();   // força o fallback de posição
+          // no fallback, a ave desenha em (bird.x-60, bird.y-20); posicionamos bird
+          // à direita/baixo pra ave cair no centro do card.
+          P.setBird({ x: w/2 + 40, y: h/2 + 24, rot:0, vy:0, wing:t, r:15 });
+          P.drawPet();
+          P.forcePet('');
+        });
+      });
+    }
+
+    if (sec.kind === 'accessories') {
+      P.SHOP_ITEMS.forEach(it => {
+        makeCard(grid, 'acc:'+it.id, it.nome + ' · ' + it.preco + '🥚', 150, 130, (ctx,w,h,t) => {
+          P.forceEquip(it.id); P.forcePet('');
+          P.setBird({ x: w/2, y: h/2, rot:0, vy:0, wing:t, flapAnim:0, r:15 });
+          P.drawToucan(P.PHASES[0]); P.drawAccessory(it.id);  // "p" é a PHASE inteira
+          P.forceEquip('');
+        });
+      });
+    }
+
+    if (sec.kind === 'powerups') {
+      const pus = [
+        {type:'pena', nome:'Pena (velocidade +pontos)'},
+        {type:'escudo', nome:'Escudo'},
+        {type:'relogio', nome:'Relógio (câmera lenta)'},
+        {type:'agua', nome:'Água (pulo alto)'},
+        {type:'livro', nome:'Livro das Maldições'},
+      ];
+      pus.forEach(pu => {
+        makeCard(grid, 'pu:'+pu.type, pu.nome, 110, 110, (ctx,w,h,t) => {
+          P.drawPowerup({ type: pu.type, x:w/2, y:h/2, bob:0, age:30 });
+        });
+      });
+      P.FOOD_KINDS.forEach(k => {
+        const f = P.FOODS[k];
+        makeCard(grid, 'food:'+k, f.emoji + ' ' + k, 110, 110, (ctx,w,h,t) => {
+          P.drawPowerup({ type:'food', food:k, x:w/2, y:h/2, bob:0, age:30 });
+        });
+      });
+      // ovos
+      makeCard(grid, 'egg:normal', 'Ovo comum', 100, 110, (ctx,w,h,t) => {
+        P.drawEgg({ x:w/2, y:h/2, jewel:false, ph:t*0.05, taken:0, r:12 });
+      });
+      makeCard(grid, 'egg:jewel', 'Ovo-joia (raro)', 100, 110, (ctx,w,h,t) => {
+        P.drawEgg({ x:w/2, y:h/2, jewel:true, ph:t*0.05, taken:0, r:12 });
+      });
+    }
+  }
+  updateCount();
+}
+
+function updateCount(){
+  const total = animItems.length;
+  const flagged = Object.keys(flags).length;
+  document.getElementById('count').textContent = total + ' personagens · ' + flagged + ' marcados p/ ajuste';
+}
+
+let t = 0;
+function loop() {
+  if (P) {
+    // fundo dia/noite nos cards
+    for (const o of animItems) {
+      o.ctx.fillStyle = NIGHT ? '#0b1020' : 'transparent';
+      centerAndDraw(o, t);
+    }
+    t += 1;
+  }
+  requestAnimationFrame(loop);
+}
+
+document.getElementById('toggleNight').onclick = () => { NIGHT = !NIGHT; };
+document.getElementById('reload').onclick = () => { if (P) buildGallery(); };
+document.getElementById('copyFb').onclick = async () => {
+  const list = Object.entries(flags);
+  const txt = list.length
+    ? 'AJUSTES DE DESIGN — SUPER TUCAN\n\n' + list.map(([id,nm],i)=> (i+1)+'. '+nm+'  ['+id+']').join('\n')
+      + '\n\n(escreva ao lado de cada um o que mudar)'
+    : 'Nenhum personagem marcado. Marque "ajustar" nos cards que quer mudar.';
+  const out = document.getElementById('out');
+  out.style.display = 'block'; out.textContent = txt;
+  try { await navigator.clipboard.writeText(txt); out.textContent = '✅ Copiado!\n\n' + txt; } catch(e){}
+};
+
+// espera o iframe do jogo expor __PREVIEW__
+const frame = document.getElementById('game');
+function tryInit(tries){
+  const win = frame.contentWindow;
+  if (win && win.__PREVIEW_READY__ && win.__PREVIEW__) {
+    P = win.__PREVIEW__;
+    document.getElementById('status').textContent = '✅ Arte carregada do jogo. Marque os que quer ajustar.';
+    buildGallery();
+    loop();
+    return;
+  }
+  if (tries <= 0){ document.getElementById('status').textContent = '⚠️ Não consegui carregar o motor do jogo. Rode: node gerar-preview.js e sirva a pasta.'; return; }
+  setTimeout(()=>tryInit(tries-1), 150);
+}
+frame.addEventListener('load', () => tryInit(40));
+</script>
+</body>
+</html>

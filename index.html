@@ -469,7 +469,12 @@ function currentDiff() {
   if (event === 'VULCÃO') k *= 1.1;
   if (bookTimer > 0) k *= bookMod; // LIVRO: +vel (1.3) ou -vel (0.7)
   if (foodTimer > 0) k *= foodSpeed; // COMIDAS: café/pimenta aceleram, maracujá desacelera
+  k *= bossDiffMult(); // pedido do Cisco: +10% de dificuldade (acumulativo) por aparição do boss
   d.speed *= k;
+  // TETO de velocidade FINAL (aplicado DEPOIS de k): o Math.min lá em cima só limitava
+  // p3Level; sem este teto, o bossDiffMult acumulado tornaria sessões longas de Pantanal
+  // injogáveis. Mantém difícil, mas sempre jogável mesmo com pena+vulcão+boss juntos.
+  d.speed = Math.min(d.speed, 7.0);
   return d;
 }
 
@@ -969,8 +974,25 @@ let event = null, eventTimer = 0, eventCooldown = 900, alertTimer = 0;
 let fireballs = [], quakePhase = 0; // ideia 3+4: bolas de fogo do vulcão + tremor
 let magicNight = 0, etCooldown = 0;  // ideia 19: clicar no ET liga noite mágica 15s (com cooldown)
 let ufo = null, ufoTimer = 700;      // ideia 16: nave do ET cruza o céu de vez em quando
-// ideia 13 do Francisco: CHEFÃO URUBU — aparece no Pantanal ∞, joga ossos, dá bônus.
+// ideia 13 do Francisco: CHEFÃO URUBU — aparece a cada 3 biomas + Pantanal ∞, joga ossos, dá bônus.
 let boss = null, bossTimer = 1500, bones = [];
+// pedido do Cisco: boss a cada 3 biomas completos; a dificuldade sobe 10% (acumulativo)
+// a cada aparição do boss (permanente naquela partida). bossAppearances = quantas vezes
+// o urubu já apareceu; o multiplicador é 1.1^appearances aplicado à velocidade do jogo.
+let bossAppearances = 0;
+let bossQueued = 0; // frames até o boss entrar após uma transição de fase (deixa o banner de fase aparecer)
+// +10% por aparição, ACUMULATIVO, porém com TETO de 6 aparições (1.10^6 ≈ 1.77×) para
+// não explodir em sessões longas de Pantanal ∞ (onde o boss reaparece por timer). Junto
+// com o teto de velocidade final em currentDiff(), o jogo fica bem mais difícil mas jogável.
+function bossDiffMult() { return Math.pow(1.10, Math.min(bossAppearances, 6)); }
+// entra o urubu voando pela direita; conta a aparição (sobe a dificuldade +10%).
+function spawnBoss() {
+  boss = { x: W + 80, y: 120, tx: W - 90, hp: 60, boneTimer: 60, life: 660, sign: 0, hurt: 0, ph: 0 };
+  bossAppearances++;
+  bannerTimer = 90; bannerText = '💀 CHEFÃO URUBU!';
+  bannerSub = bossAppearances > 1 ? 'DESVIE DOS OSSOS! (+10% DIFICULDADE)' : 'DESVIE DOS OSSOS!';
+  sfx.alert();
+}
 // é noite? (evento NOITE OU noite mágica do ET) — controla fauna e visual noturnos
 function isNight() { return event === 'NOITE' || magicNight > 0; }
 // Celebrações
@@ -1018,6 +1040,7 @@ function resetGame() {
   magicNight = 0; etCooldown = 0;
   ufo = null; ufoTimer = 700;
   boss = null; bossTimer = 1500; bones = [];
+  bossAppearances = 0; bossQueued = 0;
   petTrail = [];
   floaters = [];
   nextMilestone = 50;
@@ -1420,37 +1443,36 @@ function update() {
     }
   }
 
-  // ideia 13 do Francisco: CHEFÃO URUBU no Pantanal ∞ — entra, joga ossos e dá bônus
-  if (phaseIdx === LAST && gameMode !== 'tutorial') {
-    if (!boss && --bossTimer <= 0) {
-      // entra voando pela direita; vai parar em x ~ W-90
-      boss = { x: W + 80, y: 120, tx: W - 90, hp: 60, boneTimer: 60, life: 660, sign: 0, hurt: 0, ph: 0 };
-      bannerTimer = 90; bannerText = '💀 CHEFÃO URUBU!'; bannerSub = 'DESVIE DOS OSSOS!';
-      sfx.alert();
+  // ideia 13 do Francisco: CHEFÃO URUBU — agora aparece a cada 3 biomas E no Pantanal ∞
+  // (pedido do Cisco). O SPAWN periódico só acontece no Pantanal infinito; as demais
+  // aparições vêm da transição de fase (a cada 3 biomas). O UPDATE roda em qualquer
+  // bioma, para que o urubu nascido ao completar o bioma 3 também se mova e ataque.
+  if (phaseIdx === LAST && gameMode !== 'tutorial' && !boss && --bossTimer <= 0) spawnBoss();
+  // boss agendado por uma transição de fase (a cada 3 biomas): entra quando o contador zera,
+  // depois que o banner do novo bioma já foi mostrado.
+  if (bossQueued > 0 && gameMode !== 'tutorial') { if (--bossQueued === 0 && !boss) spawnBoss(); }
+  if (boss && gameMode !== 'tutorial') {
+    boss.ph += 0.08;
+    boss.x += (boss.tx - boss.x) * 0.04;         // desliza até a posição
+    boss.y = 120 + Math.sin(boss.ph) * 60;        // sobe e desce
+    if (boss.hurt > 0) boss.hurt--;
+    // placa com seta pra cima aparece de vez em quando (telegrafia: o urubu vai pro teto)
+    if (boss.sign > 0) boss.sign--;
+    else if (Math.random() < 0.006) boss.sign = 180;
+    // joga ossos mirando no tucano
+    if (--boss.boneTimer <= 0) {
+      boss.boneTimer = 70 + Math.random() * 40;
+      const ang = Math.atan2(bird.y - boss.y, bird.x - boss.x);
+      bones.push({ x: boss.x - 20, y: boss.y, vx: Math.cos(ang) * 5.5, vy: Math.sin(ang) * 5.5, rot: 0, ph: 0 });
+      sfx.chirp();
     }
-    if (boss) {
-      boss.ph += 0.08;
-      boss.x += (boss.tx - boss.x) * 0.04;         // desliza até a posição
-      boss.y = 120 + Math.sin(boss.ph) * 60;        // sobe e desce
-      if (boss.hurt > 0) boss.hurt--;
-      // placa com seta pra cima aparece de vez em quando (telegrafia: o urubu vai pro teto)
-      if (boss.sign > 0) boss.sign--;
-      else if (Math.random() < 0.006) boss.sign = 180;
-      // joga ossos mirando no tucano
-      if (--boss.boneTimer <= 0) {
-        boss.boneTimer = 70 + Math.random() * 40;
-        const ang = Math.atan2(bird.y - boss.y, bird.x - boss.x);
-        bones.push({ x: boss.x - 20, y: boss.y, vx: Math.cos(ang) * 5.5, vy: Math.sin(ang) * 5.5, rot: 0, ph: 0 });
-        sfx.chirp();
-      }
-      // some depois de um tempo, deixando um bônus por ter sobrevivido
-      if (--boss.life <= 0) {
-        floater('🏆 SOBREVIVEU AO CHEFÃO! +25 🥚', '#ffd23f', W / 2, H / 2 - 90);
-        score += 25;
-        celebrate(['#ffd23f', '#ff2e93', '#ffffff'], 60);
-        sfx.milestone();
-        boss = null; bossTimer = 2200 + Math.random() * 1500;
-      }
+    // some depois de um tempo, deixando um bônus por ter sobrevivido
+    if (--boss.life <= 0) {
+      floater('🏆 SOBREVIVEU AO CHEFÃO! +25 🥚', '#ffd23f', W / 2, H / 2 - 90);
+      score += 25;
+      celebrate(['#ffd23f', '#ff2e93', '#ffffff'], 60);
+      sfx.milestone();
+      boss = null; bossTimer = 2200 + Math.random() * 1500;
     }
   }
   // move os ossos e checa colisão (escudo protege)
@@ -1502,6 +1524,11 @@ function update() {
     sfx.phase();
     startMusic(phaseIdx);
     celebrate([np.beak[0], np.leaf, '#ffffff', '#ffd23f']);
+    // pedido do Cisco: o CHEFÃO URUBU entra a cada 3 biomas COMPLETADOS (bioma 3, 6...).
+    // phaseIdx acabou de virar o nº de biomas concluídos; múltiplo de 3 → agenda o boss.
+    // ENFILEIRA (não chama já) para o jogador ver primeiro o banner do novo bioma; o boss
+    // entra ~140 frames depois, quando o banner de fase (130) já sumiu.
+    if (phaseIdx % 3 === 0 && !boss) bossQueued = 140;
   }
 
   // Pantanal infinito: +1 nível a cada 15 s até o teto (nível 10 = tudo no máximo);
@@ -2347,11 +2374,16 @@ function drawCritter(c) {
     case 'anaconda': case 'jiboia': case 'jararaca': {
       const col = c.kind === 'anaconda' ? '#3a5f3a' : c.kind === 'jiboia' ? '#8a6a3a' : '#6a6a4a';
       const len = c.kind === 'anaconda' ? 46 : 30;
+      // sentido de propagação da ondulação. anaconda(sucuri) e jararaca estavam
+      // "andando de ré": a onda subia da cabeça (esq.) p/ a cauda no sentido errado.
+      // Invertendo o sinal, a onda viaja coerente com o movimento (p/ a esquerda).
+      const wd = (c.kind === 'anaconda' || c.kind === 'jararaca') ? -0.25 : 0.25;
+      const wy = i => -5 + Math.sin(ph * 2 + i * wd) * 3.5;
       ctx.strokeStyle = col; ctx.lineWidth = c.kind === 'anaconda' ? 7 : 4.5;
       ctx.lineCap = 'round';
       ctx.beginPath();
       for (let i = 0; i <= len; i += 4) {
-        const sx = -len / 2 + i, sy = -5 + Math.sin(ph * 2 + i * 0.25) * 3.5;
+        const sx = -len / 2 + i, sy = wy(i);
         if (i === 0) ctx.moveTo(sx, sy); else ctx.lineTo(sx, sy);
       }
       ctx.stroke();
@@ -2359,21 +2391,21 @@ function drawCritter(c) {
       ctx.strokeStyle = 'rgba(20,25,15,.4)'; ctx.lineWidth = c.kind === 'anaconda' ? 8.5 : 6;
       ctx.beginPath();
       for (let i = 0; i <= len; i += 4) {
-        const sx = -len / 2 + i, sy = -5 + Math.sin(ph * 2 + i * 0.25) * 3.5;
+        const sx = -len / 2 + i, sy = wy(i);
         if (i === 0) ctx.moveTo(sx, sy); else ctx.lineTo(sx, sy);
       }
       ctx.stroke();
       ctx.strokeStyle = col; ctx.lineWidth = c.kind === 'anaconda' ? 7 : 4.5;
       ctx.beginPath();
       for (let i = 0; i <= len; i += 4) {
-        const sx = -len / 2 + i, sy = -5 + Math.sin(ph * 2 + i * 0.25) * 3.5;
+        const sx = -len / 2 + i, sy = wy(i);
         if (i === 0) ctx.moveTo(sx, sy); else ctx.lineTo(sx, sy);
       }
       ctx.stroke();
       // manchas do padrão
       ctx.fillStyle = 'rgba(30,40,20,.4)';
       for (let i = 6; i <= len - 4; i += 8) {
-        const sx = -len / 2 + i, sy = -5 + Math.sin(ph * 2 + i * 0.25) * 3.5;
+        const sx = -len / 2 + i, sy = wy(i);
         ctx.beginPath(); ctx.ellipse(sx, sy, 2.6, 1.6, 0, 0, 7); ctx.fill();
       }
       const hx = -len / 2 - 3, hy = -5 + Math.sin(ph * 2) * 3.5;
@@ -2985,11 +3017,44 @@ function drawET(cm) {
   const peek = Math.max(0, Math.sin(cm.ph * 0.8));
   // centro da cabeça ancorado ao arbusto: escondido dentro (peek 0), olhos por cima ao espiar (peek 1)
   const headY = groundLocal - 18 - peek * 40;
-  // --- corpo do ET (agachado, atrás do arbusto) ---
+  const skin = '#8fb89a', skinDk = '#5e8a6d';
+  // topo da moita (a folhagem da frente é desenhada até ~ groundLocal-27).
+  // Tudo do ET precisa ficar ACIMA dessa linha quando ele espia — e ABAIXO dela
+  // (escondido) quando está agachado. Referência da linha da moita:
+  const bushTop = groundLocal - 27;
+  // CLIP: nada do ET pode ser desenhado ABAIXO da linha onde a moita fica sólida
+  // (groundLocal-4). Assim, agachado, ele some por completo atrás da folhagem e
+  // nunca vaza uma pontinha por baixo. A cabeça continua livre pra subir por cima.
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(-60, -200, 120, (groundLocal - 4) - (-200)); // tudo acima de groundLocal-4
+  ctx.clip();
+  // --- TRONCO do ET (agachado atrás da moita) — nasce do chão, atrás da folhagem.
+  // Fica sempre abaixo do topo da moita, então some quando o ET se abaixa.
+  ctx.fillStyle = skinDk;
+  ctx.beginPath();
+  ctx.ellipse(0, groundLocal - 14, 13, 16, 0, 0, 7); ctx.fill();   // tronco/ombros
+  ctx.fillStyle = skin;
+  ctx.beginPath(); ctx.ellipse(0, groundLocal - 16, 10, 13, 0, 0, 7); ctx.fill();
+  // --- cabeça + pescoço + braços, ancorados ao tronco (sobem/descem juntos) ---
+  // (ainda dentro do CLIP: nada desce abaixo de groundLocal-4)
   ctx.save();
   ctx.translate(0, headY);
-  const skin = '#8fb89a', skinDk = '#5e8a6d';
-  // pescoço fino
+  // BRAÇOS finos saindo do tronco (conectados aos ombros ~ y 22..26), simétricos.
+  // Sobem junto com a cabeça; só "acenam" quando o ET está bem pra fora.
+  const wave = peek > 0.7 ? Math.sin(cm.ph * 5) * 0.5 : 0;
+  ctx.strokeStyle = skin; ctx.lineWidth = 3; ctx.lineCap = 'round';
+  // braço esquerdo (colado ao tronco)
+  ctx.save(); ctx.translate(-9, 22); ctx.rotate(0.5);
+  ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-6, -9); ctx.stroke();
+  ctx.fillStyle = skin; ctx.beginPath(); ctx.arc(-6, -10, 2.6, 0, 7); ctx.fill();
+  ctx.restore();
+  // braço direito (acena quando espia)
+  ctx.save(); ctx.translate(9, 22); ctx.rotate(-0.5 + wave);
+  ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(6, -9); ctx.stroke();
+  ctx.fillStyle = skin; ctx.beginPath(); ctx.arc(6, -10, 2.6, 0, 7); ctx.fill();
+  ctx.restore();
+  // pescoço fino, ligando o tronco (y~26) à cabeça (y~14)
   ctx.strokeStyle = skin; ctx.lineWidth = 5; ctx.lineCap = 'round';
   ctx.beginPath(); ctx.moveTo(0, 26); ctx.lineTo(0, 14); ctx.stroke();
   // cabeça grande em gota invertida
@@ -3026,27 +3091,27 @@ function drawET(cm) {
   // boquinha neutra/sorriso tímido
   ctx.strokeStyle = skinDk; ctx.lineWidth = 1.3;
   ctx.beginPath(); ctx.arc(0, 9, 3, 0.2, Math.PI - 0.2); ctx.stroke();
-  // bracinho fino acenando tímido quando está bem pra fora
-  if (peek > 0.7) {
-    ctx.strokeStyle = skin; ctx.lineWidth = 3;
-    ctx.save(); ctx.translate(13, 20); ctx.rotate(-0.6 + Math.sin(cm.ph * 5) * 0.5);
-    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(10, -8); ctx.stroke();
-    ctx.fillStyle = skin; ctx.beginPath(); ctx.arc(11, -9, 3, 0, 7); ctx.fill();
-    ctx.restore();
-  }
-  ctx.restore();
-  // --- arbusto BAIXO na FRENTE, escondendo o corpo do ET (nasce do chão) ---
+  ctx.restore();   // fecha o translate(headY) da cabeça
+  ctx.restore();   // fecha o CLIP — a moita a seguir desenha por cima, sem corte
+  // --- arbusto DENSO na FRENTE, escondendo TODO o corpo do ET (nasce do chão) ---
+  // Preenche a faixa inteira do chão até bushTop, sem frestas onde o tronco vaze.
+  // fundo cheio primeiro (bloco sólido de folhagem), depois recortes de folhas.
+  ctx.fillStyle = '#1f5e2f';
+  ctx.beginPath(); ctx.ellipse(0, groundLocal - 2, 46, 26, 0, Math.PI, 0); ctx.fill();
+  ctx.fillRect(-44, groundLocal - 4, 88, 6);
+  // fileira da frente (mais clara), tufos largos e sobrepostos
   ctx.fillStyle = '#256b36';
-  [[-30, 6], [-10, 2], [12, 4], [32, 7], [0, 9]].forEach(l => {
-    ctx.beginPath(); ctx.ellipse(l[0], groundLocal - l[1], 22, 15, 0, Math.PI, 0); ctx.fill();
+  [[-34, 5], [-17, 8], [0, 10], [17, 8], [34, 5], [-26, 3], [26, 3]].forEach(l => {
+    ctx.beginPath(); ctx.ellipse(l[0], groundLocal - l[1], 20, 17, 0, Math.PI, 0); ctx.fill();
   });
+  // fileira de trás/topo (mais alta) — define o topo da moita = bushTop
   ctx.fillStyle = '#2f8f46';
-  [[-20, 2], [4, 3], [24, 2]].forEach(l => {
-    ctx.beginPath(); ctx.ellipse(l[0], groundLocal - 12 - l[1], 15, 11, 0, Math.PI, 0); ctx.fill();
+  [[-22, 0], [-6, 2], [8, 2], [22, 0]].forEach(l => {
+    ctx.beginPath(); ctx.ellipse(l[0], bushTop + 4 - l[1], 15, 13, 0, Math.PI, 0); ctx.fill();
   });
-  // base do arbusto rente ao chão
-  ctx.fillStyle = '#256b36';
-  ctx.fillRect(-40, groundLocal - 6, 84, 8);
+  // base rente ao chão (tapa qualquer fresta embaixo)
+  ctx.fillStyle = '#1f5e2f';
+  ctx.fillRect(-46, groundLocal - 5, 92, 8);
   ctx.restore();
 }
 
@@ -3091,14 +3156,35 @@ function drawBoss(b) {
   ctx.save();
   ctx.translate(b.x, b.y);
   if (b.hurt > 0) ctx.globalAlpha = frames % 4 < 2 ? 0.5 : 1; // pisca quando leva dano
-  const flap = Math.sin(b.ph * 2) * 10;
-  // asas grandes batendo
+  // asas GRANDES e SIMÉTRICAS, abertas planando: só um leve respiro nas pontas
+  // (não um bater largo). tip = deslocamento pequeno e igual dos dois lados.
+  const tip = Math.sin(b.ph * 1.1) * 4;
+  const WS = 82;   // envergadura de cada asa (maior que antes: era ~62)
   ctx.fillStyle = '#2a2a2a';
   ctx.beginPath();
-  ctx.moveTo(0, 0);
-  ctx.quadraticCurveTo(-38, -20 - flap, -62, 6); ctx.quadraticCurveTo(-40, 10, -14, 8);
-  ctx.quadraticCurveTo(14, 10, 40, 10); ctx.quadraticCurveTo(62, 6, 38, -20 - flap); ctx.quadraticCurveTo(20, -8, 0, 0);
-  ctx.fill();
+  ctx.moveTo(0, -2);
+  // asa esquerda: sobe do ombro, ponta larga com leve respiro, volta pela base
+  ctx.quadraticCurveTo(-40, -16 - tip, -WS, -2 - tip);   // borda de cima até a ponta
+  ctx.quadraticCurveTo(-52, 8, -18, 9);                   // borda de baixo de volta
+  ctx.quadraticCurveTo(-9, 6, 0, 6);
+  // asa direita: espelho EXATO da esquerda
+  ctx.quadraticCurveTo(9, 6, 18, 9);
+  ctx.quadraticCurveTo(52, 8, WS, -2 - tip);
+  ctx.quadraticCurveTo(40, -16 - tip, 0, -2);
+  ctx.closePath(); ctx.fill();
+  // "dedos" (penas primárias) nas pontas — simétricos, reforçam o planar
+  ctx.strokeStyle = '#1a1a1a'; ctx.lineWidth = 2.4; ctx.lineCap = 'round';
+  [-1, 1].forEach(s => {
+    for (let k = 0; k < 3; k++) {
+      ctx.beginPath();
+      ctx.moveTo(s * (WS - 10 - k * 4), -2 - tip + k);
+      ctx.lineTo(s * (WS + 4 - k * 2), -6 - tip + k * 3);
+      ctx.stroke();
+    }
+  });
+  // nervura clara no meio de cada asa (volume), simétrica
+  ctx.strokeStyle = 'rgba(90,90,95,.5)'; ctx.lineWidth = 2;
+  [-1, 1].forEach(s => { ctx.beginPath(); ctx.moveTo(s * 12, 0); ctx.quadraticCurveTo(s * 44, -6 - tip, s * (WS - 8), -2 - tip); ctx.stroke(); });
   // corpo
   ctx.fillStyle = '#1e1e22';
   ctx.beginPath(); ctx.ellipse(0, 6, 20, 24, 0, 0, 7); ctx.fill();
@@ -3597,6 +3683,80 @@ function drawPet() {
   ctx.save();
   ctx.translate(px, py);
   ctx.scale(0.62, 0.62); // menor que o tucano
+
+  if (id === 'araraazul') {
+    // ARARA-AZUL de verdade: corpo azul, CAUDA LONGA, bico preto grande e curvo,
+    // máscara/anel amarelo em volta do olho e da base do bico.
+    const az = '#1552d8', azDk = '#0e3aa0', amar = '#ffd23f';
+    // cauda longa em leque (marca da arara)
+    ctx.fillStyle = azDk;
+    ctx.beginPath();
+    ctx.moveTo(-8, 0); ctx.lineTo(-34, -10); ctx.lineTo(-33, -5);
+    ctx.lineTo(-36, -2); ctx.lineTo(-33, 1); ctx.lineTo(-34, 6); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = az;
+    ctx.beginPath(); ctx.moveTo(-8, -1); ctx.lineTo(-30, -6); ctx.lineTo(-30, 3); ctx.closePath(); ctx.fill();
+    // corpo alongado
+    ctx.fillStyle = az;
+    ctx.beginPath(); ctx.ellipse(0, 0, 13, 9, 0, 0, 7); ctx.fill();
+    // asa batendo (azul mais escuro por baixo)
+    ctx.save(); ctx.rotate(flap * 0.8);
+    ctx.fillStyle = azDk; ctx.beginPath(); ctx.ellipse(-3, -3, 11, 5, -0.3, 0, 7); ctx.fill();
+    ctx.fillStyle = az;   ctx.beginPath(); ctx.ellipse(-1, -3, 8, 3.5, -0.3, 0, 7); ctx.fill();
+    ctx.restore();
+    // cabeça
+    ctx.fillStyle = az;
+    ctx.beginPath(); ctx.arc(10, -6, 6.5, 0, 7); ctx.fill();
+    // máscara amarela (pele nua ao redor do olho e base do bico)
+    ctx.fillStyle = amar;
+    ctx.beginPath(); ctx.ellipse(12, -5, 5, 4.5, 0, 0, 7); ctx.fill();
+    // BICO preto grande e curvo pra baixo
+    ctx.fillStyle = '#101014';
+    ctx.beginPath();
+    ctx.moveTo(15, -9); ctx.quadraticCurveTo(25, -8, 24, -1);
+    ctx.quadraticCurveTo(23, 2, 19, 0); ctx.quadraticCurveTo(20, -4, 15, -4);
+    ctx.closePath(); ctx.fill();
+    // olho escuro sobre a máscara amarela
+    ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(12, -6, 1.7, 0, 7); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(12.5, -6.5, 0.6, 0, 7); ctx.fill();
+    ctx.restore();
+    return;
+  }
+
+  if (id === 'beijaflor') {
+    // BEIJA-FLOR de verdade: corpo pequeno, iridescente verde/turquesa, bico fino
+    // e MUITO longo, asas borradas (batem rápido demais pra enxergar).
+    const verde = '#12b886', turq = '#0ca678', peito = '#c3f0e0';
+    // asas borradas: dois leques translúcidos em volta do corpo
+    ctx.fillStyle = 'rgba(180,230,220,.35)';
+    const blur = Math.sin(frames * 1.6) * 3;
+    ctx.beginPath(); ctx.ellipse(-1, -5 - blur, 12, 5, -0.5, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(-1, 3 + blur, 12, 5, 0.5, 0, 7); ctx.fill();
+    // cauda curta entalhada
+    ctx.fillStyle = turq;
+    ctx.beginPath(); ctx.moveTo(-6, 0); ctx.lineTo(-15, -4); ctx.lineTo(-13, 0); ctx.lineTo(-15, 4); ctx.closePath(); ctx.fill();
+    // corpo pequeno
+    ctx.fillStyle = verde;
+    ctx.beginPath(); ctx.ellipse(0, 0, 8, 6, 0, 0, 7); ctx.fill();
+    // peito claro
+    ctx.fillStyle = peito;
+    ctx.beginPath(); ctx.ellipse(2, 2, 4.5, 4, 0, 0, 7); ctx.fill();
+    // gorja iridescente (mancha turquesa na garganta)
+    ctx.fillStyle = turq;
+    ctx.beginPath(); ctx.ellipse(6, 1, 3, 2.5, 0, 0, 7); ctx.fill();
+    // cabeça
+    ctx.fillStyle = verde;
+    ctx.beginPath(); ctx.arc(7, -3, 4.5, 0, 7); ctx.fill();
+    // BICO fino e bem longo, levemente curvo
+    ctx.strokeStyle = '#1a1a1a'; ctx.lineWidth = 1.4; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(10, -3); ctx.quadraticCurveTo(20, -3, 28, -2); ctx.stroke();
+    // olho
+    ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(8, -4, 1.4, 0, 7); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(8.4, -4.4, 0.5, 0, 7); ctx.fill();
+    ctx.restore();
+    return;
+  }
+
+  // --- aves genéricas (bem-te-vi, sabiá) ---
   // cauda
   ctx.fillStyle = pet.cor;
   ctx.beginPath(); ctx.moveTo(-10, -2); ctx.lineTo(-22, -6); ctx.lineTo(-20, 4); ctx.closePath(); ctx.fill();
@@ -3618,48 +3778,73 @@ function drawPet() {
   // olho
   ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(10, -7, 2, 0, 7); ctx.fill();
   ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(10.5, -7, 1, 0, 7); ctx.fill();
-  // detalhe beija-flor: bico longo
-  if (id === 'beijaflor') { ctx.strokeStyle = '#333'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(14, -5); ctx.lineTo(24, -4); ctx.stroke(); }
   ctx.restore();
 }
 // desenha o acessório equipado no referencial local do tucano (cabeça ~ (8,-10))
 function drawAccessory(id) {
   if (!id) return;
   if (id === 'oculos') {
-    ctx.fillStyle = '#1a1a1a';
-    ctx.fillRect(3, -13, 8, 5); ctx.fillRect(13, -13, 8, 5);
-    ctx.fillRect(11, -12, 2, 2);
-    ctx.strokeStyle = '#1a1a1a'; ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(3, -12); ctx.lineTo(-2, -13); ctx.stroke();
+    // ÓCULOS DE SOL grandes, lentes bem sobre o olho do tucano (olho ~ (13.5,-9)).
+    // Aumentado ~5x em área: lentes maiores, armação, ponte e haste.
+    const lensY = -9;                 // altura do olho
+    // armação (contorno preto grosso das duas lentes)
+    ctx.fillStyle = '#0d0d0d';
+    ctx.beginPath(); ctx.ellipse(13.5, lensY, 9, 8, 0, 0, 7); ctx.fill();   // lente sobre o olho
+    ctx.beginPath(); ctx.ellipse(0.5, lensY, 9, 8, 0, 0, 7); ctx.fill();    // lente de trás
+    // lentes escuras espelhadas (gradiente azul-petróleo de óculos de sol)
+    const lens = ctx.createLinearGradient(-6, lensY - 8, 22, lensY + 8);
+    lens.addColorStop(0, '#2b3a4a'); lens.addColorStop(0.5, '#11181f'); lens.addColorStop(1, '#000');
+    ctx.fillStyle = lens;
+    ctx.beginPath(); ctx.ellipse(13.5, lensY, 7, 6.2, 0, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(0.5, lensY, 7, 6.2, 0, 0, 7); ctx.fill();
+    // brilho diagonal nas lentes
+    ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 1.6;
+    ctx.beginPath(); ctx.moveTo(10, lensY - 3); ctx.lineTo(15, lensY + 2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-3, lensY - 3); ctx.lineTo(2, lensY + 2); ctx.stroke();
+    // ponte entre as lentes + haste que segue pra trás da cabeça
+    ctx.strokeStyle = '#0d0d0d'; ctx.lineWidth = 2.4; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(6.5, lensY - 1); ctx.lineTo(7.5, lensY - 1); ctx.stroke();  // ponte
+    ctx.beginPath(); ctx.moveTo(-8, lensY - 2); ctx.lineTo(-13, lensY - 4); ctx.stroke();   // haste
   } else if (id === 'chapeu') {
     ctx.fillStyle = '#1a1a2a';
     ctx.fillRect(0, -22, 22, 3);   // aba
     ctx.fillRect(5, -34, 13, 13);  // copa
     ctx.fillStyle = '#e63946'; ctx.fillRect(5, -24, 13, 2); // fita
   } else if (id === 'capa') {
-    // CAPA ao vento: 5 frames em looping (a pedido). Cada frame ondula a barra
-    // da capa em posições diferentes, dando o efeito de tremular ao vento.
+    // CAPA DE HERÓI estilo Super-Homem: longa, retangular, esticada na HORIZONTAL
+    // atrás das costas como se o vento a puxasse pra trás. Presa na nuca (~-8,-9)
+    // e voando pra esquerda (sentido oposto ao voo). A ponta ondula em 5 frames.
+    // topEdge = borda de cima (colada às costas), botEdge = borda de baixo.
     const CAPE_FRAMES = [
-      { cx: -34, cy: 6,  bx: -30, by: 22, mx: -18, my: 14 },
-      { cx: -37, cy: 3,  bx: -34, by: 18, mx: -20, my: 17 },
-      { cx: -39, cy: 8,  bx: -33, by: 26, mx: -19, my: 12 },
-      { cx: -36, cy: 12, bx: -29, by: 24, mx: -17, my: 16 },
-      { cx: -33, cy: 4,  bx: -31, by: 19, mx: -18, my: 13 }
+      { tipT: 4,  tipB: 16, wave: 2 },
+      { tipT: 2,  tipB: 13, wave: 4 },
+      { tipT: 6,  tipB: 18, wave: 1 },
+      { tipT: 8,  tipB: 20, wave: 3 },
+      { tipT: 3,  tipB: 14, wave: 5 }
     ];
-    const f = CAPE_FRAMES[Math.floor(frames / 6) % 5]; // troca de frame a cada 6 ticks (~10 fps)
-    ctx.fillStyle = '#e63946';
+    const f = CAPE_FRAMES[Math.floor(frames / 6) % 5]; // ~10 fps
+    const nx = -8, nyT = -9, nyB = 0;        // pescoço/ombro (frente da capa, colada às costas)
+    const L = -46;                            // comprimento: ponta bem atrás (longa)
+    ctx.fillStyle = '#d62828';
     ctx.beginPath();
-    ctx.moveTo(-10, -6);
-    ctx.quadraticCurveTo(f.cx, f.cy, f.bx, f.by);
-    ctx.quadraticCurveTo(f.mx, f.my, -8, 12);
+    ctx.moveTo(nx, nyT);                                   // ombro topo
+    // borda superior reta e esticada até a ponta (efeito de vento horizontal)
+    ctx.quadraticCurveTo((nx + L) / 2, nyT - f.wave, L, nyT + f.tipT);
+    // ponta traseira (barra vertical curta, ondulando)
+    ctx.quadraticCurveTo(L - 4, (nyT + nyB) / 2 + f.tipT, L, nyB + f.tipB);
+    // borda inferior de volta ao ombro
+    ctx.quadraticCurveTo((nx + L) / 2, nyB + 8 + f.wave, nx, nyB);
     ctx.closePath(); ctx.fill();
-    // sombra interna pra dar volume à dobra da capa
-    ctx.fillStyle = 'rgba(150,20,30,.35)';
+    // dobra/sombra interna pra dar volume (faixa mais escura embaixo)
+    ctx.fillStyle = 'rgba(140,20,25,.4)';
     ctx.beginPath();
-    ctx.moveTo(-10, -6);
-    ctx.quadraticCurveTo(f.mx - 3, f.my - 2, f.bx + 4, f.by - 3);
-    ctx.quadraticCurveTo(f.mx, f.my, -9, 8);
+    ctx.moveTo(nx, nyB);
+    ctx.quadraticCurveTo((nx + L) / 2, nyB + 6 + f.wave, L, nyB + f.tipB);
+    ctx.quadraticCurveTo((nx + L) / 2, nyB + 2 + f.wave, nx, nyB - 3);
     ctx.closePath(); ctx.fill();
+    // golinha da capa no pescoço (detalhe de herói)
+    ctx.fillStyle = '#b71c1c';
+    ctx.beginPath(); ctx.moveTo(nx + 2, nyT - 1); ctx.lineTo(nx - 3, nyT + 3); ctx.lineTo(nx + 3, nyB); ctx.closePath(); ctx.fill();
   } else if (id === 'coroa') {
     ctx.fillStyle = '#ffd23f';
     ctx.beginPath();
@@ -4471,7 +4656,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.1';
+const GAME_VERSION = '5.2';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
