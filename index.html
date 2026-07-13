@@ -249,13 +249,29 @@
         <button id="btnTutorial" class="sec">&#127891; TUTORIAL</button>
         <button id="btnHardcore" class="sec">&#128128; HARDCORE</button>
         <button id="btnFriends" class="sec">&#10084;&#65039; AMIGOS</button>
+        <button id="btnIdeas" class="sec">&#128161; IDEIAS</button>
       </div>
       <div id="ranking">
         <h2>&#127942; RANKING GLOBAL &middot; TOP 10</h2>
         <ol id="rankList"></ol>
       </div>
       <p class="hint">ESPAÇO / CLIQUE / TOQUE para voar &middot; E ou P pausa</p>
-      <p class="credit"><span id="menuVer"></span> &middot; &copy; 2026 CISCO GAMES &middot; Todos os direitos reservados</p>
+      <p class="credit"><span id="menuVer"></span> &middot; &copy; 2026 CISCO GAMES &middot; Ideias &amp; co-cria&ccedil;&atilde;o: <b>FRANCISCO (9 anos)</b></p>
+    </div>
+
+    <!-- TELA DE IDEIAS / CRÉDITOS / SUGESTÕES -->
+    <div id="ideas" class="overlay hidden">
+      <h1 style="font-size:26px">&#128161; IDEIAS<small>DO SUPER TUCAN</small></h1>
+      <div id="ideasCredits">
+        <p class="sub" style="max-width:360px">Este jogo cresce com as ideias de quem joga. O <b>Francisco (9 anos)</b> é co-criador e mandou dezenas de ideias que viraram fases, eventos e itens. &#127881;</p>
+        <p class="hint" style="margin-top:10px">Tem uma ideia pra deixar o jogo melhor? Manda pra gente:</p>
+      </div>
+      <textarea id="ideaText" maxlength="240" placeholder="Escreva sua ideia aqui..." rows="3" style="width:280px;max-width:86vw;font-family:inherit;font-size:14px;background:#10281a;color:#e8f5ea;border:2px solid #2e6e3e;border-radius:8px;padding:8px;outline:none;resize:none"></textarea>
+      <div class="hint" style="margin-bottom:2px">SEU NOME (opcional)</div>
+      <input id="ideaWho" maxlength="16" autocomplete="off" placeholder="QUEM SUGERIU" style="width:200px;text-align:center;font-family:inherit;font-size:15px;text-transform:uppercase;background:#10281a;color:#ffd23f;border:2px solid #7ee08a;border-radius:8px;padding:6px;outline:none">
+      <div class="hint" id="ideaMsg" style="min-height:16px"></div>
+      <button id="btnIdeaSend">ENVIAR IDEIA</button>
+      <button id="ideaClose" class="sec">VOLTAR</button>
     </div>
 
     <!-- TELA DE FIM DE JOGO -->
@@ -3686,6 +3702,39 @@ document.getElementById('fClose').addEventListener('click', () => {
   elFriends.classList.add('hidden');
   elMenu.classList.remove('hidden');
 });
+
+// ---------- IDEIAS / SUGESTÕES (ideia do Francisco, 9 anos) ----------
+const elIdeas = document.getElementById('ideas');
+document.getElementById('btnIdeas').addEventListener('click', () => {
+  elMenu.classList.add('hidden');
+  elIdeas.classList.remove('hidden');
+  document.getElementById('ideaMsg').textContent = '';
+  document.getElementById('ideaWho').value = (localStorage.getItem(LS_NAME) || '').toUpperCase();
+});
+document.getElementById('ideaClose').addEventListener('click', () => {
+  elIdeas.classList.add('hidden');
+  elMenu.classList.remove('hidden');
+});
+document.getElementById('btnIdeaSend').addEventListener('click', async () => {
+  const txt = document.getElementById('ideaText').value.trim();
+  const who = document.getElementById('ideaWho').value.trim().slice(0, 16) || 'ANÔNIMO';
+  const msg = document.getElementById('ideaMsg');
+  if (txt.length < 4) { msg.textContent = '✍️ Escreva um pouquinho mais...'; return; }
+  msg.textContent = 'ENVIANDO...';
+  const idea = { text: txt.slice(0, 240), who, date: new Date().toISOString().slice(0, 10) };
+  // 1) guarda SEMPRE localmente (a sugestão nunca se perde, mesmo offline)
+  try {
+    const l = JSON.parse(localStorage.getItem('superTucan_ideas')) || [];
+    l.push(idea);
+    localStorage.setItem('superTucan_ideas', JSON.stringify(l.slice(-50)));
+  } catch (e) { /* storage cheio: ignora */ }
+  // 2) tenta enviar ao Firebase como bônus (pode ser negado por regra — tudo bem)
+  try {
+    await fetch(DB_URL + '/ideas.json', { method: 'POST', body: JSON.stringify(idea) });
+  } catch (e) { /* offline / regra: já está salvo localmente */ }
+  msg.textContent = '✅ VALEU! Sua ideia foi registrada 🦜';
+  document.getElementById('ideaText').value = '';
+});
 document.getElementById('fTabList').addEventListener('click', () => fSetTab('list'));
 document.getElementById('fTabReq').addEventListener('click', () => fSetTab('req'));
 document.getElementById('fTabAdd').addEventListener('click', () => fSetTab('add'));
@@ -3727,7 +3776,7 @@ if (document.fonts && document.fonts.load) {
     document.fonts.load(f).catch(() => {});
   });
 }
-const GAME_VERSION = '2.5';
+const GAME_VERSION = '2.6';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 resetGame();
