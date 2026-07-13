@@ -11,11 +11,11 @@ Um Flappy Bird brasileiro, cartoon e cheio de vida — voe com o tucano por 6 bi
 ## ✨ O que tem no jogo
 
 - 6 biomas brasileiros com fauna nativa animada, o ET de Varginha escondido e sua nave
-- Itens: pena, escudo, relógio, água, o Livro das Maldições e 6 Comidas do Brasil (café, brigadeiro, pimenta…)
-- Eventos: ventania, tempestade, vulcão com bolas de fogo letais, noite de 30s e bônus do ET
+- Itens: pena, escudo, relógio, água turbinada, o Livro das Maldições e 6 Comidas do Brasil (café, brigadeiro, pimenta…)
+- Eventos: ventania, tempestade, terremoto, vulcão com tremor e bolas de fogo letais, noite de 30s e bônus do ET
 - Bossfights com portal, arena do Cemitério, Urubu, Cobra com 4 ataques, ranking global (ovos e XP), lojinha, conquistas e aves companheiras
 - HUD e arte com leitura mobile-first: contornos cartoon, telegráficos de boss e recompensas cosméticas
-- Amiguinhos equipados ajudam a coletar ovos e power-ups com hitbox própria
+- Amiguinhos equipados ajudam a coletar ovos e power-ups com hitbox própria; a lojinha tem novas aves brasileiras e acessórios
 - 4 idiomas: 🇧🇷 🇺🇸 🇪🇸 🇨🇳
 
 ## 💡 Sugestões da comunidade

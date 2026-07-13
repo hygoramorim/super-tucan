@@ -285,6 +285,12 @@
       <h1 style="font-size:26px">&#128161; IDEIAS<small>DO SUPER TUCAN</small></h1>
       <div id="ideasCredits">
         <p class="sub" style="max-width:360px"><b>Cisco (Francisco, 9 anos)</b> é o <b>Game Designer</b> do Super Tucan &#127918;. Mas o jogo cresce com a criatividade de todo mundo — <b>qualquer jogador pode colaborar com a evolução do jogo enviando ideias e sugestões!</b> &#127881;</p>
+        <div style="max-width:360px;background:rgba(16,40,26,.86);border:1px solid #2e6e3e;border-radius:8px;padding:8px 10px;margin:8px auto 0;text-align:left;font-size:11px;line-height:1.35">
+          <b style="color:#ffd23f">Créditos das ideias</b><br>
+          <span style="color:#7ee08a">Cisco / Francisco:</span> game design, eventos, ET, bossfights, loja, água turbinada e polimentos.<br>
+          <span style="color:#7ee08a">Guilherme:</span> chefã cobra e ideias de itens/visão.<br>
+          <span style="color:#7ee08a">Tucano:</span> portal do boss, cemitério, conquistas, traduções e recompensas.
+        </div>
         <p class="hint" style="margin-top:10px">Tem uma ideia pra deixar o jogo ainda melhor? Manda pra gente:</p>
       </div>
       <textarea id="ideaText" maxlength="720" placeholder="Escreva sua ideia aqui..." rows="3" style="width:280px;max-width:86vw;font-family:inherit;font-size:14px;background:#10281a;color:#e8f5ea;border:2px solid #2e6e3e;border-radius:8px;padding:8px;outline:none;resize:none"></textarea>
@@ -351,8 +357,8 @@ const I18N = {
     ideaHint: 'Tem uma ideia pra deixar o jogo ainda melhor? Manda pra gente:', ideaName: 'SEU NOME (opcional)', ideaPlaceholder: 'Escreva sua ideia aqui...', ideaSending: 'ENVIANDO...', ideaThanks: '✅ VALEU! Sua ideia foi registrada 🦜', ideaShort: '✍️ Escreva um pouquinho mais...',
     loadingRank: 'Carregando ranking...', noScores: 'Nenhuma pontuação ainda. Seja o primeiro do mundo!', offlineRank: 'Sem conexão — ranking indisponível.',
     phase: 'FASE', maxLevel: 'NÍVEL MÁXIMO', survive: 'SOBREVIVA!', level: 'NÍVEL', faster: 'MAIS RÁPIDO!', dailyLabel: 'DESAFIO DO DIA',
-    nightEvent: 'CAIU A NOITE', volcanoEvent: 'VULCÃO! DESVIE DAS BOLAS DE FOGO', alert: 'ALERTA',
-    featherFx: 'PENA! PONTOS ×2', shieldFx: 'ESCUDO!', slowFx: 'CÂMERA LENTA!', waterFx: 'HIDRATADO! PULO +ALTO',
+    nightEvent: 'CAIU A NOITE', volcanoEvent: 'VULCÃO! DESVIE DAS BOLAS DE FOGO', earthquakeEvent: 'TERREMOTO!', alert: 'ALERTA',
+    featherFx: 'PENA! PONTOS ×2', shieldFx: 'ESCUDO!', slowFx: 'CÂMERA LENTA!', waterFx: 'ÁGUA! LENTO + ESCUDO + PONTOS ×2', lowGravityFx: 'GRAVIDADE BAIXA',
     bookFast: 'MALDIÇÃO: 2× MAIS RÁPIDO!', bookSlow: 'MALDIÇÃO: 2× MAIS LENTO!', bookJump: 'MALDIÇÃO: PULO 1,5×!', bookScore: 'MALDIÇÃO: PONTOS 4×!',
     savedByShield: 'ESCUDO SALVOU!', careful: 'OPA! CUIDADO', phew: 'UFA!', points: 'PONTOS!', scoreBest: 'NOVO RECORDE PESSOAL', scoreYour: 'Seu recorde', scoreNeeded: 'faltaram',
     sendingRank: 'Enviando ao ranking', offlineSaved: 'Sem conexão — recorde salvo só neste aparelho.', rankPos: 'está em', rankTop: 'no TOP 10 GLOBAL de ovos!', keepPlaying: 'Continue jogando pra entrar no TOP 10 de ovos!',
@@ -378,8 +384,8 @@ const I18N = {
     ideaHint: 'Got an idea to make the game even better? Send it to us:', ideaName: 'YOUR NAME (optional)', ideaPlaceholder: 'Write your idea here...', ideaSending: 'SENDING...', ideaThanks: '✅ THANKS! Your idea was saved 🦜', ideaShort: '✍️ Write a little more...',
     loadingRank: 'Loading ranking...', noScores: 'No scores yet. Be the first in the world!', offlineRank: 'No connection — ranking unavailable.',
     phase: 'PHASE', maxLevel: 'MAX LEVEL', survive: 'SURVIVE!', level: 'LEVEL', faster: 'FASTER!', dailyLabel: 'DAILY CHALLENGE',
-    nightEvent: 'NIGHT FELL', volcanoEvent: 'VOLCANO! DODGE THE FIREBALLS', alert: 'ALERT',
-    featherFx: 'FEATHER! POINTS ×2', shieldFx: 'SHIELD!', slowFx: 'SLOW MOTION!', waterFx: 'HYDRATED! HIGHER JUMP',
+    nightEvent: 'NIGHT FELL', volcanoEvent: 'VOLCANO! DODGE THE FIREBALLS', earthquakeEvent: 'EARTHQUAKE!', alert: 'ALERT',
+    featherFx: 'FEATHER! POINTS ×2', shieldFx: 'SHIELD!', slowFx: 'SLOW MOTION!', waterFx: 'WATER! SLOW + SHIELD + POINTS ×2', lowGravityFx: 'LOW GRAVITY',
     bookFast: 'CURSE: 2× FASTER!', bookSlow: 'CURSE: 2× SLOWER!', bookJump: 'CURSE: 1.5× JUMP!', bookScore: 'CURSE: POINTS 4×!',
     savedByShield: 'SHIELD SAVED YOU!', careful: 'WATCH OUT!', phew: 'PHEW!', points: 'POINTS!', scoreBest: 'NEW PERSONAL BEST', scoreYour: 'Your best', scoreNeeded: 'needed',
     sendingRank: 'Sending to ranking', offlineSaved: 'No connection — record saved only on this device.', rankPos: 'is', rankTop: 'on the GLOBAL TOP 10 for eggs!', keepPlaying: 'Keep playing to enter the egg TOP 10!',
@@ -405,8 +411,8 @@ const I18N = {
     ideaHint: '¿Tienes una idea para mejorar el juego? Envíanosla:', ideaName: 'TU NOMBRE (opcional)', ideaPlaceholder: 'Escribe tu idea aquí...', ideaSending: 'ENVIANDO...', ideaThanks: '✅ ¡GRACIAS! Tu idea fue registrada 🦜', ideaShort: '✍️ Escribe un poco más...',
     loadingRank: 'Cargando ranking...', noScores: 'Aún no hay puntuaciones. ¡Sé el primero del mundo!', offlineRank: 'Sin conexión — ranking no disponible.',
     phase: 'FASE', maxLevel: 'NIVEL MÁXIMO', survive: '¡SOBREVIVE!', level: 'NIVEL', faster: '¡MÁS RÁPIDO!', dailyLabel: 'RETO DEL DÍA',
-    nightEvent: 'CAYÓ LA NOCHE', volcanoEvent: '¡VOLCÁN! ESQUIVA LAS BOLAS DE FUEGO', alert: 'ALERTA',
-    featherFx: 'PLUMA! PUNTOS ×2', shieldFx: 'ESCUDO!', slowFx: 'CÁMARA LENTA!', waterFx: 'HIDRATADO! SALTO MÁS ALTO',
+    nightEvent: 'CAYÓ LA NOCHE', volcanoEvent: '¡VOLCÁN! ESQUIVA LAS BOLAS DE FUEGO', earthquakeEvent: 'TERREMOTO!', alert: 'ALERTA',
+    featherFx: 'PLUMA! PUNTOS ×2', shieldFx: 'ESCUDO!', slowFx: 'CÁMARA LENTA!', waterFx: 'AGUA! LENTO + ESCUDO + PUNTOS ×2', lowGravityFx: 'GRAVEDAD BAJA',
     bookFast: 'MALDICIÓN: 2× MÁS RÁPIDO!', bookSlow: 'MALDICIÓN: 2× MÁS LENTO!', bookJump: 'MALDICIÓN: SALTO 1,5×!', bookScore: 'MALDICIÓN: PUNTOS 4×!',
     savedByShield: '¡EL ESCUDO TE SALVÓ!', careful: '¡CUIDADO!', phew: '¡UF!', points: 'PUNTOS!', scoreBest: 'NUEVO RÉCORD PERSONAL', scoreYour: 'Tu récord', scoreNeeded: 'faltaron',
     sendingRank: 'Enviando al ranking', offlineSaved: 'Sin conexión — récord guardado solo en este dispositivo.', rankPos: 'está en', rankTop: 'en el TOP 10 GLOBAL de huevos!', keepPlaying: '¡Sigue jugando para entrar al TOP 10 de huevos!',
@@ -432,8 +438,8 @@ const I18N = {
     ideaHint: '有让游戏更棒的点子吗？发给我们：', ideaName: '你的名字（可选）', ideaPlaceholder: '在这里写下你的点子...', ideaSending: '发送中...', ideaThanks: '✅ 谢谢！你的点子已保存 🦜', ideaShort: '✍️ 再多写一点...',
     loadingRank: '排行榜加载中...', noScores: '还没有分数。成为世界第一吧！', offlineRank: '无连接 — 排行榜不可用。',
     phase: '阶段', maxLevel: '最高等级', survive: '活下去！', level: '等级', faster: '更快！', dailyLabel: '每日挑战',
-    nightEvent: '夜晚降临', volcanoEvent: '火山！躲开火球', alert: '警报',
-    featherFx: '羽毛！分数 ×2', shieldFx: '护盾！', slowFx: '慢动作！', waterFx: '补水！跳得更高',
+    nightEvent: '夜晚降临', volcanoEvent: '火山！躲开火球', earthquakeEvent: '地震！', alert: '警报',
+    featherFx: '羽毛！分数 ×2', shieldFx: '护盾！', slowFx: '慢动作！', waterFx: '水！减速 + 护盾 + 分数 ×2', lowGravityFx: '低重力',
     bookFast: '诅咒：快 2 倍！', bookSlow: '诅咒：慢 2 倍！', bookJump: '诅咒：跳跃 1.5 倍！', bookScore: '诅咒：分数 4 倍！',
     savedByShield: '护盾救了你！', careful: '小心！', phew: '呼！', points: '分！', scoreBest: '新的个人最佳', scoreYour: '你的最佳', scoreNeeded: '还差',
     sendingRank: '发送到排行榜', offlineSaved: '无连接 — 记录只保存在本设备。', rankPos: '位于', rankTop: '全球鸡蛋前10名！', keepPlaying: '继续玩，进入鸡蛋前10名！',
@@ -536,9 +542,10 @@ function currentDiff() {
     gap: Math.max(122, p.gap - p3Level * 2.2),
     spacing: Math.max(196, p.spacing - p3Level * 2.2)
   };
-  // modificadores ativos: relógio (câmera lenta), pena (mais rápido), vulcão
+  // modificadores ativos: relógio (câmera lenta), água turbinada, pena (mais rápido), vulcão
   let k = 1;
   if (slowmo > 0) k *= 0.55;
+  if (agua > 0) k *= 0.4;
   if (pena > 0) k *= 1.3;
   if (event === 'VULCÃO') k *= 1.1;
   if (bookTimer > 0) k *= bookMod; // LIVRO: +vel (1.3) ou -vel (0.7)
@@ -871,7 +878,13 @@ const SHOP_ITEMS = [
   { id: 'capa',     emoji: '🦸', nome: 'CAPA DE HERÓI',   preco: 200 },
   { id: 'coroa',    emoji: '👑', nome: 'COROA DOURADA',   preco: 400 },
   { id: 'gravata',  emoji: '👔', nome: 'GRAVATINHA',      preco: 90 },
-  { id: 'laco',     emoji: '🎀', nome: 'LAÇO CHARMOSO',   preco: 70 }
+  { id: 'laco',     emoji: '🎀', nome: 'LAÇO CHARMOSO',   preco: 70 },
+  { id: 'boneCisco',emoji: '🧢', nome: 'BONÉ DO CISCO',   preco: 160 },
+  { id: 'cachecol', emoji: '🧣', nome: 'CACHECOL',        preco: 140 },
+  { id: 'mochila',  emoji: '🎒', nome: 'MOCHILINHA',      preco: 220 },
+  { id: 'fone',     emoji: '🎧', nome: 'FONE DE OUVIDO',  preco: 260 },
+  { id: 'medalha',  emoji: '🏅', nome: 'MEDALHA',         preco: 320 },
+  { id: 'asaBrilho',emoji: '✨', nome: 'ASA BRILHANTE',   preco: 480 }
 ];
 function eggBank() { return parseInt(localStorage.getItem('superTucan_eggBank') || '0', 10) || 0; }
 function addEggs(n) { localStorage.setItem('superTucan_eggBank', String(eggBank() + n)); }
@@ -898,7 +911,13 @@ const PET_ITEMS = [
   { id: 'bentevi',  emoji: '🐤', nome: 'BEM-TE-VI',   preco: 80,  cor: '#f5c542', peito: '#8a5a2a' },
   { id: 'sabia',    emoji: '🐦', nome: 'SABIÁ-LARANJEIRA', preco: 150, cor: '#6a4a3a', peito: '#d9743a' },
   { id: 'beijaflor',emoji: '🕊️', nome: 'BEIJA-FLOR',  preco: 250, cor: '#2e9e8a', peito: '#7ee0c0' },
-  { id: 'araraazul',emoji: '🦜', nome: 'ARARA-AZUL',  preco: 500, cor: '#1d4ed8', peito: '#ffd23f' }
+  { id: 'araraazul',emoji: '🦜', nome: 'ARARA-AZUL',  preco: 500, cor: '#1d4ed8', peito: '#ffd23f' },
+  { id: 'canario',  emoji: '🐥', nome: 'CANÁRIO-DA-TERRA', preco: 120, cor: '#facc15', peito: '#fef08a' },
+  { id: 'ararajuba',emoji: '🦜', nome: 'ARARAJUBA',    preco: 260, cor: '#facc15', peito: '#22c55e' },
+  { id: 'joaobarro',emoji: '🐦', nome: 'JOÃO-DE-BARRO', preco: 360, cor: '#a16207', peito: '#d97706' },
+  { id: 'corujab',  emoji: '🦉', nome: 'CORUJA-BURAQUEIRA', preco: 500, cor: '#b45309', peito: '#fef3c7' },
+  { id: 'saira',    emoji: '🐦', nome: 'SAÍRA-SETE-CORES', preco: 620, cor: '#22c55e', peito: '#38bdf8' },
+  { id: 'seriema',  emoji: '🐦', nome: 'SERIEMA',      preco: 750, cor: '#b08968', peito: '#e6ccb2' }
 ];
 function ownedPets() { return storedList('superTucan_pets'); }
 function ownsPet(id) { return ownsStored('superTucan_pets', id); }
@@ -920,10 +939,22 @@ const ITEM_NAMES = {
   coroa: { pt:'COROA DOURADA', en:'GOLDEN CROWN', es:'CORONA DORADA', zh:'金皇冠' },
   gravata: { pt:'GRAVATINHA', en:'TIE', es:'CORBATITA', zh:'领带' },
   laco: { pt:'LAÇO CHARMOSO', en:'CUTE BOW', es:'LAZO BONITO', zh:'蝴蝶结' },
+  boneCisco: { pt:'BONÉ DO CISCO', en:'CISCO CAP', es:'GORRA DE CISCO', zh:'Cisco 帽子' },
+  cachecol: { pt:'CACHECOL', en:'SCARF', es:'BUFANDA', zh:'围巾' },
+  mochila: { pt:'MOCHILINHA', en:'BACKPACK', es:'MOCHILA', zh:'背包' },
+  fone: { pt:'FONE DE OUVIDO', en:'HEADPHONES', es:'AURICULARES', zh:'耳机' },
+  medalha: { pt:'MEDALHA', en:'MEDAL', es:'MEDALLA', zh:'奖牌' },
+  asaBrilho: { pt:'ASA BRILHANTE', en:'SPARKLY WING', es:'ALA BRILLANTE', zh:'闪亮翅膀' },
   bentevi: { pt:'BEM-TE-VI', en:'GREAT KISKADEE', es:'BENTEVEO', zh:'大食蝇鸟' },
   sabia: { pt:'SABIÁ-LARANJEIRA', en:'RUFOUS-BELLIED THRUSH', es:'ZORZAL COLORADO', zh:'橙腹鸫' },
   beijaflor: { pt:'BEIJA-FLOR', en:'HUMMINGBIRD', es:'COLIBRÍ', zh:'蜂鸟' },
-  araraazul: { pt:'ARARA-AZUL', en:'HYACINTH MACAW', es:'GUACAMAYO AZUL', zh:'蓝金刚鹦鹉' }
+  araraazul: { pt:'ARARA-AZUL', en:'HYACINTH MACAW', es:'GUACAMAYO AZUL', zh:'蓝金刚鹦鹉' },
+  canario: { pt:'CANÁRIO-DA-TERRA', en:'SAFFRON FINCH', es:'JILGUERO DORADO', zh:'金丝雀' },
+  ararajuba: { pt:'ARARAJUBA', en:'GOLDEN PARAKEET', es:'PERICO DORADO', zh:'金鹦鹉' },
+  joaobarro: { pt:'JOÃO-DE-BARRO', en:'RUFOUS HORNERO', es:'HORNERO', zh:'棕灶鸟' },
+  corujab: { pt:'CORUJA-BURAQUEIRA', en:'BURROWING OWL', es:'LECHUZA VIZCACHERA', zh:'穴鸮' },
+  saira: { pt:'SAÍRA-SETE-CORES', en:'SEVEN-COLORED TANAGER', es:'SAÍRA SIETE COLORES', zh:'七彩唐纳雀' },
+  seriema: { pt:'SERIEMA', en:'SERIEMA', es:'SERIEMA', zh:'叫鹤' }
 };
 function itemName(it) { return (ITEM_NAMES[it.id] && (ITEM_NAMES[it.id][LANG] || ITEM_NAMES[it.id].pt)) || it.nome; }
 
@@ -1030,7 +1061,9 @@ let pena = 0;      // PENA: velocidade x1.3 e pontos x2 (10 s)
 let shield = 0;    // ESCUDO: atravessa 1 tronco
 let slowmo = 0;    // RELÓGIO: tudo mais lento (15 s)
 let invuln = 0;    // invencibilidade breve após usar escudo / tutorial
-let agua = 0;      // ÁGUA: batida de asa impulsiona mais alto (10 s)
+let agua = 0;      // ÁGUA: pulo alto + jogo lento + pontos x2 (10 s)
+let aguaShield = 0; // escudo temporário da água (5 s)
+let lowGravityTimer = 0; // efeito da nave/ET: gravidade menor (15 s)
 // LIVRO DAS MALDIÇÕES (ideia 5 do Francisco): 1 de 4 efeitos aleatórios por 10s
 let bookMod = 1;   // multiplicador de velocidade (2× rápido / 0.5× lento)
 let bookJump = 1;  // multiplicador do pulo (1.5× mais alto)
@@ -1082,7 +1115,7 @@ function clearFood() { food = null; foodTimer = 0; foodSpeed = 1; foodSize = 1; 
 let event = null, eventTimer = 0, eventCooldown = 900, alertTimer = 0;
 let fireballs = [], quakePhase = 0; // ideia 3+4: bolas de fogo do vulcão + tremor
 let magicNight = 0, etCooldown = 0, etBonusTimer = 0;  // clicar no ET liga noite mágica + bônus ×2 por 15s
-let ufo = null, ufoTimer = 700;      // ideia 16: nave do ET cruza o céu de vez em quando
+let ufo = null, ufoTimer = 700, etArrivalTimer = 0; // nave anuncia o ET; 5s depois ele surge na moita
 // ideia 13 do Francisco: CHEFÃO URUBU — aparece a cada 3 biomas + Pantanal ∞, joga ossos, dá bônus.
 let boss = null, bossTimer = 1500, bones = [], venom = [], snakeEggs = [], snakeWhips = [], snakeBites = [];
 let bossPortal = null;       // tronco especial que avisa/transporta para a arena
@@ -1224,13 +1257,13 @@ function resetGame() {
   bugs = []; bugTimer = 60;
   cameo = null; cameoTimer = 420;
   pena = 0; shield = 0; slowmo = 0; invuln = 0;
-  agua = 0; bookMod = 1; bookJump = 1; bookScore = 1; bookTimer = 0;
+  agua = 0; aguaShield = 0; lowGravityTimer = 0; bookMod = 1; bookJump = 1; bookScore = 1; bookTimer = 0;
   clearFood();
   obsSinceItem = 5;
   event = null; eventTimer = 0; eventCooldown = 900; alertTimer = 0;
   fireballs = []; quakePhase = 0;
   magicNight = 0; etCooldown = 0; etBonusTimer = 0;
-  ufo = null; ufoTimer = 700;
+  ufo = null; ufoTimer = 700; etArrivalTimer = 0;
   boss = null; bossTimer = 1500; bones = []; venom = []; snakeEggs = []; snakeWhips = []; snakeBites = [];
   bossPortal = null; bossArena = null;
   nextBossKind = 'urubu';
@@ -1273,12 +1306,11 @@ document.addEventListener('keydown', e => {
     flap();
   }
 });
-// ideia 19 do Francisco: clicar no ET (quando ele está espiando, fora da moita)
-// ativa a NOITE MÁGICA por 15s e ovos ×2. Tem cooldown pra não farmar, e NÃO faz o tucano voar.
+// ideia 19/Cisco: clicar no ET visível ativa noite mágica, ovos ×2 e gravidade baixa por 15s.
 function tryClickET(clientX, clientY) {
   if (!cameo || !cameo.isET || state !== 'play' || etCooldown > 0) return false;
   const peek = Math.max(0, Math.sin(cameo.ph * 0.8));
-  if (peek < 0.5) return false; // só clicável quando está bem pra fora da moita
+  if (peek < 0.18) return false; // clicável quando já saiu da moita o bastante para ser justo
   const rect = canvas.getBoundingClientRect();
   const lx = (clientX - rect.left) / rect.width * W;
   const ly = (clientY - rect.top) / rect.height * H;
@@ -1289,8 +1321,9 @@ function tryClickET(clientX, clientY) {
   if (dx * dx + dy * dy < 55 * 55) {
     magicNight = 900;          // 15s de noite mágica
     etBonusTimer = 900;        // 15s de ovos ×2
+    lowGravityTimer = 900;     // 15s de gravidade baixa
     etCooldown = 1800;         // 30s de cooldown (anti-farm)
-    floater('🛸 NOITE MÁGICA + ' + t('etBonus') + '!', '#c9a0ff', W / 2, H / 2 - 100);
+    floater('🛸 NOITE MÁGICA + ' + t('lowGravityFx') + '!', '#c9a0ff', W / 2, H / 2 - 100);
     celebrate(['#c9a0ff', '#8fb89a', '#ffd23f'], 40);
     sfx.power();
     cameo = null;              // o ET some depois de ser tocado
@@ -1426,7 +1459,11 @@ function collectPowerup(pu, py) {
     else { bookScore = 4; floater('💎 ' + t('bookScore'), '#ffd23f'); }
     bookTimer = 600;
   }
-  else if (pu.type === 'agua') { agua = 600; floater('💧 ' + t('waterFx'), '#38bdf8'); }
+  else if (pu.type === 'agua') {
+    agua = 600;
+    aguaShield = 300;
+    floater('💧 ' + t('waterFx'), '#38bdf8');
+  }
   else if (pu.type === 'food') { applyFood(pu.food); } // COMIDAS DO BRASIL (ideia 21)
   burst(pu.x, py, pu.type === 'food' ? (FOODS[pu.food].cor) : '#ffffff', 14);
 }
@@ -1442,6 +1479,7 @@ function collectEgg(e, ey) {
   // combo, power-ups e bônus temporários multiplicam ovos sem virar recompensa permanente infinita.
   const mult = newMult
     * (pena > 0 ? 2 : 1)
+    * (agua > 0 ? 2 : 1)
     * (etBonusTimer > 0 ? 2 : 1)
     * (urubuBonusTimer > 0 ? 5 : 1)
     * (gameMode === 'hardcore' ? 3 : 1)
@@ -1552,7 +1590,9 @@ function update() {
   // ideia 16 do Francisco: a NAVE do ET de Varginha cruza o céu de vez em quando
   if (!ufo && --ufoTimer <= 0) {
     ufoTimer = 900 + Math.random() * 900;
-    ufo = { x: W + 60, y: 70 + Math.random() * 130, ph: 0, beam: 0 };
+    ufo = { x: W + 60, y: 70 + Math.random() * 130, ph: 0, beam: 0, announce: true };
+    etArrivalTimer = 300;
+    if (state === 'play') floater('🛸 ET CHEGANDO...', '#c9a0ff', W / 2, 110);
   }
   if (ufo) {
     ufo.x -= (state === 'play' ? fSpeed * 0.6 : 0.8) + 1.4;
@@ -1561,6 +1601,10 @@ function update() {
     if (Math.random() < 0.02) ufo.beam = 30; // acende o raio-trator às vezes
     if (ufo.beam > 0) ufo.beam--;
     if (ufo.x < -80) ufo = null;
+  }
+  if (state === 'play' && etArrivalTimer > 0 && --etArrivalTimer === 0 && !cameo) {
+    cameo = { x: W + 120, y: H - GROUND_H - 96, kind: phase().deco, ph: 1.1, isET: true, announced: true };
+    floater('👽 ET DE VARGINHA!', '#8fb89a', W / 2, H - GROUND_H - 145);
   }
 
   // partículas (confetes giram; penas caem devagar balançando)
@@ -1622,6 +1666,8 @@ function update() {
   if (slowmo > 0) slowmo--;
   if (invuln > 0) invuln--;
   if (agua > 0) agua--;
+  if (aguaShield > 0) aguaShield--;
+  if (lowGravityTimer > 0) lowGravityTimer--;
   if (bookTimer > 0) { bookTimer--; if (bookTimer === 0) { bookMod = 1; bookJump = 1; bookScore = 1; } }
   if (foodTimer > 0) { foodTimer--; if (foodTimer === 0) clearFood(); }
   if (magicNight > 0) magicNight--;  // ideia 19: noite mágica do ET
@@ -1646,12 +1692,12 @@ function update() {
   // eventos climáticos (da fase 3 em diante; nunca no tutorial)
   if (gameMode !== 'tutorial' && phaseIdx >= 2 && !bossArena && !bossPortal) {
     if (!event && --eventCooldown <= 0) {
-      event = ['VENTANIA', 'TEMPESTADE', 'VULCÃO', 'NOITE'][Math.floor(rng() * 4)];
+      event = ['VENTANIA', 'TEMPESTADE', 'VULCÃO', 'NOITE', 'TERREMOTO'][Math.floor(rng() * 5)];
       // ideia 2 do Francisco: noite mais longa (30s). Vulcão dura um pouco mais tb.
-      eventTimer = event === 'NOITE' ? 1800 : (event === 'VULCÃO' ? 540 : 480);
+      eventTimer = event === 'NOITE' ? 1800 : (event === 'VULCÃO' ? 600 : event === 'TERREMOTO' ? 540 : 480);
       alertTimer = 160;
       sfx.alert();
-      if (event === 'VULCÃO') { fireballs = []; quakePhase = 0; }
+      if (event === 'VULCÃO' || event === 'TERREMOTO') { fireballs = []; quakePhase = 0; }
     }
     if (event && --eventTimer <= 0) {
       event = null;
@@ -1660,15 +1706,19 @@ function update() {
     }
   }
   // o tremor de câmera (shake) decai a cada frame em jogo (senão fica travado)
-  if (shake > 0 && event !== 'VULCÃO') shake = Math.max(0, shake - 1);
+  if (shake > 0 && event !== 'VULCÃO' && event !== 'TERREMOTO') shake = Math.max(0, shake - 1);
   // ideia 3+4 (fundidas): o VULCÃO treme a tela e chove bolas de fogo do céu
   if (event === 'VULCÃO' && state === 'play') {
     quakePhase += 0.5;
-    shake = 2 + Math.sin(quakePhase) * 1.5; // tremor constante durante o vulcão
-    // depois de ~1,5s de tremor-aviso, começa a soltar bolas de fogo
-    if (eventTimer < 540 - 90 && frames % 34 === 0) {
+    shake = eventTimer > 480 ? 4 + Math.sin(quakePhase) * 2.2 : 2 + Math.sin(quakePhase) * 1.5;
+    // primeiros 2s: só tremor-aviso; depois começa a soltar bolas de fogo
+    if (eventTimer < 480 && frames % 34 === 0) {
       fireballs.push({ x: 30 + rng() * Math.max(40, W - 60), y: -20, vy: 3.4 + rng() * 2.2, r: 12 + rng() * 7, ph: rng() * 6.28 });
     }
+  }
+  if (event === 'TERREMOTO' && state === 'play') {
+    quakePhase += 0.65;
+    shake = 4 + Math.sin(quakePhase) * 2.4;
   }
   // move as bolas de fogo e checa colisão (escudo protege — ideia 8)
   if (fireballs.length) {
@@ -1678,7 +1728,7 @@ function update() {
       for (const fb of fireballs) {
         const dx = bird.x - fb.x, dy = bird.y - fb.y;
         if (dx * dx + dy * dy < (bird.r + fb.r - 4) * (bird.r + fb.r - 4)) {
-          if (shield > 0) { useShield(); fb.y = H + 999; break; }
+          if (hasShield()) { useShield(); fb.y = H + 999; break; }
           die(); return;
         }
       }
@@ -1765,7 +1815,7 @@ function update() {
       for (const bo of bones) {
         const dx = bird.x - bo.x, dy = bird.y - bo.y;
         if (dx * dx + dy * dy < (bird.r + 8) * (bird.r + 8)) {
-          if (shield > 0) { useShield(); bo.x = -999; break; }
+          if (hasShield()) { useShield(); bo.x = -999; break; }
           die(); return;
         }
       }
@@ -1778,7 +1828,7 @@ function update() {
       for (const v of venom) {
         const dx = bird.x - v.x, dy = bird.y - v.y;
         if (dx * dx + dy * dy < (bird.r + v.r) * (bird.r + v.r)) {
-          if (shield > 0) { useShield(); v.x = -999; break; }
+          if (hasShield()) { useShield(); v.x = -999; break; }
           die(); return;
         }
       }
@@ -1791,7 +1841,7 @@ function update() {
       for (const se of snakeEggs) {
         const dx = bird.x - se.x, dy = bird.y - se.y;
         if (dx * dx + dy * dy < (bird.r + se.r) * (bird.r + se.r)) {
-          if (shield > 0) { useShield(); se.x = -999; break; }
+          if (hasShield()) { useShield(); se.x = -999; break; }
           die(); return;
         }
       }
@@ -1804,7 +1854,7 @@ function update() {
         const inX = bird.x > sw.x - bird.r && bird.x < sw.x + sw.w + bird.r;
         const inY = Math.abs(bird.y - sw.y) < bird.r + 17;
         if (inX && inY && sw.life > 5) {
-          if (shield > 0) { useShield(); sw.life = 0; break; }
+          if (hasShield()) { useShield(); sw.life = 0; break; }
           die(); return;
         }
       }
@@ -1823,7 +1873,7 @@ function update() {
       for (const sb of snakeBites) {
         const dx = bird.x - sb.x, dy = bird.y - sb.y;
         if (dx * dx + dy * dy < (bird.r + sb.r) * (bird.r + sb.r)) {
-          if (shield > 0) { useShield(); sb.life = 0; break; }
+          if (hasShield()) { useShield(); sb.life = 0; break; }
           die(); return;
         }
       }
@@ -1832,10 +1882,10 @@ function update() {
   }
 
   // física do tucano (eventos mexem no ar)
-  bird.vy += 0.42;
+  bird.vy += lowGravityTimer > 0 ? 0.23 : 0.42;
   if (event === 'TEMPESTADE') bird.vy += 0.07;                       // chuva pesa
   if (event === 'VENTANIA') bird.vy += Math.sin(frames * 0.05) * 0.22; // rajadas
-  if (bird.vy > 10) bird.vy = 10;
+  if (bird.vy > (lowGravityTimer > 0 ? 7.5 : 10)) bird.vy = lowGravityTimer > 0 ? 7.5 : 10;
   bird.y += bird.vy;
   bird.rot = Math.max(-0.45, Math.min(1.2, bird.vy * 0.09));
   // trilha de posições p/ a ave companheira seguir com defasagem (ideia 15)
@@ -1845,7 +1895,7 @@ function update() {
   // tocar o teto agora é fatal (como o chão) — salvo pelo escudo (ideia 8)
   if (bird.y < bird.r) {
     bird.y = bird.r;
-    if (shield > 0 && invuln <= 0) { useShield(4); } // repique pra baixo
+    if (hasShield() && invuln <= 0) { useShield(4); } // repique pra baixo
     else { die(); return; }
   }
 
@@ -1911,7 +1961,7 @@ function update() {
     for (const en of enemies) {
       const ex = bird.x - en.x, eyd = bird.y - en.y;
       if (ex * ex + eyd * eyd < (bird.r - 2 + 10) * (bird.r - 2 + 10)) {
-        if (shield > 0 && invuln <= 0) { useShield(); en.x = -999; break; } // escudo espanta o pássaro (ideia 8)
+        if (hasShield() && invuln <= 0) { useShield(); en.x = -999; break; } // escudo espanta o pássaro (ideia 8)
         die();
         return;
       }
@@ -1976,7 +2026,7 @@ function update() {
   // colisão com o chão — salvo pelo escudo (ideia 8)
   if (bird.y + bird.r >= H - GROUND_H) {
     bird.y = H - GROUND_H - bird.r;
-    if (shield > 0 && invuln <= 0) { useShield(-7); } // repique pra cima
+    if (hasShield() && invuln <= 0) { useShield(-7); } // repique pra cima
     else { die(); return; }
   }
 
@@ -1989,7 +2039,7 @@ function update() {
       const botY = o.gapY + o.gap / 2;
       if (circleRect(bird.x, bird.y, hitR, rx, 0, o.w, topH) ||
           circleRect(bird.x, bird.y, hitR, rx, botY, o.w, H - GROUND_H - botY)) {
-        if (shield > 0) {
+        if (hasShield()) {
           useShield(); break; // ESCUDO: atravessa este tronco (ideia 8) — para de checar após gastar
         } else {
           die();
@@ -2023,8 +2073,10 @@ const DEATH_QUOTES = [
 // ideia 8 do Francisco: o ESCUDO protege de TUDO (galhos, pássaros, teto e chão).
 // Consome o escudo, dá invencibilidade breve, e opcionalmente aplica um repique
 // salvador (para teto/chão, empurrando o tucano de volta pra dentro da tela).
+function hasShield() { return shield > 0 || aguaShield > 0; }
 function useShield(pushVy) {
-  shield = 0;
+  if (aguaShield > 0) aguaShield = 0;
+  else shield = 0;
   invuln = 50;
   floater('🛡 ' + t('savedByShield'), '#7ee08a');
   sfx.shieldPop();
@@ -4435,6 +4487,39 @@ function drawAccessory(id) {
     ctx.beginPath(); ctx.moveTo(6, -14); ctx.lineTo(-2, -18); ctx.lineTo(-2, -10); ctx.closePath();
     ctx.moveTo(6, -14); ctx.lineTo(14, -18); ctx.lineTo(14, -10); ctx.closePath(); ctx.fill();
     ctx.fillStyle = '#c9105f'; ctx.beginPath(); ctx.arc(6, -14, 2, 0, 7); ctx.fill();
+  } else if (id === 'boneCisco') {
+    ctx.fillStyle = '#2563eb';
+    ctx.beginPath(); ctx.ellipse(8, -23, 14, 7, -0.08, Math.PI, 0); ctx.fill();
+    ctx.fillRect(-2, -24, 19, 7);
+    ctx.fillStyle = '#facc15';
+    ctx.font = '700 6px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('C', 8, -18);
+  } else if (id === 'cachecol') {
+    ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 5; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(-7, -2); ctx.quadraticCurveTo(2, 4, 12, 1); ctx.stroke();
+    ctx.strokeStyle = '#f97316'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(-4, 2); ctx.lineTo(-18, 10); ctx.stroke();
+  } else if (id === 'mochila') {
+    ctx.fillStyle = '#7c3aed';
+    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(-21, -3, 13, 18, 4) : ctx.rect(-21, -3, 13, 18); ctx.fill();
+    ctx.strokeStyle = '#c4b5fd'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(-9, 0); ctx.quadraticCurveTo(-16, 5, -9, 10); ctx.stroke();
+  } else if (id === 'fone') {
+    ctx.strokeStyle = '#111827'; ctx.lineWidth = 2.6; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.arc(7, -13, 13, Math.PI * 1.05, Math.PI * 1.9); ctx.stroke();
+    ctx.fillStyle = '#111827';
+    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(-5, -12, 6, 9, 3) : ctx.rect(-5, -12, 6, 9); ctx.fill();
+    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(17, -12, 6, 9, 3) : ctx.rect(17, -12, 6, 9); ctx.fill();
+  } else if (id === 'medalha') {
+    ctx.fillStyle = '#1d4ed8';
+    ctx.beginPath(); ctx.moveTo(0, 1); ctx.lineTo(5, 1); ctx.lineTo(8, 12); ctx.lineTo(3, 12); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#ffd23f';
+    ctx.beginPath(); ctx.arc(5, 15, 4, 0, 7); ctx.fill();
+  } else if (id === 'asaBrilho') {
+    ctx.fillStyle = 'rgba(255,210,63,.55)';
+    for (let i = 0; i < 4; i++) {
+      const x = -18 - i * 4, y = -11 + i * 5 + Math.sin(frames * 0.2 + i) * 1.5;
+      ctx.beginPath(); ctx.moveTo(x, y - 4); ctx.lineTo(x + 3, y); ctx.lineTo(x, y + 4); ctx.lineTo(x - 3, y); ctx.closePath(); ctx.fill();
+    }
   }
 }
 
@@ -4474,9 +4559,10 @@ function drawHUD(p) {
   ctx.shadowColor = 'rgba(0,0,0,.85)';
   ctx.shadowBlur = 3;
   if (pena > 0) { ctx.fillStyle = '#ff9f1c'; ctx.fillText('🪶 ' + t('featherFx') + ' · ' + Math.ceil(pena / 60) + 's', 14, fxY); fxY += 15; }
-  if (shield > 0) { ctx.fillStyle = '#7ee08a'; ctx.fillText('🛡 ' + t('shieldFx'), 14, fxY); fxY += 15; }
+  if (hasShield()) { ctx.fillStyle = '#7ee08a'; ctx.fillText('🛡 ' + t('shieldFx') + (aguaShield > 0 ? ' · ' + Math.ceil(aguaShield / 60) + 's' : ''), 14, fxY); fxY += 15; }
   if (slowmo > 0) { ctx.fillStyle = '#7dd3fc'; ctx.fillText('⏰ ' + t('slowFx') + ' · ' + Math.ceil(slowmo / 60) + 's', 14, fxY); fxY += 15; }
   if (agua > 0) { ctx.fillStyle = '#38bdf8'; ctx.fillText('💧 ' + t('waterFx') + ' · ' + Math.ceil(agua / 60) + 's', 14, fxY); fxY += 15; }
+  if (lowGravityTimer > 0 && fxY < 142) { ctx.fillStyle = '#c9a0ff'; ctx.fillText('🛸 ' + t('lowGravityFx') + ' · ' + Math.ceil(lowGravityTimer / 60) + 's', 14, fxY); fxY += 15; }
   if (bookTimer > 0) {
     let bico = '📖', bcor = '#c9a0ff';
     if (bookMod > 1) { bico = '🔥 ' + t('bookFast'); bcor = '#ff2e93'; }
@@ -4496,8 +4582,8 @@ function drawHUD(p) {
   if (bossBonusTimer > 0) { ctx.fillStyle = '#ffd23f'; ctx.fillText('🏆 ' + (bossBadgeText || t('bossClear')) + ' · ' + Math.ceil(bossBonusTimer / 60) + 's', 14, fxY); fxY += 15; }
   if (bossArena && fxY < 142) { ctx.fillStyle = '#ffb020'; ctx.fillText('⚔ ' + t('noEggsBoss'), 14, fxY); fxY += 15; }
   if (event && alertTimer <= 0 && fxY < 142) {
-    const icon = event === 'NOITE' ? '🌙 ' + t('nightEvent') : event === 'VULCÃO' ? '🌋 ' + t('volcanoEvent') : '⚠ ' + event;
-    ctx.fillStyle = event === 'NOITE' ? '#c9a0ff' : event === 'VULCÃO' ? '#ff9f1c' : '#ffffff';
+    const icon = event === 'NOITE' ? '🌙 ' + t('nightEvent') : event === 'VULCÃO' ? '🌋 ' + (eventTimer > 480 ? 'TREMOR...' : t('volcanoEvent')) : event === 'TERREMOTO' ? '🌎 ' + t('earthquakeEvent') : '⚠ ' + event;
+    ctx.fillStyle = event === 'NOITE' ? '#c9a0ff' : event === 'VULCÃO' ? '#ff9f1c' : event === 'TERREMOTO' ? '#f59e0b' : '#ffffff';
     ctx.fillText(icon + ' · ' + Math.ceil(eventTimer / 60) + 's', 14, fxY); fxY += 15;
   }
   ctx.shadowBlur = 0;
@@ -4621,12 +4707,22 @@ function draw() {
   drawToucan(p);
 
   // bolha do escudo / piscada de invencibilidade
-  if ((shield > 0 || invuln > 0) && state === 'play') {
-    ctx.strokeStyle = shield > 0 ? 'rgba(126,224,138,.85)' : 'rgba(255,255,255,.45)';
+  if ((hasShield() || invuln > 0) && state === 'play') {
+    ctx.strokeStyle = hasShield() ? 'rgba(126,224,138,.85)' : 'rgba(255,255,255,.45)';
     ctx.lineWidth = 2.5;
     ctx.beginPath();
     ctx.arc(bird.x, bird.y, 27 + Math.sin(frames * 0.2) * 2, 0, 7);
     ctx.stroke();
+  }
+  if (lowGravityTimer > 0 && state === 'play') {
+    ctx.fillStyle = 'rgba(201,160,255,.08)';
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = 'rgba(201,160,255,.35)';
+    for (let i = 0; i < 10; i++) {
+      const px = (i * 71 + frames * 1.5) % W;
+      const py = H - ((i * 53 + frames * 2.2) % H);
+      ctx.beginPath(); ctx.arc(px, py, 2 + (i % 3), 0, 7); ctx.fill();
+    }
   }
 
   // bolas de fogo do vulcão, na frente de tudo (ideia 3 do Francisco)
@@ -4654,6 +4750,18 @@ function draw() {
       const rx = (i * 137 + frames * 2.5) % W;
       const ry = (i * 211 + frames * (2 + i % 3)) % H;
       ctx.fillRect(rx, ry, 3, 3);
+    }
+  } else if (event === 'TERREMOTO') {
+    ctx.fillStyle = 'rgba(120,80,35,.14)';
+    ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = 'rgba(255,210,63,.26)';
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 5; i++) {
+      const y = H - GROUND_H - 25 - i * 36 + Math.sin(frames * 0.2 + i) * 3;
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      for (let x = 0; x <= W; x += 40) ctx.lineTo(x, y + Math.sin(frames * 0.25 + i + x * 0.03) * 6);
+      ctx.stroke();
     }
   } else if (event === 'VENTANIA') {
     ctx.strokeStyle = 'rgba(255,255,255,.3)';
@@ -4732,6 +4840,7 @@ function draw() {
     ctx.textAlign = 'center';
     const bannerTxt = noite ? '🌙 ' + t('nightEvent')
       : event === 'VULCÃO' ? '🌋 ' + t('volcanoEvent')
+      : event === 'TERREMOTO' ? '🌎 ' + t('earthquakeEvent')
       : '⚠ ' + t('alert') + ': ' + event;
     ctx.fillText(bannerTxt, W / 2, 114);
     ctx.globalAlpha = 1;
@@ -5277,7 +5386,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.10.2';
+const GAME_VERSION = '5.13';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
