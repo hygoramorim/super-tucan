@@ -1,5 +1,7 @@
 #!/usr/bin/env node
-// Lê as sugestões dos jogadores (nó /ideas do Firebase) e escreve em SUGESTOES.txt.
+// Lê as sugestões dos jogadores (nó /ideas do Firebase) e as grava em DOIS lugares:
+//   - SUGESTOES.txt (texto puro)
+//   - README.md (entre os marcadores <!-- SUGESTOES:INICIO --> e <!-- SUGESTOES:FIM -->)
 // O agente de programação roda isto a cada nova versão pra ver o que a comunidade pediu.
 //
 //   node ler-sugestoes.js
@@ -12,6 +14,7 @@ const path = require('path');
 
 const DB_URL = 'https://super-tucan-ranking-2026-default-rtdb.firebaseio.com';
 const OUT = path.join(__dirname, 'SUGESTOES.txt');
+const README = path.join(__dirname, 'README.md');
 
 function get(url) {
   return new Promise((resolve, reject) => {
@@ -54,6 +57,22 @@ function get(url) {
         (n + 1) + '. [' + (i.date || 's/data') + '] ' + (i.who || 'ANÔNIMO') + ':\n   ' + (i.text || '').replace(/\n/g, ' '))
     : ['(nenhuma sugestão enviada ainda)'];
 
+  // 1) grava o SUGESTOES.txt (texto puro)
   fs.writeFileSync(OUT, cab.concat(linhas).join('\n') + '\n', 'utf8');
-  console.log('✅ ' + ideias.length + ' sugestão(ões) escritas em SUGESTOES.txt');
+
+  // 2) atualiza a seção do README.md entre os marcadores
+  try {
+    let md = fs.readFileSync(README, 'utf8');
+    const mdLista = ideias.length
+      ? ideias.map((i, n) =>
+          (n + 1) + '. **' + (i.who || 'ANÔNIMO') + '** _(' + (i.date || 's/data') + ')_: ' + (i.text || '').replace(/\n/g, ' '))
+      : ['_(nenhuma sugestão sincronizada ainda)_'];
+    const bloco = '<!-- SUGESTOES:INICIO -->\n**' + ideias.length + ' sugestão(ões):**\n\n'
+      + mdLista.join('\n') + '\n<!-- SUGESTOES:FIM -->';
+    md = md.replace(/<!-- SUGESTOES:INICIO -->[\s\S]*?<!-- SUGESTOES:FIM -->/, bloco);
+    fs.writeFileSync(README, md, 'utf8');
+    console.log('✅ ' + ideias.length + ' sugestão(ões) escritas em SUGESTOES.txt e README.md');
+  } catch (e) {
+    console.log('✅ ' + ideias.length + ' sugestão(ões) em SUGESTOES.txt (README não atualizado: ' + e.message + ')');
+  }
 })();
