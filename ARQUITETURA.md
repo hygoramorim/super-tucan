@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.13.3` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.13.4` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -185,3 +185,6 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
 - **v5.13.2** — build temporária de teste: Cobra antecipada para o segundo bioma antes do Urubu.
 - **v5.13.3** — Chefã Cobra virou Anaconda: ovos coletáveis e ovos nocivos com cobrinhas, rabadas
   com alerta `!!!`, mordidas horizontais por faixa e visual maior/mais assustador.
+- **v5.13.4** — ajustes de design: ET com ciclo 1,5s exposto/2s escondido, jiboia com movimento
+  corrigido, brigadeiro desenhado como bolinha granulada brilhante, Urubu só com bico e remoção de
+  Coruja-buraqueira, Cachecol, Mochilinha e Fone da lojinha.

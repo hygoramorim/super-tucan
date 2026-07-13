@@ -881,9 +881,6 @@ const SHOP_ITEMS = [
   { id: 'gravata',  emoji: '👔', nome: 'GRAVATINHA',      preco: 90 },
   { id: 'laco',     emoji: '🎀', nome: 'LAÇO CHARMOSO',   preco: 70 },
   { id: 'boneCisco',emoji: '🧢', nome: 'BONÉ DO CISCO',   preco: 160 },
-  { id: 'cachecol', emoji: '🧣', nome: 'CACHECOL',        preco: 140 },
-  { id: 'mochila',  emoji: '🎒', nome: 'MOCHILINHA',      preco: 220 },
-  { id: 'fone',     emoji: '🎧', nome: 'FONE DE OUVIDO',  preco: 260 },
   { id: 'medalha',  emoji: '🏅', nome: 'MEDALHA',         preco: 320 }
 ];
 function eggBank() { return parseInt(localStorage.getItem('superTucan_eggBank') || '0', 10) || 0; }
@@ -915,7 +912,6 @@ const PET_ITEMS = [
   { id: 'canario',  emoji: '🐥', nome: 'CANÁRIO-DA-TERRA', preco: 120, cor: '#facc15', peito: '#fef08a' },
   { id: 'ararajuba',emoji: '🦜', nome: 'ARARAJUBA',    preco: 260, cor: '#facc15', peito: '#22c55e' },
   { id: 'joaobarro',emoji: '🐦', nome: 'JOÃO-DE-BARRO', preco: 360, cor: '#a16207', peito: '#d97706' },
-  { id: 'corujab',  emoji: '🦉', nome: 'CORUJA-BURAQUEIRA', preco: 500, cor: '#b45309', peito: '#fef3c7' },
   { id: 'saira',    emoji: '🐦', nome: 'SAÍRA-SETE-CORES', preco: 620, cor: '#22c55e', peito: '#38bdf8' }
 ];
 function ownedPets() { return storedList('superTucan_pets'); }
@@ -939,9 +935,6 @@ const ITEM_NAMES = {
   gravata: { pt:'GRAVATINHA', en:'TIE', es:'CORBATITA', zh:'领带' },
   laco: { pt:'LAÇO CHARMOSO', en:'CUTE BOW', es:'LAZO BONITO', zh:'蝴蝶结' },
   boneCisco: { pt:'BONÉ DO CISCO', en:'CISCO CAP', es:'GORRA DE CISCO', zh:'Cisco 帽子' },
-  cachecol: { pt:'CACHECOL', en:'SCARF', es:'BUFANDA', zh:'围巾' },
-  mochila: { pt:'MOCHILINHA', en:'BACKPACK', es:'MOCHILA', zh:'背包' },
-  fone: { pt:'FONE DE OUVIDO', en:'HEADPHONES', es:'AURICULARES', zh:'耳机' },
   medalha: { pt:'MEDALHA', en:'MEDAL', es:'MEDALLA', zh:'奖牌' },
   bentevi: { pt:'BEM-TE-VI', en:'GREAT KISKADEE', es:'BENTEVEO', zh:'大食蝇鸟' },
   sabia: { pt:'SABIÁ-LARANJEIRA', en:'RUFOUS-BELLIED THRUSH', es:'ZORZAL COLORADO', zh:'橙腹鸫' },
@@ -950,7 +943,6 @@ const ITEM_NAMES = {
   canario: { pt:'CANÁRIO-DA-TERRA', en:'SAFFRON FINCH', es:'JILGUERO DORADO', zh:'金丝雀' },
   ararajuba: { pt:'ARARAJUBA', en:'GOLDEN PARAKEET', es:'PERICO DORADO', zh:'金鹦鹉' },
   joaobarro: { pt:'JOÃO-DE-BARRO', en:'RUFOUS HORNERO', es:'HORNERO', zh:'棕灶鸟' },
-  corujab: { pt:'CORUJA-BURAQUEIRA', en:'BURROWING OWL', es:'LECHUZA VIZCACHERA', zh:'穴鸮' },
   saira: { pt:'SAÍRA-SETE-CORES', en:'SEVEN-COLORED TANAGER', es:'SAÍRA SIETE COLORES', zh:'七彩唐纳雀' }
 };
 function itemName(it) { return (ITEM_NAMES[it.id] && (ITEM_NAMES[it.id][LANG] || ITEM_NAMES[it.id].pt)) || it.nome; }
@@ -1306,11 +1298,11 @@ document.addEventListener('keydown', e => {
 });
 function etPeek(cm) {
   const a = (cm && cm.age) || 0;
-  const cycle = a % 260;
+  const cycle = a % 306;
   if (cycle < 48) return cycle / 48;
   if (cycle < 138) return 1; // 1,5s a 60fps totalmente exposto
   if (cycle < 186) return 1 - (cycle - 138) / 48;
-  return 0;
+  return 0; // ~2s escondido antes de repetir
 }
 // ideia 19/Cisco: clicar no ET visível ativa noite mágica, ovos ×2 e gravidade baixa por 15s.
 function tryClickET(clientX, clientY) {
@@ -1611,7 +1603,7 @@ function update() {
     if (ufo.x < -80) ufo = null;
   }
   if (state === 'play' && etArrivalTimer > 0 && --etArrivalTimer === 0 && !cameo) {
-    cameo = { x: W + 120, y: H - GROUND_H - 96, kind: phase().deco, ph: 0, age: 48, isET: true, announced: true };
+    cameo = { x: W + 120, y: H - GROUND_H - 96, kind: phase().deco, ph: 0, age: 0, isET: true, announced: true };
     floater('👽 ET DE VARGINHA!', '#8fb89a', W / 2, H - GROUND_H - 145);
   }
 
@@ -2698,7 +2690,7 @@ function drawSnakeCritter(kind, ph) {
   const col = kind === 'anaconda' ? '#3a5f3a' : kind === 'jiboia' ? '#8a6a3a' : '#6a6a4a';
   const len = kind === 'anaconda' ? 46 : 30;
   const thick = kind === 'anaconda' ? 7 : 4.5;
-  const wd = (kind === 'anaconda' || kind === 'jararaca') ? -0.25 : 0.25;
+  const wd = kind === 'jiboia' ? -0.25 : 0.25;
   const wy = i => -5 + Math.sin(ph * 2 + i * wd) * 3.5;
   const path = () => {
     ctx.beginPath();
@@ -2715,15 +2707,16 @@ function drawSnakeCritter(kind, ph) {
     const sx = -len / 2 + i, sy = wy(i);
     ctx.beginPath(); ctx.ellipse(sx, sy, 2.6, 1.6, 0, 0, 7); ctx.fill();
   }
-  const hx = -len / 2 - 3, hy = -5 + Math.sin(ph * 2) * 3.5;
+  const headSide = kind === 'jiboia' ? 1 : -1;
+  const hx = headSide * (len / 2 + 3), hy = -5 + Math.sin(ph * 2 + (kind === 'jiboia' ? len * wd : 0)) * 3.5;
   ctx.fillStyle = col;
   ctx.beginPath(); ctx.ellipse(hx, hy, 5, 3.5, 0, 0, 7); ctx.fill();
   blinkEye(hx - 1.5, hy - 1, 1.4, ph);
   if (Math.sin(ph * 3) > 0.7) {
     ctx.strokeStyle = '#e0293c'; ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(hx - 4, hy); ctx.lineTo(hx - 9, hy - 1.5);
-    ctx.moveTo(hx - 4, hy); ctx.lineTo(hx - 9, hy + 1.5);
+	  ctx.moveTo(hx - 4 * headSide, hy); ctx.lineTo(hx - 9 * headSide, hy - 1.5);
+	  ctx.moveTo(hx - 4 * headSide, hy); ctx.lineTo(hx - 9 * headSide, hy + 1.5);
     ctx.stroke();
   }
 }
@@ -2895,10 +2888,7 @@ function drawCritter(c) {
       break;
     }
     case 'jiboia': {
-      ctx.save();
-      ctx.scale(-1, 1);
       drawSnakeCritter(c.kind, ph);
-      ctx.restore();
       break;
     }
     case 'cascavel': {
@@ -3617,6 +3607,24 @@ function drawPowerup(pu) {
   ctx.arc(0, 0, 14, 0, 7);
   ctx.fill();
   ctx.stroke();
+  if (pu.type === 'food' && pu.food === 'brigadeiro') {
+    const shine = ctx.createRadialGradient(-5, -6, 1, 0, 0, 13);
+    shine.addColorStop(0, '#7a4a3a');
+    shine.addColorStop(0.55, '#3b1f1a');
+    shine.addColorStop(1, '#1b0d0a');
+    ctx.fillStyle = shine;
+    ctx.beginPath(); ctx.arc(0, 0, 12, 0, 7); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.35)';
+    ctx.beginPath(); ctx.arc(-4, -5, 3, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#120807'; ctx.lineWidth = 1.4; ctx.lineCap = 'round';
+    [[-7,-2],[-4,4],[0,-6],[3,2],[7,-3],[-1,7],[6,6],[-8,6]].forEach((p, i) => {
+      ctx.save(); ctx.translate(p[0], p[1]); ctx.rotate((i * 0.8) % 3.14);
+      ctx.beginPath(); ctx.moveTo(-2, 0); ctx.lineTo(2, 0); ctx.stroke();
+      ctx.restore();
+    });
+    ctx.restore();
+    return;
+  }
   ctx.font = '14px sans-serif';
   ctx.textAlign = 'center';
   ctx.fillText(cfg[1], 0, 5);
@@ -3685,8 +3693,6 @@ function drawBoss(b) {
   ctx.beginPath(); ctx.arc(-6, -22, 1.3, 0, 7); ctx.arc(2, -22, 1.3, 0, 7); ctx.fill();
   ctx.strokeStyle = '#000'; ctx.lineWidth = 2.4; // sobrancelhas bravas
   ctx.beginPath(); ctx.moveTo(-12, -27); ctx.lineTo(-3, -23); ctx.moveTo(7, -27); ctx.lineTo(-1, -23); ctx.stroke();
-  ctx.strokeStyle = '#3a120e'; ctx.lineWidth = 1.6;
-  ctx.beginPath(); ctx.moveTo(-8, -13); ctx.quadraticCurveTo(-2, -9, 5, -13); ctx.stroke();
   if (bossArena && b.boneTimer <= 28 && b.warnX !== null && b.warnX !== undefined) {
     const a = 1 - b.boneTimer / 28;
     ctx.save();
@@ -4440,31 +4446,6 @@ function drawPet() {
     return;
   }
 
-  if (id === 'corujab') {
-    const areia = '#c69c6d', claro = '#fef3c7', escuro = '#5a3a1e', olho = '#ffd23f';
-    ctx.scale(0.95, 0.95);
-    ctx.fillStyle = areia;
-    ctx.beginPath(); ctx.ellipse(0, 0, 11, 13, 0, 0, 7); ctx.fill();
-    ctx.fillStyle = escuro;
-    ctx.beginPath(); ctx.ellipse(-7, -1, 5, 11, -0.25, 0, 7); ctx.ellipse(7, -1, 5, 11, 0.25, 0, 7); ctx.fill();
-    ctx.fillStyle = areia;
-    ctx.beginPath(); ctx.arc(0, -11, 11, 0, 7); ctx.fill();
-    ctx.fillStyle = claro;
-    ctx.beginPath(); ctx.arc(-4, -12, 5, 0, 7); ctx.arc(4, -12, 5, 0, 7); ctx.fill();
-    ctx.fillStyle = olho;
-    ctx.beginPath(); ctx.arc(-4, -12, 2.8, 0, 7); ctx.arc(4, -12, 2.8, 0, 7); ctx.fill();
-    ctx.fillStyle = '#111';
-    ctx.beginPath(); ctx.arc(-4, -12, 1.3, 0, 7); ctx.arc(4, -12, 1.3, 0, 7); ctx.fill();
-    ctx.strokeStyle = claro; ctx.lineWidth = 2; ctx.lineCap = 'round';
-    ctx.beginPath(); ctx.moveTo(-10, -18); ctx.lineTo(-4, -16); ctx.moveTo(10, -18); ctx.lineTo(4, -16); ctx.stroke();
-    ctx.fillStyle = '#f59e0b';
-    ctx.beginPath(); ctx.moveTo(0, -9); ctx.lineTo(-2, -6); ctx.lineTo(2, -6); ctx.closePath(); ctx.fill();
-    ctx.strokeStyle = '#d6a15e'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(-4, 11); ctx.lineTo(-6, 18); ctx.moveTo(4, 11); ctx.lineTo(6, 18); ctx.stroke();
-    ctx.restore();
-    return;
-  }
-
   // --- aves genéricas (bem-te-vi, sabiá) ---
   // cauda
   ctx.fillStyle = pet.cor;
@@ -4581,26 +4562,6 @@ function drawAccessory(id) {
     ctx.fillRect(-2, -24, 19, 7);
     ctx.fillStyle = '#facc15';
     ctx.font = '700 6px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('C', 8, -18);
-  } else if (id === 'cachecol') {
-    ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 5.5; ctx.lineCap = 'round';
-    ctx.beginPath(); ctx.ellipse(0, 2, 13, 5.5, -0.08, Math.PI * 0.05, Math.PI * 1.78); ctx.stroke();
-    ctx.strokeStyle = '#f97316'; ctx.lineWidth = 4;
-    ctx.beginPath(); ctx.moveTo(-8, 5); ctx.quadraticCurveTo(-22, 8, -31, 15); ctx.stroke();
-    ctx.strokeStyle = '#fecaca'; ctx.lineWidth = 1.3;
-    ctx.beginPath(); ctx.moveTo(-13, 7); ctx.lineTo(-23, 12); ctx.stroke();
-  } else if (id === 'mochila') {
-    ctx.fillStyle = '#7c3aed';
-    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(-28, -5, 14, 20, 4) : ctx.rect(-28, -5, 14, 20); ctx.fill();
-    ctx.strokeStyle = '#c4b5fd'; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(-14, -1); ctx.quadraticCurveTo(-7, 5, -14, 11); ctx.stroke();
-    ctx.fillStyle = '#5b21b6';
-    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(-26, 3, 10, 8, 3) : ctx.rect(-26, 3, 10, 8); ctx.fill();
-  } else if (id === 'fone') {
-    ctx.strokeStyle = '#111827'; ctx.lineWidth = 2.6; ctx.lineCap = 'round';
-    ctx.beginPath(); ctx.arc(8, -10, 14, Math.PI * 1.08, Math.PI * 1.92); ctx.stroke();
-    ctx.fillStyle = '#111827';
-    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(-5, -13, 6, 10, 3) : ctx.rect(-5, -13, 6, 10); ctx.fill();
-    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(17, -13, 7, 11, 3) : ctx.rect(17, -13, 7, 11); ctx.fill();
   } else if (id === 'medalha') {
     ctx.fillStyle = '#1d4ed8';
     ctx.beginPath(); ctx.moveTo(0, 1); ctx.lineTo(5, 1); ctx.lineTo(8, 12); ctx.lineTo(3, 12); ctx.closePath(); ctx.fill();
@@ -5472,7 +5433,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.13.3';
+const GAME_VERSION = '5.13.4';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
