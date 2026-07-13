@@ -260,8 +260,14 @@
         </div>
         <ol id="rankList"></ol>
       </div>
-      <p class="hint">ESPAÇO / CLIQUE / TOQUE para voar &middot; E ou P pausa</p>
-      <p class="credit"><span id="menuVer"></span> &middot; &copy; 2026 CISCO GAMES &middot; Ideias &amp; co-cria&ccedil;&atilde;o: <b>FRANCISCO (9 anos)</b></p>
+      <p class="hint" id="hintControls">ESPAÇO / CLIQUE / TOQUE para voar &middot; E ou P pausa</p>
+      <div id="langRow" style="display:flex;gap:5px;justify-content:center;margin:2px 0">
+        <button class="langBtn" data-lang="pt" style="font-size:16px;padding:3px 8px;background:#10281a;border:2px solid #2e6e3e;border-radius:6px;cursor:pointer">🇧🇷</button>
+        <button class="langBtn" data-lang="en" style="font-size:16px;padding:3px 8px;background:#10281a;border:2px solid #2e6e3e;border-radius:6px;cursor:pointer">🇺🇸</button>
+        <button class="langBtn" data-lang="es" style="font-size:16px;padding:3px 8px;background:#10281a;border:2px solid #2e6e3e;border-radius:6px;cursor:pointer">🇪🇸</button>
+        <button class="langBtn" data-lang="zh" style="font-size:16px;padding:3px 8px;background:#10281a;border:2px solid #2e6e3e;border-radius:6px;cursor:pointer">🇨🇳</button>
+      </div>
+      <p class="credit"><span id="menuVer"></span> &middot; &copy; 2026 CISCO GAMES &middot; <span id="creditFrancisco">Ideias &amp; co-cria&ccedil;&atilde;o</span>: <b>FRANCISCO (9)</b></p>
     </div>
 
     <!-- TELA DE IDEIAS / CRÉDITOS / SUGESTÕES -->
@@ -315,6 +321,57 @@
 // ============================================================
 // SUPER TUCAN REMASTERED
 // ============================================================
+
+// ---------- i18n: pt / en / es / zh (ideia 23 do Francisco) ----------
+const I18N = {
+  pt: {
+    tagline: 'Bata as asas, desvie dos GALHOS e colete OVOS pelos 6 biomas do Brasil: Amazônia, Cerrado, Mata Atlântica, Caatinga, Pampas e o PANTANAL INFINITO!',
+    nameLabel: 'SEU NOME (ATÉ 9 LETRAS)', play: 'JOGAR', daily: '📅 DESAFIO DO DIA', tutorial: '🎓 TUTORIAL',
+    hardcore: '💀 HARDCORE', friends: '❤️ AMIGOS', shop: '🛍️ LOJINHA', ideas: '💡 IDEIAS',
+    rankTitle: '🏆 RANKING GLOBAL · TOP 10', tabEggs: '🥚 RECORDISTAS', tabXp: '⭐ VETERANOS',
+    controls: 'ESPAÇO / CLIQUE / TOQUE para voar · E ou P pausa', credit: 'Ideias & co-criação',
+    gameOver: 'FIM DE JOGO', eggsCollected: 'OVOS COLETADOS', playAgain: 'JOGAR DE NOVO', menuRanking: 'MENU / RANKING',
+    tapToFly: 'TOQUE PARA VOAR', getReady: 'PREPARE-SE!', shopTitle: 'LOJINHA', shopSub: 'DO TUCANO',
+    shopHint: 'Colete ovos jogando e compre coisas pro seu tucano!', tabAcc: '👓 ACESSÓRIOS', tabPet: '🐦 AMIGUINHOS',
+    back: 'VOLTAR', ideasTitle: 'IDEIAS', ideasSub: 'DO SUPER TUCAN', sendIdea: 'ENVIAR IDEIA', pause: 'PAUSADO', resume: 'CONTINUAR', quit: 'SAIR PARA O MENU'
+  },
+  en: {
+    tagline: 'Flap your wings, dodge the BRANCHES and collect EGGS across 6 Brazilian biomes: Amazon, Cerrado, Atlantic Forest, Caatinga, Pampas and the ENDLESS PANTANAL!',
+    nameLabel: 'YOUR NAME (UP TO 9 LETTERS)', play: 'PLAY', daily: '📅 DAILY CHALLENGE', tutorial: '🎓 TUTORIAL',
+    hardcore: '💀 HARDCORE', friends: '❤️ FRIENDS', shop: '🛍️ SHOP', ideas: '💡 IDEAS',
+    rankTitle: '🏆 GLOBAL RANKING · TOP 10', tabEggs: '🥚 EGG KINGS', tabXp: '⭐ VETERANS',
+    controls: 'SPACE / CLICK / TAP to fly · E or P to pause', credit: 'Ideas & co-creation',
+    gameOver: 'GAME OVER', eggsCollected: 'EGGS COLLECTED', playAgain: 'PLAY AGAIN', menuRanking: 'MENU / RANKING',
+    tapToFly: 'TAP TO FLY', getReady: 'GET READY!', shopTitle: 'SHOP', shopSub: 'FOR YOUR TOUCAN',
+    shopHint: 'Collect eggs by playing and buy stuff for your toucan!', tabAcc: '👓 ACCESSORIES', tabPet: '🐦 BUDDIES',
+    back: 'BACK', ideasTitle: 'IDEAS', ideasSub: 'FOR SUPER TUCAN', sendIdea: 'SEND IDEA', pause: 'PAUSED', resume: 'RESUME', quit: 'QUIT TO MENU'
+  },
+  es: {
+    tagline: '¡Bate las alas, esquiva las RAMAS y colecta HUEVOS por los 6 biomas de Brasil: Amazonía, Cerrado, Mata Atlántica, Caatinga, Pampas y el PANTANAL INFINITO!',
+    nameLabel: 'TU NOMBRE (HASTA 9 LETRAS)', play: 'JUGAR', daily: '📅 RETO DEL DÍA', tutorial: '🎓 TUTORIAL',
+    hardcore: '💀 HARDCORE', friends: '❤️ AMIGOS', shop: '🛍️ TIENDA', ideas: '💡 IDEAS',
+    rankTitle: '🏆 RANKING GLOBAL · TOP 10', tabEggs: '🥚 RÉCORDS', tabXp: '⭐ VETERANOS',
+    controls: 'ESPACIO / CLIC / TOCA para volar · E o P pausa', credit: 'Ideas y co-creación',
+    gameOver: 'FIN DEL JUEGO', eggsCollected: 'HUEVOS COLECTADOS', playAgain: 'JUGAR DE NUEVO', menuRanking: 'MENÚ / RANKING',
+    tapToFly: 'TOCA PARA VOLAR', getReady: '¡PREPÁRATE!', shopTitle: 'TIENDA', shopSub: 'DEL TUCÁN',
+    shopHint: '¡Colecta huevos jugando y compra cosas para tu tucán!', tabAcc: '👓 ACCESORIOS', tabPet: '🐦 AMIGUITOS',
+    back: 'VOLVER', ideasTitle: 'IDEAS', ideasSub: 'DE SUPER TUCAN', sendIdea: 'ENVIAR IDEA', pause: 'PAUSADO', resume: 'CONTINUAR', quit: 'SALIR AL MENÚ'
+  },
+  zh: {
+    tagline: '扇动翅膀，躲避树枝，在巴西的6个生态区收集鸡蛋：亚马逊、塞拉多、大西洋森林、卡廷加、潘帕斯和无尽的潘塔纳尔！',
+    nameLabel: '你的名字（最多9个字母）', play: '开始', daily: '📅 每日挑战', tutorial: '🎓 教程',
+    hardcore: '💀 硬核', friends: '❤️ 朋友', shop: '🛍️ 商店', ideas: '💡 点子',
+    rankTitle: '🏆 全球排行榜 · 前10名', tabEggs: '🥚 蛋王', tabXp: '⭐ 老手',
+    controls: '空格 / 点击 / 触摸 飞翔 · E 或 P 暂停', credit: '创意与共同创作',
+    gameOver: '游戏结束', eggsCollected: '收集的鸡蛋', playAgain: '再玩一次', menuRanking: '菜单 / 排行榜',
+    tapToFly: '点击飞翔', getReady: '准备好！', shopTitle: '商店', shopSub: '巨嘴鸟的',
+    shopHint: '玩游戏收集鸡蛋，为你的巨嘴鸟买东西！', tabAcc: '👓 配饰', tabPet: '🐦 伙伴',
+    back: '返回', ideasTitle: '点子', ideasSub: '超级巨嘴鸟', sendIdea: '发送点子', pause: '暂停', resume: '继续', quit: '退出到菜单'
+  }
+};
+let LANG = localStorage.getItem('superTucan_lang') || 'pt';
+if (!I18N[LANG]) LANG = 'pt';
+function t(key) { return (I18N[LANG] && I18N[LANG][key]) || I18N.pt[key] || key; }
 
 const GROUND_H = 70;
 let W = 480, H = 640; // dimensões lógicas: acompanham a proporção da tela
@@ -3940,7 +3997,7 @@ function draw() {
     ctx.fillStyle = '#fff';
     ctx.font = '800 20px Grandstander, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('TOQUE PARA VOAR', W / 2, H / 2 - 90);
+    ctx.fillText(t('tapToFly'), W / 2, H / 2 - 90);
     if (gameMode === 'daily') {
       ctx.fillStyle = '#ffd23f';
       ctx.font = "12px Bungee, 'Courier New', monospace";
@@ -4329,6 +4386,45 @@ document.getElementById('fSearch').addEventListener('input', () => {
   el.value = el.value.toUpperCase().replace(/[^A-Z]/g, '');
 });
 
+// ---------- aplica o idioma escolhido nos textos do HTML (ideia 23) ----------
+function setText(id, txt) { const e = document.getElementById(id); if (e) e.textContent = txt; }
+function applyLang() {
+  document.documentElement.lang = LANG === 'pt' ? 'pt-BR' : LANG;
+  setText('btnPlay', t('play'));
+  setText('btnDaily', t('daily'));
+  setText('btnTutorial', t('tutorial'));
+  setText('btnHardcore', t('hardcore'));
+  setText('btnFriends', t('friends'));
+  setText('btnShop', t('shop'));
+  setText('btnIdeas', t('ideas'));
+  setText('rankTabEggs', t('tabEggs'));
+  setText('rankTabXp', t('tabXp'));
+  setText('hintControls', t('controls'));
+  setText('creditFrancisco', t('credit'));
+  setText('btnAgain', t('playAgain'));
+  setText('btnMenu', t('menuRanking'));
+  setText('shopClose', t('back'));
+  setText('ideaClose', t('back'));
+  setText('shopTabAcc', t('tabAcc'));
+  setText('shopTabPet', t('tabPet'));
+  setText('btnResume', t('resume'));
+  setText('btnQuit', t('quit'));
+  // textos que exigem seletor
+  const sub = document.querySelector('#menu .sub'); if (sub) sub.textContent = t('tagline');
+  const nameLbl = document.querySelector('#menu .hint'); if (nameLbl) nameLbl.textContent = t('nameLabel');
+  const rankH2 = document.querySelector('#ranking h2'); if (rankH2) rankH2.textContent = t('rankTitle');
+  const goTitle = document.getElementById('goTitle'); if (goTitle) goTitle.textContent = t('gameOver');
+  const shopHint = document.querySelector('#shop .hint'); if (shopHint) shopHint.textContent = t('shopHint');
+  // destaca a bandeira ativa
+  document.querySelectorAll('.langBtn').forEach(b => {
+    b.style.borderColor = b.dataset.lang === LANG ? '#ffd23f' : '#2e6e3e';
+  });
+}
+document.querySelectorAll('.langBtn').forEach(b => b.addEventListener('click', () => {
+  LANG = b.dataset.lang; localStorage.setItem('superTucan_lang', LANG);
+  applyLang();
+}));
+
 // mudo (persiste entre sessões)
 const elBtnMute = document.getElementById('btnMute');
 function refreshMute() { elBtnMute.innerHTML = muted ? '&#128263;' : '&#128266;'; }
@@ -4374,9 +4470,10 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '4.1';
+const GAME_VERSION = '5.0';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
+applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
 resetGame();
 renderRanking();
 updateMenuPB();
