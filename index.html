@@ -528,6 +528,7 @@ const PHASES = [
   }
 ];
 const LAST = PHASES.length - 1;
+const TEST_COBRA_SECOND_BIOME = true; // temporário: facilita testar a Cobra antes do Urubu
 // Fase final infinita: +1 nível a cada 15 s, com teto calibrado para ser
 // difícil porém vencível por um jogador de alto nível (nunca impossível)
 const P3_LEVEL_FRAMES = 900;
@@ -1116,7 +1117,7 @@ let ufo = null, ufoTimer = 700, etArrivalTimer = 0; // nave anuncia o ET; 5s dep
 let boss = null, bossTimer = 1500, bones = [], venom = [], snakeEggs = [], snakeWhips = [], snakeBites = [];
 let bossPortal = null;       // tronco especial que avisa/transporta para a arena
 let bossArena = null;        // {kind, place, timer, phaseIdx, phaseDist}
-let nextBossKind = 'urubu';  // alterna Urubu/Cobra a cada bossfight
+let nextBossKind = TEST_COBRA_SECOND_BIOME ? 'cobra' : 'urubu';  // alterna Urubu/Cobra a cada bossfight
 let bossBonusTimer = 0; // celebração temporária no HUD após vencer boss
 let bossBadgeText = '';
 let urubuBonusTimer = 0; // recompensa temporária do Urubu; evita 5× permanente quebrando tentativa longa
@@ -1132,6 +1133,7 @@ function bossDiffMult() { return Math.pow(1.10, Math.min(bossAppearances, 5)); }
 function queueBossPortal() {
   if (boss || bossPortal || bossArena || gameMode === 'tutorial') return;
   bossPortal = { x: bird.x + SPAWN_AHEAD, y: H / 2, kind: nextBossKind, timer: 180, ph: 0, age: 0 };
+  if (TEST_COBRA_SECOND_BIOME && phaseIdx === 1 && nextBossKind === 'cobra') nextBossKind = 'urubu';
   obstacles = obstacles.filter(o => o.x < bird.x - 60);
   eggs = eggs.filter(e => e.x < bird.x - 60);
   powerups = powerups.filter(pu => pu.x < bird.x - 60);
@@ -1262,7 +1264,7 @@ function resetGame() {
   ufo = null; ufoTimer = 700; etArrivalTimer = 0;
   boss = null; bossTimer = 1500; bones = []; venom = []; snakeEggs = []; snakeWhips = []; snakeBites = [];
   bossPortal = null; bossArena = null;
-  nextBossKind = 'urubu';
+  nextBossKind = TEST_COBRA_SECOND_BIOME ? 'cobra' : 'urubu';
   bossBonusTimer = 0; bossBadgeText = ''; urubuBonusTimer = 0;
   bossAppearances = 0; bossQueued = 0;
   petTrail = [];
@@ -1923,11 +1925,10 @@ function update() {
     sfx.phase();
     startMusic(phaseIdx);
     celebrate([np.beak[0], np.leaf, '#ffffff', '#ffd23f']);
-    // pedido do Cisco: o CHEFÃO URUBU entra a cada 3 biomas COMPLETADOS (bioma 3, 6...).
-    // phaseIdx acabou de virar o nº de biomas concluídos; múltiplo de 3 → agenda o boss.
-    // ENFILEIRA (não chama já) para o jogador ver primeiro o banner do novo bioma; o boss
-    // entra ~140 frames depois, quando o banner de fase (130) já sumiu.
-    if (phaseIdx % 3 === 0 && !boss && !bossPortal && !bossArena) bossQueued = 140;
+    // Teste temporário: Cobra entra já no segundo bioma para validação visual/gameplay.
+    // Fluxo normal: boss a cada 3 biomas completados.
+    const shouldQueueBoss = (TEST_COBRA_SECOND_BIOME && phaseIdx === 1) || phaseIdx % 3 === 0;
+    if (shouldQueueBoss && !boss && !bossPortal && !bossArena) bossQueued = 140;
   }
 
   // Pantanal infinito: +1 nível a cada 15 s até o teto (nível 10 = tudo no máximo);
@@ -5423,7 +5424,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.13.1';
+const GAME_VERSION = '5.13.2';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)

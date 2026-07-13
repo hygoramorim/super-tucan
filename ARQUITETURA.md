@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.13.1` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.13.2` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -182,3 +182,4 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
 - **v5.13.1** — ajustes de design do Cisco: ET exposto por 1,5s, UFO com raio de abdução, Urubu mais
   bravo, gavião redesenhado, jiboia corrigida, coruja-buraqueira própria, óculos/cachecol/mochila/fone
   reposicionados e remoção de Seriema/Asa Brilhante da lojinha.
+- **v5.13.2** — build temporária de teste: Cobra antecipada para o segundo bioma antes do Urubu.
