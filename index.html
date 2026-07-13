@@ -2313,20 +2313,27 @@ function drawBranch(o, p) {
   if (H - GROUND_H - botY > 70) twig(o.x, H - GROUND_H - 35 - (s % 25), (s % 2 ? -1 : 1), true);
   if (H - GROUND_H - botY > 150) twig(o.x, botY + 55, (s % 2 ? 1 : -1), true);
 
-  // copa nas pontas: desenhada por cima da madeira para esconder qualquer "toco"
-  // aparente, sem mudar a hitbox retangular do galho.
+  // maço de folhas nas pontas: desenhado por cima da madeira para esconder qualquer
+  // "toco" aparente, sem mudar a hitbox retangular do galho.
   const leafCap = (y, dir) => {
     ctx.fillStyle = 'rgba(16,40,26,.48)';
     ctx.beginPath();
-    ctx.ellipse(o.x, y, o.w * 0.62, 18, 0, 0, 7);
-    ctx.ellipse(o.x - o.w * 0.24, y - dir * 5, o.w * 0.34, 15, -0.25, 0, 7);
-    ctx.ellipse(o.x + o.w * 0.24, y - dir * 5, o.w * 0.34, 15, 0.25, 0, 7);
+    ctx.ellipse(o.x, y - dir * 1, o.w * 0.86, 27, 0, 0, 7);
+    ctx.ellipse(o.x - o.w * 0.34, y - dir * 7, o.w * 0.44, 23, -0.28, 0, 7);
+    ctx.ellipse(o.x + o.w * 0.34, y - dir * 7, o.w * 0.44, 23, 0.28, 0, 7);
+    ctx.ellipse(o.x, y - dir * 18, o.w * 0.48, 21, 0, 0, 7);
     ctx.fill();
     ctx.fillStyle = p.leaf;
     ctx.beginPath();
-    ctx.ellipse(o.x, y - dir * 1, o.w * 0.58, 15, 0, 0, 7);
-    ctx.ellipse(o.x - o.w * 0.22, y - dir * 7, o.w * 0.30, 13, -0.3, 0, 7);
-    ctx.ellipse(o.x + o.w * 0.22, y - dir * 7, o.w * 0.30, 13, 0.3, 0, 7);
+    ctx.ellipse(o.x, y - dir * 2, o.w * 0.78, 23, 0, 0, 7);
+    ctx.ellipse(o.x - o.w * 0.32, y - dir * 10, o.w * 0.39, 20, -0.33, 0, 7);
+    ctx.ellipse(o.x + o.w * 0.32, y - dir * 10, o.w * 0.39, 20, 0.33, 0, 7);
+    ctx.ellipse(o.x, y - dir * 21, o.w * 0.42, 17, 0, 0, 7);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.12)';
+    ctx.beginPath();
+    ctx.ellipse(o.x - o.w * 0.18, y - dir * 11, o.w * 0.28, 8, -0.22, 0, 7);
+    ctx.ellipse(o.x + o.w * 0.20, y - dir * 15, o.w * 0.24, 7, 0.24, 0, 7);
     ctx.fill();
   };
   leafCap(topLen, 1);
@@ -5270,7 +5277,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.10.1';
+const GAME_VERSION = '5.10.2';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)

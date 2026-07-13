@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.10.1` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.10.2` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -173,3 +173,5 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
   com ciclo de ataques por veneno, rabada, ovo e mordida.
 - **v5.10.1** — galhos ajustados visualmente: copas de folhas cobrem as pontas da madeira para não
   deixar tocos aparentes na abertura segura.
+- **v5.10.2** — cobertura das pontas dos galhos ficou maior, mais larga e mais "gordinha", como um
+  maço de folhas sobre a madeira.
