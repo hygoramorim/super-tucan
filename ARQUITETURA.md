@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.13.15` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.13.16` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -212,3 +212,5 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
 - **v5.13.15** — arquitetura dos bosses ajustada: Cobra obrigatória entra direto no Pampas sem portal,
   Urubu volta a ser portal opcional, mordida fantasma atravessa a tela e ossos do Urubu ficam rápidos
   em linha reta, sem gravidade.
+- **v5.13.16** — Urubu: remoção da plaquinha/seta do topo, recompensa `×3` pelos próximos 2 biomas e
+  lançamento aleatório de super ovos de Urubu coletáveis valendo 25 pontos.
