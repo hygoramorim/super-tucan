@@ -249,6 +249,7 @@
         <button id="btnTutorial" class="sec">&#127891; TUTORIAL</button>
         <button id="btnHardcore" class="sec">&#128128; HARDCORE</button>
         <button id="btnFriends" class="sec">&#10084;&#65039; AMIGOS</button>
+        <button id="btnShop" class="sec">&#128717;&#65039; LOJINHA</button>
         <button id="btnIdeas" class="sec">&#128161; IDEIAS</button>
       </div>
       <div id="ranking">
@@ -276,6 +277,16 @@
       <div class="hint" id="ideaMsg" style="min-height:16px"></div>
       <button id="btnIdeaSend">ENVIAR IDEIA</button>
       <button id="ideaClose" class="sec">VOLTAR</button>
+    </div>
+
+    <!-- LOJINHA DE OVOS (ideia 17 do Francisco) -->
+    <div id="shop" class="overlay hidden">
+      <h1 style="font-size:26px">&#128717;&#65039; LOJINHA<small>DO TUCANO</small></h1>
+      <div id="shopBank" style="font-family:'Bungee',monospace;font-size:20px;color:#ffd23f">&#129370; 0</div>
+      <p class="hint">Colete ovos jogando e compre acess&oacute;rios pro seu tucano!</p>
+      <div id="shopList" style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:360px;max-height:44vh;overflow-y:auto"></div>
+      <div class="hint" id="shopMsg" style="min-height:16px"></div>
+      <button id="shopClose" class="sec">VOLTAR</button>
     </div>
 
     <!-- TELA DE FIM DE JOGO -->
@@ -732,6 +743,31 @@ function levelLabel(xp) {
   const p = prestige(xp);
   return { name: lv[1] + (p > 0 ? ' +' + p : ''), emoji: lv[2], plus: p };
 }
+
+// ---------- ECONOMIA DE OVOS: carteira + loja de acessórios (ideia 17 do Francisco) ----------
+// Catálogo de acessórios do tucano. 'draw' é a chave usada em drawToucan.
+const SHOP_ITEMS = [
+  { id: 'oculos',   emoji: '🕶️', nome: 'ÓCULOS ESCUROS', preco: 50 },
+  { id: 'chapeu',   emoji: '🎩', nome: 'CARTOLA',         preco: 120 },
+  { id: 'capa',     emoji: '🦸', nome: 'CAPA DE HERÓI',   preco: 200 },
+  { id: 'coroa',    emoji: '👑', nome: 'COROA DOURADA',   preco: 400 },
+  { id: 'gravata',  emoji: '👔', nome: 'GRAVATINHA',      preco: 90 },
+  { id: 'laco',     emoji: '🎀', nome: 'LAÇO CHARMOSO',   preco: 70 }
+];
+function eggBank() { return parseInt(localStorage.getItem('superTucan_eggBank') || '0', 10) || 0; }
+function addEggs(n) { localStorage.setItem('superTucan_eggBank', String(eggBank() + n)); }
+function spendEggs(n) { const b = eggBank(); if (b < n) return false; localStorage.setItem('superTucan_eggBank', String(b - n)); return true; }
+function ownedItems() { try { return JSON.parse(localStorage.getItem('superTucan_owned')) || []; } catch (e) { return []; } }
+function ownsItem(id) { return ownedItems().includes(id); }
+function buyItem(id) {
+  const it = SHOP_ITEMS.find(i => i.id === id);
+  if (!it || ownsItem(id) || !spendEggs(it.preco)) return false;
+  const l = ownedItems(); l.push(id); localStorage.setItem('superTucan_owned', JSON.stringify(l));
+  return true;
+}
+function equippedItem() { return localStorage.getItem('superTucan_equipped') || ''; }
+function equipItem(id) { localStorage.setItem('superTucan_equipped', id === equippedItem() ? '' : id); }
+
 // Publica o cartão público do jogador — é a ÚNICA fonte do ranking agora
 // (um registro por nome: best = recorde de ovos, xp = XP acumulado). Ideias 6 e 20.
 function publishPlayer(name, st) {
@@ -3479,7 +3515,44 @@ function drawToucan(p) {
   ctx.moveTo(6, 13); ctx.lineTo(5, 19);
   ctx.stroke();
 
+  drawAccessory(equippedItem()); // acessório da lojinha (ideia 17)
   ctx.restore();
+}
+// desenha o acessório equipado no referencial local do tucano (cabeça ~ (8,-10))
+function drawAccessory(id) {
+  if (!id) return;
+  if (id === 'oculos') {
+    ctx.fillStyle = '#1a1a1a';
+    ctx.fillRect(3, -13, 8, 5); ctx.fillRect(13, -13, 8, 5);
+    ctx.fillRect(11, -12, 2, 2);
+    ctx.strokeStyle = '#1a1a1a'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(3, -12); ctx.lineTo(-2, -13); ctx.stroke();
+  } else if (id === 'chapeu') {
+    ctx.fillStyle = '#1a1a2a';
+    ctx.fillRect(0, -22, 22, 3);   // aba
+    ctx.fillRect(5, -34, 13, 13);  // copa
+    ctx.fillStyle = '#e63946'; ctx.fillRect(5, -24, 13, 2); // fita
+  } else if (id === 'capa') {
+    ctx.fillStyle = '#e63946';
+    ctx.beginPath();
+    ctx.moveTo(-10, -6); ctx.quadraticCurveTo(-34, 6, -30, 22);
+    ctx.quadraticCurveTo(-18, 14, -8, 12); ctx.closePath(); ctx.fill();
+  } else if (id === 'coroa') {
+    ctx.fillStyle = '#ffd23f';
+    ctx.beginPath();
+    ctx.moveTo(3, -20); ctx.lineTo(5, -30); ctx.lineTo(9, -22); ctx.lineTo(13, -31);
+    ctx.lineTo(17, -22); ctx.lineTo(20, -30); ctx.lineTo(21, -20); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#ff2e93'; ctx.beginPath(); ctx.arc(13, -25, 1.5, 0, 7); ctx.fill();
+  } else if (id === 'gravata') {
+    ctx.fillStyle = '#0ea5e9';
+    ctx.beginPath(); ctx.moveTo(2, 4); ctx.lineTo(6, 4); ctx.lineTo(8, 14); ctx.lineTo(0, 14); ctx.closePath(); ctx.fill();
+    ctx.fillRect(2, 2, 4, 3);
+  } else if (id === 'laco') {
+    ctx.fillStyle = '#ff2e93';
+    ctx.beginPath(); ctx.moveTo(6, -14); ctx.lineTo(-2, -18); ctx.lineTo(-2, -10); ctx.closePath();
+    ctx.moveTo(6, -14); ctx.lineTo(14, -18); ctx.lineTo(14, -10); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#c9105f'; ctx.beginPath(); ctx.arc(6, -14, 2, 0, 7); ctx.fill();
+  }
 }
 
 function drawHUD(p) {
@@ -3926,6 +3999,8 @@ function showGameOver() {
   const modeLabel = gameMode === 'daily' ? 'TOP DE HOJE' : 'TOP 10 MUNDIAL';
   document.getElementById('goTitle').textContent = 'FIM DE JOGO';
   document.getElementById('goScore').textContent = score;
+  // os ovos coletados vão pra carteira da lojinha (ideia 17 do Francisco)
+  if (score > 0 && gameMode !== 'tutorial') addEggs(score);
 
   // status do jogador: recorde e maior distância (neste aparelho)
   const st = getStats(playerName);
@@ -4130,6 +4205,41 @@ document.getElementById('btnIdeaSend').addEventListener('click', async () => {
   msg.textContent = '✅ VALEU! Sua ideia foi registrada 🦜';
   document.getElementById('ideaText').value = '';
 });
+
+// ---------- LOJINHA DE OVOS (ideia 17 do Francisco) ----------
+const elShop = document.getElementById('shop');
+function renderShop() {
+  document.getElementById('shopBank').innerHTML = '🥚 ' + eggBank();
+  const list = document.getElementById('shopList');
+  const eq = equippedItem();
+  list.innerHTML = SHOP_ITEMS.map(it => {
+    const owned = ownsItem(it.id);
+    const isEq = eq === it.id;
+    const cor = isEq ? '#ffd23f' : owned ? '#7ee08a' : '#2e6e3e';
+    const acao = owned ? (isEq ? 'EQUIPADO ✓' : 'EQUIPAR') : ('🥚 ' + it.preco);
+    return '<button class="shopItem" data-id="' + it.id + '" style="width:104px;padding:8px 4px;border-radius:10px;'
+      + 'background:#10281a;border:2px solid ' + cor + ';color:#e8f5ea;cursor:pointer;font-family:inherit">'
+      + '<div style="font-size:26px">' + it.emoji + '</div>'
+      + '<div style="font-size:10px;font-weight:700;margin:2px 0">' + it.nome + '</div>'
+      + '<div style="font-size:11px;color:' + cor + '">' + acao + '</div></button>';
+  }).join('');
+  list.querySelectorAll('.shopItem').forEach(b => b.addEventListener('click', () => {
+    const id = b.dataset.id;
+    const msg = document.getElementById('shopMsg');
+    if (ownsItem(id)) { equipItem(id); renderShop(); }
+    else if (buyItem(id)) { equipItem(id); msg.textContent = '✅ Comprou e equipou!'; renderShop(); }
+    else { msg.textContent = '🥚 Ovos insuficientes — jogue mais pra comprar!'; }
+  }));
+}
+document.getElementById('btnShop').addEventListener('click', () => {
+  elMenu.classList.add('hidden'); elShop.classList.remove('hidden');
+  document.getElementById('shopMsg').textContent = '';
+  renderShop();
+});
+document.getElementById('shopClose').addEventListener('click', () => {
+  elShop.classList.add('hidden'); elMenu.classList.remove('hidden');
+});
+
 document.getElementById('fTabList').addEventListener('click', () => fSetTab('list'));
 document.getElementById('fTabReq').addEventListener('click', () => fSetTab('req'));
 document.getElementById('fTabAdd').addEventListener('click', () => fSetTab('add'));
@@ -4185,7 +4295,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '3.5';
+const GAME_VERSION = '4.0';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 resetGame();
