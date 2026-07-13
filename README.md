@@ -14,6 +14,7 @@ Um Flappy Bird brasileiro, cartoon e cheio de vida — voe com o tucano por 6 bi
 - Itens: pena, escudo, relógio, água, o Livro das Maldições e 6 Comidas do Brasil (café, brigadeiro, pimenta…)
 - Eventos: ventania, tempestade, vulcão com bolas de fogo, e a noite
 - Bossfights com portal, arena do Cemitério, Urubu, Cobra, ranking global (ovos e XP), lojinha, conquistas e aves companheiras
+- HUD e arte com leitura mobile-first: contornos cartoon, telegráficos de boss e recompensas cosméticas
 - 4 idiomas: 🇧🇷 🇺🇸 🇪🇸 🇨🇳
 
 ## 💡 Sugestões da comunidade

@@ -3,14 +3,14 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.8.1` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.9` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
 
 ## 1. O que é (em uma frase)
 
-Flappy Bird brasileiro, cartoon, **arquivo único** `index.html` (~4650 linhas, Canvas 2D, sem build,
+Flappy Bird brasileiro, cartoon, **arquivo único** `index.html` (~5100 linhas, Canvas 2D, sem build,
 sem dependências), rodando em GitHub Pages. Um tucano voa por 6 biomas do Brasil coletando ovos,
 desviando de galhos e enfrentando eventos e um chefão.
 
@@ -161,3 +161,6 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
   com o Urubu, bossfight sem ovos, recompensa sem inflar ranking, conquistas e tradução expandida para
   gameplay, loja, amigos, ranking e pós-jogo.
 - **v5.8.1** — bossfight reduzida de 45s para 30s.
+- **v5.9** — onda de polimento: HUD mais legível, contornos cartoon no tucano/galhos, telegráficos
+  de boss com alvo travado, selo cosmético de boss vencido e refactors seguros em loja/pets, `draw()`
+  e cobras decorativas.
