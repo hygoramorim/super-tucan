@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.9.1` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.10` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -80,7 +80,7 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
 - **Bossfights Urubu/Cobra** (ideias do Cisco/Tucano/Guilherme): depois do 3º bioma e no Pantanal,
   o jogo agenda um **portal em tronco oco**. Galhos/ovos/power-ups param durante a leitura do portal;
   entrar pelo buraco teleporta para uma arena curta: Cemitério Cartoon para o Urubu, Toca da Cobra para
-  a Cobra. Não há ovos dentro da bossfight, e a recompensa é de progresso/celebração/conquista, sem
+  a Cobra. Não há ovos dentro da bossfight. O Urubu concede `×5` por 15s ao ser vencido, mas sem
   multiplicador permanente de score para manter o ranking honesto.
   - Cada boss aumenta a dificuldade **+10% permanente e acumulativa** naquela partida via
     `bossDiffMult() = 1.10 ^ min(bossAppearances, 5)` (aplicado à velocidade em `currentDiff()`).
@@ -92,8 +92,8 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
     entrar já, para o jogador ver primeiro o banner do novo bioma.
 - **Power-ups:** pena (veloc.+pontos), escudo, relógio (câmera lenta), água (pulo alto), livro das
   maldições (4 efeitos aleatórios), 6 comidas.
-- **Eventos:** ventania, tempestade, vulcão (bolas de fogo), noite. + nave do ET e clique no ET
-  (noite mágica 15s).
+- **Eventos:** ventania, tempestade, vulcão (bolas de fogo centralizadas e letais), noite de 30s. +
+  nave do ET e clique no ET (noite mágica 15s + ovos `×2` por 15s).
 - **Economia de ovos:** carteira persistente (`superTucan_eggBank`) → loja de acessórios e pets.
 - **Amiguinhos:** aves equipadas seguem o tucano e têm hitbox apenas de coleta (ovos/power-ups);
   não colidem com galhos, inimigos ou projéteis.
@@ -168,3 +168,6 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
   e cobras decorativas.
 - **v5.9.1** — hitbox do tucano reforçada como proporcional ao tamanho das comidas; amiguinhos equipados
   agora coletam ovos e power-ups com hitbox própria.
+- **v5.10** — rodada Cisco: vulcão com bolas de fogo centralizadas/letais, noite de 30s, ET com bônus
+  `×2` por 15s, combo zerando ao perder ovo comum/dourado, Urubu com `×5` temporário pós-boss e Cobra
+  com ciclo de ataques por veneno, rabada, ovo e mordida.
