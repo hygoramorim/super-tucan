@@ -274,8 +274,8 @@
     <div id="ideas" class="overlay hidden">
       <h1 style="font-size:26px">&#128161; IDEIAS<small>DO SUPER TUCAN</small></h1>
       <div id="ideasCredits">
-        <p class="sub" style="max-width:360px">Este jogo cresce com as ideias de quem joga. O <b>Francisco (9 anos)</b> é co-criador e mandou dezenas de ideias que viraram fases, eventos e itens. &#127881;</p>
-        <p class="hint" style="margin-top:10px">Tem uma ideia pra deixar o jogo melhor? Manda pra gente:</p>
+        <p class="sub" style="max-width:360px"><b>Cisco (Francisco, 9 anos)</b> é o <b>Game Designer</b> do Super Tucan &#127918;. Mas o jogo cresce com a criatividade de todo mundo — <b>qualquer jogador pode colaborar com a evolução do jogo enviando ideias e sugestões!</b> &#127881;</p>
+        <p class="hint" style="margin-top:10px">Tem uma ideia pra deixar o jogo ainda melhor? Manda pra gente:</p>
       </div>
       <textarea id="ideaText" maxlength="240" placeholder="Escreva sua ideia aqui..." rows="3" style="width:280px;max-width:86vw;font-family:inherit;font-size:14px;background:#10281a;color:#e8f5ea;border:2px solid #2e6e3e;border-radius:8px;padding:8px;outline:none;resize:none"></textarea>
       <div class="hint" style="margin-bottom:2px">SEU NOME (opcional)</div>
@@ -533,32 +533,9 @@ const sfx = {
   chirp()   { tone(2200 + Math.random() * 600, 0.07, 'sine', 0.05, 2900); setTimeout(() => tone(2600, 0.06, 'sine', 0.04, 3200), 90); }
 };
 
-// ---------- Voz do tucano (PT-BR, tom cartoon via Web Speech API) ----------
-let ttsVoice = null;
-function pickVoice() {
-  try {
-    const vs = speechSynthesis.getVoices();
-    ttsVoice = vs.find(v => v.lang === 'pt-BR' && /Luciana|Francisca|Google/i.test(v.name))
-      || vs.find(v => v.lang && v.lang.indexOf('pt') === 0) || null;
-  } catch (e) { /* sem TTS */ }
-}
-if ('speechSynthesis' in window) {
-  pickVoice();
-  speechSynthesis.onvoiceschanged = pickVoice;
-}
-function speak(text) {
-  if (muted || !('speechSynthesis' in window)) return;
-  try {
-    speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text.toLowerCase());
-    u.lang = 'pt-BR';
-    if (ttsVoice) u.voice = ttsVoice;
-    u.pitch = 1.9;  // vozinha aguda de desenho animado
-    u.rate = 1.15;
-    u.volume = 0.9;
-    speechSynthesis.speak(u);
-  } catch (e) { /* sem TTS */ }
-}
+// A voz (fala) do tucano foi removida a pedido. speak() é um no-op mantido
+// só para não quebrar chamadas existentes.
+function speak(_text) { /* voz do tucano removida */ }
 
 // ---------- Música de fundo (chiptune sintetizado, 1 tema por fase) ----------
 function mtone(freq, t, dur, type, vol) {
@@ -1066,9 +1043,14 @@ function flap() {
   bird.flapAnim = 10;
   sfx.flap();
 }
+// true se o foco está em qualquer campo de texto (não roubar teclas dele)
+function typingInField() {
+  const el = document.activeElement;
+  return el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA');
+}
 document.addEventListener('keydown', e => {
   if (e.code === 'Space' || e.code === 'ArrowUp') {
-    if (document.activeElement && document.activeElement.id === 'initials') return;
+    if (typingInField()) return; // digitando (ex.: espaço na sugestão) — não voa
     e.preventDefault();
     flap();
   }
@@ -1363,7 +1345,7 @@ function update() {
       shake = 10;
       spawnFeathers();
       sfx.thud(deathPose);
-      setTimeout(() => speak(deathQuote), 350); // o tucano FALA a frase
+      // (a frase de morte continua aparecendo na tela; a VOZ foi removida)
     }
     if (shake > 0) shake--;
     floaters = floaters.filter(f => { f.y -= 0.7; f.life--; return f.life > 0; });
@@ -3655,10 +3637,29 @@ function drawAccessory(id) {
     ctx.fillRect(5, -34, 13, 13);  // copa
     ctx.fillStyle = '#e63946'; ctx.fillRect(5, -24, 13, 2); // fita
   } else if (id === 'capa') {
+    // CAPA ao vento: 5 frames em looping (a pedido). Cada frame ondula a barra
+    // da capa em posições diferentes, dando o efeito de tremular ao vento.
+    const CAPE_FRAMES = [
+      { cx: -34, cy: 6,  bx: -30, by: 22, mx: -18, my: 14 },
+      { cx: -37, cy: 3,  bx: -34, by: 18, mx: -20, my: 17 },
+      { cx: -39, cy: 8,  bx: -33, by: 26, mx: -19, my: 12 },
+      { cx: -36, cy: 12, bx: -29, by: 24, mx: -17, my: 16 },
+      { cx: -33, cy: 4,  bx: -31, by: 19, mx: -18, my: 13 }
+    ];
+    const f = CAPE_FRAMES[Math.floor(frames / 6) % 5]; // troca de frame a cada 6 ticks (~10 fps)
     ctx.fillStyle = '#e63946';
     ctx.beginPath();
-    ctx.moveTo(-10, -6); ctx.quadraticCurveTo(-34, 6, -30, 22);
-    ctx.quadraticCurveTo(-18, 14, -8, 12); ctx.closePath(); ctx.fill();
+    ctx.moveTo(-10, -6);
+    ctx.quadraticCurveTo(f.cx, f.cy, f.bx, f.by);
+    ctx.quadraticCurveTo(f.mx, f.my, -8, 12);
+    ctx.closePath(); ctx.fill();
+    // sombra interna pra dar volume à dobra da capa
+    ctx.fillStyle = 'rgba(150,20,30,.35)';
+    ctx.beginPath();
+    ctx.moveTo(-10, -6);
+    ctx.quadraticCurveTo(f.mx - 3, f.my - 2, f.bx + 4, f.by - 3);
+    ctx.quadraticCurveTo(f.mx, f.my, -9, 8);
+    ctx.closePath(); ctx.fill();
   } else if (id === 'coroa') {
     ctx.fillStyle = '#ffd23f';
     ctx.beginPath();
@@ -4055,7 +4056,7 @@ document.getElementById('btnQuit').addEventListener('click', () => {
 });
 document.addEventListener('keydown', e => {
   if (e.code === 'Escape' || e.code === 'KeyP' || e.code === 'KeyE') {
-    if (document.activeElement && document.activeElement.id === 'initials') return;
+    if (typingInField()) return; // digitando (ex.: 'p'/'e' na sugestão) — não pausa
     if (state === 'play') pauseGame();
     else if (state === 'paused') resumeGame();
   }
@@ -4470,7 +4471,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.0';
+const GAME_VERSION = '5.1';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)

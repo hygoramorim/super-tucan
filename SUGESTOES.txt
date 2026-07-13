@@ -1,0 +1,17 @@
+SUPER TUCAN — SUGESTÕES DOS JOGADORES
+=====================================
+
+Este arquivo reúne as sugestões e ideias enviadas pelos jogadores pela tela
+"💡 IDEIAS" do jogo. O agente de programação DEVE LER este arquivo a cada nova
+versão, para considerar as sugestões da comunidade na evolução do jogo.
+
+Game Designer: Cisco (Francisco, 9 anos).
+Qualquer jogador pode colaborar enviando ideias pela tela de IDEIAS no jogo.
+
+---------------------------------------------------------------------------
+COMO ATUALIZAR ESTE ARQUIVO (para o agente):
+  Rode, na pasta do repo:   node ler-sugestoes.js
+  Ele baixa as sugestões do Firebase (nó /ideas) e as escreve abaixo.
+---------------------------------------------------------------------------
+
+(nenhuma sugestão sincronizada ainda)
