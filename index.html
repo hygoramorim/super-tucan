@@ -784,6 +784,9 @@ let score, totalDist, phaseIdx, phaseDist, bannerTimer, deathTimer, shake;
 let p3Level, p3Timer, bannerText, bannerSub;
 let celebrateTimer = 0, celebrateColors = ['#ffd23f'];
 let combo = 0; // ovos coletados em sequência sem deixar nenhum passar
+// ideia 10 do Francisco: multiplicador do combo sobe +1× a cada 5 ovos, com TETO ×4
+// (5 ovos = ×2, 10 = ×3, 15+ = ×4). Teto protege o ranking de inflar.
+function comboMult(c) { return Math.min(4, 1 + Math.floor(c / 5)); }
 // Pássaros inimigos da fase final: voam em sentido contrário com velocidade
 // própria FIXA (igual à velocidade do jogador no começo do jogo), sem escalar.
 let enemies = [];
@@ -1191,11 +1194,11 @@ function update() {
   bird.rot = Math.max(-0.45, Math.min(1.2, bird.vy * 0.09));
   if (bird.flapAnim > 0) bird.flapAnim--;
   bird.wing = bird.flapAnim > 0 ? Math.sin(frames * 1.1) * 1.2 : Math.sin(frames * 0.25) * 0.4;
-  // tocar o teto agora é fatal (como o chão)
+  // tocar o teto agora é fatal (como o chão) — salvo pelo escudo (ideia 8)
   if (bird.y < bird.r) {
     bird.y = bird.r;
-    die();
-    return;
+    if (shield > 0 && invuln <= 0) { useShield(4); } // repique pra baixo
+    else { die(); return; }
   }
 
   // deslocamento horizontal (velocidade cresce nos níveis do Pantanal)
@@ -1253,6 +1256,7 @@ function update() {
     for (const en of enemies) {
       const ex = bird.x - en.x, eyd = bird.y - en.y;
       if (ex * ex + eyd * eyd < (bird.r - 2 + 10) * (bird.r - 2 + 10)) {
+        if (shield > 0 && invuln <= 0) { useShield(); en.x = -999; break; } // escudo espanta o pássaro (ideia 8)
         die();
         return;
       }
@@ -1267,14 +1271,16 @@ function update() {
     });
   }
 
-  // move obstáculos e ovos; ovo que passa sem ser coletado zera o combo
+  // move obstáculos e ovos. Ideia 11 do Francisco:
+  // perder um ovo comum/dourado reduz o combo em 1 nível (5 ovos), não zera;
+  // perder o OVO-JOIA (difícil) não mexe no combo.
   obstacles.forEach(o => { o.x -= d.speed; o.age++; });
   eggs.forEach(e => {
     e.x -= d.speed;
     e.age++;
     if (!e.taken && !e.missed && e.x < bird.x - 40) {
       e.missed = true;
-      combo = 0;
+      if (!e.jewel) combo = Math.max(0, combo - 5);
     }
   });
 
@@ -1323,11 +1329,11 @@ function update() {
   obstacles = obstacles.filter(o => o.x > -80);
   eggs = eggs.filter(e => e.x > -30 && !e.taken);
 
-  // colisão com o chão
+  // colisão com o chão — salvo pelo escudo (ideia 8)
   if (bird.y + bird.r >= H - GROUND_H) {
     bird.y = H - GROUND_H - bird.r;
-    die();
-    return;
+    if (shield > 0 && invuln <= 0) { useShield(-7); } // repique pra cima
+    else { die(); return; }
   }
 
   // colisão com galhos: círculo do corpo vs retângulo do tronco (justa e previsível)
@@ -1340,12 +1346,7 @@ function update() {
       if (circleRect(bird.x, bird.y, hitR, rx, 0, o.w, topH) ||
           circleRect(bird.x, bird.y, hitR, rx, botY, o.w, H - GROUND_H - botY)) {
         if (shield > 0) {
-          // ESCUDO: atravessa este tronco
-          shield = 0;
-          invuln = 50;
-          floater('🛡 ESCUDO USADO!', '#7ee08a');
-          sfx.shieldPop();
-          burst(bird.x, bird.y, '#7ee08a', 18);
+          useShield(); // ESCUDO: atravessa este tronco (ideia 8)
         } else {
           die();
           return;
@@ -1364,9 +1365,13 @@ function update() {
     if (dx * dx + dy * dy < (bird.r + 11) * (bird.r + 11) || tx * tx + ty * ty < 18 * 18) {
       e.taken = true;
       combo++;
-      if (combo === 5) { floater('🔥 COMBO ×2!', '#ff2e93'); sfx.comboUp(); }
-      // combo e PENA dobram; HARDCORE multiplica ovos por 3 (ideia 12 do Francisco)
-      const mult = (combo >= 5 ? 2 : 1) * (pena > 0 ? 2 : 1) * (gameMode === 'hardcore' ? 3 : 1);
+      // ideia 10 do Francisco: o combo sobe +1× a cada 5 ovos, com teto ×4
+      const newMult = comboMult(combo);
+      if (newMult > comboMult(combo - 1) && newMult > 1) {
+        floater('🔥 COMBO ×' + newMult + '!', '#ff2e93'); sfx.comboUp();
+      }
+      // combo e PENA multiplicam; HARDCORE multiplica ovos por 3 (ideia 12)
+      const mult = newMult * (pena > 0 ? 2 : 1) * (gameMode === 'hardcore' ? 3 : 1);
       score += (e.jewel ? 10 : e.golden ? 5 : 1) * mult;
       burst(e.x, ey, e.jewel ? '#7dd3fc' : e.golden ? '#ffd23f' : '#ffffff', e.jewel ? 30 : e.golden ? 16 : 8);
       if (e.jewel) sfx.jewel(); else if (e.golden) sfx.gold(); else sfx.egg();
@@ -1383,6 +1388,17 @@ const DEATH_QUOTES = [
   'O GALHO VEIO ATÉ MIM!', 'AVISA QUE EU TÔ BEM', 'ISSO VAI DEIXAR MARCA',
   'A CULPA FOI DO VENTO!', 'ATÉ TUCANO ERRA, TÁ?'
 ];
+// ideia 8 do Francisco: o ESCUDO protege de TUDO (galhos, pássaros, teto e chão).
+// Consome o escudo, dá invencibilidade breve, e opcionalmente aplica um repique
+// salvador (para teto/chão, empurrando o tucano de volta pra dentro da tela).
+function useShield(pushVy) {
+  shield = 0;
+  invuln = 50;
+  floater('🛡 ESCUDO SALVOU!', '#7ee08a');
+  sfx.shieldPop();
+  burst(bird.x, bird.y, '#7ee08a', 18);
+  if (pushVy !== undefined) { bird.vy = pushVy; shake = 4; }
+}
 function die() {
   // no tutorial não se morre: só um susto e segue o voo
   if (gameMode === 'tutorial') {
@@ -3178,7 +3194,7 @@ function drawHUD(p) {
   if (combo >= 5) {
     ctx.fillStyle = '#ff2e93';
     ctx.font = "10px Bungee, 'Courier New', monospace";
-    ctx.fillText('COMBO ×2', 14, 64);
+    ctx.fillText('COMBO ×' + comboMult(combo), 14, 64);
   }
   // efeitos ativos (power-ups) com contagem regressiva
   let fxY = combo >= 5 ? 80 : 64;
@@ -3819,7 +3835,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '2.7';
+const GAME_VERSION = '2.8';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 resetGame();
