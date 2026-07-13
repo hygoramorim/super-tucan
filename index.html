@@ -283,8 +283,12 @@
     <div id="shop" class="overlay hidden">
       <h1 style="font-size:26px">&#128717;&#65039; LOJINHA<small>DO TUCANO</small></h1>
       <div id="shopBank" style="font-family:'Bungee',monospace;font-size:20px;color:#ffd23f">&#129370; 0</div>
-      <p class="hint">Colete ovos jogando e compre acess&oacute;rios pro seu tucano!</p>
-      <div id="shopList" style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:360px;max-height:44vh;overflow-y:auto"></div>
+      <div style="display:flex;gap:6px;justify-content:center;margin:4px 0">
+        <button class="tab active" id="shopTabAcc">&#128083; ACESS&Oacute;RIOS</button>
+        <button class="tab" id="shopTabPet">&#128038; AMIGUINHOS</button>
+      </div>
+      <p class="hint">Colete ovos jogando e compre coisas pro seu tucano!</p>
+      <div id="shopList" style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:360px;max-height:40vh;overflow-y:auto"></div>
       <div class="hint" id="shopMsg" style="min-height:16px"></div>
       <button id="shopClose" class="sec">VOLTAR</button>
     </div>
@@ -768,6 +772,26 @@ function buyItem(id) {
 function equippedItem() { return localStorage.getItem('superTucan_equipped') || ''; }
 function equipItem(id) { localStorage.setItem('superTucan_equipped', id === equippedItem() ? '' : id); }
 
+// AVES COMPANHEIRAS (ideia 15 do Francisco): aves brasileiras que seguem o tucano.
+// Compradas com ovos, na aba "amiguinhos" da lojinha. São cosméticas (sem hitbox).
+const PET_ITEMS = [
+  { id: 'bentevi',  emoji: '🐤', nome: 'BEM-TE-VI',   preco: 80,  cor: '#f5c542', peito: '#8a5a2a' },
+  { id: 'sabia',    emoji: '🐦', nome: 'SABIÁ-LARANJEIRA', preco: 150, cor: '#6a4a3a', peito: '#d9743a' },
+  { id: 'beijaflor',emoji: '🕊️', nome: 'BEIJA-FLOR',  preco: 250, cor: '#2e9e8a', peito: '#7ee0c0' },
+  { id: 'araraazul',emoji: '🦜', nome: 'ARARA-AZUL',  preco: 500, cor: '#1d4ed8', peito: '#ffd23f' }
+];
+function ownedPets() { try { return JSON.parse(localStorage.getItem('superTucan_pets')) || []; } catch (e) { return []; } }
+function ownsPet(id) { return ownedPets().includes(id); }
+function buyPet(id) {
+  const it = PET_ITEMS.find(i => i.id === id);
+  if (!it || ownsPet(id) || !spendEggs(it.preco)) return false;
+  const l = ownedPets(); l.push(id); localStorage.setItem('superTucan_pets', JSON.stringify(l));
+  return true;
+}
+function equippedPet() { return localStorage.getItem('superTucan_pet') || ''; }
+function equipPet(id) { localStorage.setItem('superTucan_pet', id === equippedPet() ? '' : id); }
+let petTrail = []; // buffer de posições do tucano p/ a companheira seguir com defesagem
+
 // Publica o cartão público do jogador — é a ÚNICA fonte do ranking agora
 // (um registro por nome: best = recorde de ovos, xp = XP acumulado). Ideias 6 e 20.
 function publishPlayer(name, st) {
@@ -960,6 +984,7 @@ function resetGame() {
   magicNight = 0; etCooldown = 0;
   ufo = null; ufoTimer = 700;
   boss = null; bossTimer = 1500; bones = [];
+  petTrail = [];
   floaters = [];
   nextMilestone = 50;
   tutIdx = 0;
@@ -1411,6 +1436,8 @@ function update() {
   if (bird.vy > 10) bird.vy = 10;
   bird.y += bird.vy;
   bird.rot = Math.max(-0.45, Math.min(1.2, bird.vy * 0.09));
+  // trilha de posições p/ a ave companheira seguir com defasagem (ideia 15)
+  if (equippedPet()) { petTrail.push({ x: bird.x, y: bird.y }); if (petTrail.length > 40) petTrail.shift(); }
   if (bird.flapAnim > 0) bird.flapAnim--;
   bird.wing = bird.flapAnim > 0 ? Math.sin(frames * 1.1) * 1.2 : Math.sin(frames * 0.25) * 0.4;
   // tocar o teto agora é fatal (como o chão) — salvo pelo escudo (ideia 8)
@@ -3518,6 +3545,44 @@ function drawToucan(p) {
   drawAccessory(equippedItem()); // acessório da lojinha (ideia 17)
   ctx.restore();
 }
+// desenha a ave companheira seguindo o tucano (ideia 15 do Francisco)
+function drawPet() {
+  const id = equippedPet();
+  if (!id) return;
+  const pet = PET_ITEMS.find(p => p.id === id);
+  if (!pet) return;
+  // posição atrasada no trail (atrás e um pouco acima do tucano)
+  const t = petTrail.length > 30 ? petTrail[petTrail.length - 30] : { x: bird.x - 60, y: bird.y - 20 };
+  const px = t.x - 6, py = t.y - 22;
+  const flap = Math.sin(frames * 0.4) * 0.9;
+  ctx.save();
+  ctx.translate(px, py);
+  ctx.scale(0.62, 0.62); // menor que o tucano
+  // cauda
+  ctx.fillStyle = pet.cor;
+  ctx.beginPath(); ctx.moveTo(-10, -2); ctx.lineTo(-22, -6); ctx.lineTo(-20, 4); ctx.closePath(); ctx.fill();
+  // corpo
+  ctx.beginPath(); ctx.ellipse(0, 0, 12, 9, 0, 0, 7); ctx.fill();
+  // peito
+  ctx.fillStyle = pet.peito;
+  ctx.beginPath(); ctx.ellipse(3, 2, 7, 6, 0, 0, 7); ctx.fill();
+  // asa batendo
+  ctx.fillStyle = pet.cor;
+  ctx.save(); ctx.rotate(flap);
+  ctx.beginPath(); ctx.ellipse(-2, -3, 9, 4, -0.3, 0, 7); ctx.fill();
+  ctx.restore();
+  // cabeça
+  ctx.beginPath(); ctx.arc(9, -6, 6, 0, 7); ctx.fill();
+  // bico
+  ctx.fillStyle = '#f5a623';
+  ctx.beginPath(); ctx.moveTo(14, -6); ctx.lineTo(20, -5); ctx.lineTo(14, -3); ctx.fill();
+  // olho
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(10, -7, 2, 0, 7); ctx.fill();
+  ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(10.5, -7, 1, 0, 7); ctx.fill();
+  // detalhe beija-flor: bico longo
+  if (id === 'beijaflor') { ctx.strokeStyle = '#333'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(14, -5); ctx.lineTo(24, -4); ctx.stroke(); }
+  ctx.restore();
+}
 // desenha o acessório equipado no referencial local do tucano (cabeça ~ (8,-10))
 function drawAccessory(id) {
   if (!id) return;
@@ -3689,6 +3754,7 @@ function draw() {
   });
   ctx.globalAlpha = 1;
 
+  if (state === 'play' || state === 'ready') drawPet(); // ave companheira atrás do tucano (ideia 15)
   drawToucan(p);
 
   // bolha do escudo / piscada de invencibilidade
@@ -4208,15 +4274,19 @@ document.getElementById('btnIdeaSend').addEventListener('click', async () => {
 
 // ---------- LOJINHA DE OVOS (ideia 17 do Francisco) ----------
 const elShop = document.getElementById('shop');
+let shopTab = 'acc'; // 'acc' (acessórios) | 'pet' (amiguinhos)
 function renderShop() {
   document.getElementById('shopBank').innerHTML = '🥚 ' + eggBank();
   const list = document.getElementById('shopList');
-  const eq = equippedItem();
-  list.innerHTML = SHOP_ITEMS.map(it => {
-    const owned = ownsItem(it.id);
+  const isPet = shopTab === 'pet';
+  const items = isPet ? PET_ITEMS : SHOP_ITEMS;
+  const eq = isPet ? equippedPet() : equippedItem();
+  const owns = isPet ? ownsPet : ownsItem;
+  list.innerHTML = items.map(it => {
+    const owned = owns(it.id);
     const isEq = eq === it.id;
     const cor = isEq ? '#ffd23f' : owned ? '#7ee08a' : '#2e6e3e';
-    const acao = owned ? (isEq ? 'EQUIPADO ✓' : 'EQUIPAR') : ('🥚 ' + it.preco);
+    const acao = owned ? (isEq ? 'ATIVO ✓' : (isPet ? 'CHAMAR' : 'EQUIPAR')) : ('🥚 ' + it.preco);
     return '<button class="shopItem" data-id="' + it.id + '" style="width:104px;padding:8px 4px;border-radius:10px;'
       + 'background:#10281a;border:2px solid ' + cor + ';color:#e8f5ea;cursor:pointer;font-family:inherit">'
       + '<div style="font-size:26px">' + it.emoji + '</div>'
@@ -4226,16 +4296,25 @@ function renderShop() {
   list.querySelectorAll('.shopItem').forEach(b => b.addEventListener('click', () => {
     const id = b.dataset.id;
     const msg = document.getElementById('shopMsg');
-    if (ownsItem(id)) { equipItem(id); renderShop(); }
-    else if (buyItem(id)) { equipItem(id); msg.textContent = '✅ Comprou e equipou!'; renderShop(); }
+    if (owns(id)) { (isPet ? equipPet : equipItem)(id); renderShop(); }
+    else if ((isPet ? buyPet : buyItem)(id)) { (isPet ? equipPet : equipItem)(id); msg.textContent = '✅ Comprou! Já está ativo!'; renderShop(); }
     else { msg.textContent = '🥚 Ovos insuficientes — jogue mais pra comprar!'; }
   }));
+}
+function shopSetTab(t) {
+  shopTab = t;
+  document.getElementById('shopTabAcc').classList.toggle('active', t === 'acc');
+  document.getElementById('shopTabPet').classList.toggle('active', t === 'pet');
+  document.getElementById('shopMsg').textContent = '';
+  renderShop();
 }
 document.getElementById('btnShop').addEventListener('click', () => {
   elMenu.classList.add('hidden'); elShop.classList.remove('hidden');
   document.getElementById('shopMsg').textContent = '';
-  renderShop();
+  shopSetTab('acc');
 });
+document.getElementById('shopTabAcc').addEventListener('click', () => shopSetTab('acc'));
+document.getElementById('shopTabPet').addEventListener('click', () => shopSetTab('pet'));
 document.getElementById('shopClose').addEventListener('click', () => {
   elShop.classList.add('hidden'); elMenu.classList.remove('hidden');
 });
@@ -4295,7 +4374,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '4.0';
+const GAME_VERSION = '4.1';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 resetGame();
