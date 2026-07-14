@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.13.19` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.13.20` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -220,3 +220,5 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
   celular vertical, arremessos do Urubu ficam 30% mais lentos e espaçados.
 - **v5.13.19** — ajuste mobile vertical da Cobra com revisão de agente especialista: cabeça presa à
   borda direita, corpo recortado para fora da tela e origens de língua/ovos clampadas para manter leitura.
+- **v5.13.20** — Vulcão virou efeito de fundo: bolas de fogo não colidem mais com o Tucano e explodem
+  como fogos de artifício ao tocar o chão.
