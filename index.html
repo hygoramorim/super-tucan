@@ -166,12 +166,24 @@
   #menuPB { color: #f5a623; margin-top: 4px; }
   #goPB { font-size: 12px; color: #f5a623; }
   #goXP { font-size: 12px; color: #7ee08a; }
-  #fSearch {
+  #fInviteInput, #fCodeInput {
     width: 150px; font-size: 16px; font-family: inherit; font-weight: 700;
     text-align: center; text-transform: uppercase;
     background: #10281a; color: #ffd23f;
     border: 2px solid #7ee08a; border-radius: 8px; padding: 7px 4px; outline: none;
   }
+  #fInviteRow {
+    display: none; flex-direction: column; gap: 8px; align-items: center;
+    max-width: 320px;
+  }
+  #fInviteRow .fline { display: flex; gap: 6px; align-items: center; justify-content: center; flex-wrap: wrap; }
+  #fCodeCard {
+    min-width: 250px; text-align: center;
+    background: rgba(16,40,26,.9); border: 1px solid #2e6e3e;
+    border-radius: 8px; padding: 8px 10px;
+  }
+  #fCodeCard b { color: #ffd23f; font-size: 18px; letter-spacing: 1px; }
+  #fInviteMsg { min-height: 16px; color: #7ee08a; font-size: 11px; text-align: center; }
   #fList {
     min-width: 260px; max-width: 320px; max-height: 38vh; overflow-y: auto;
     font-size: 13px; text-align: left;
@@ -226,9 +238,20 @@
         <button class="tab" id="fTabReq">PEDIDOS</button>
         <button class="tab" id="fTabAdd">ADICIONAR</button>
       </div>
-      <div id="fSearchRow" style="display:none;gap:6px;align-items:center">
-        <input id="fSearch" maxlength="9" autocomplete="off" spellcheck="false" placeholder="NOME">
-        <button id="fSearchBtn" class="sec">BUSCAR</button>
+      <div id="fInviteRow">
+        <div id="fCodeCard">
+          <div class="hint" id="fMyCodeLabel">MEU CÓDIGO</div>
+          <b id="fMyCode">---</b>
+        </div>
+        <div class="fline">
+          <button id="fMakeCode" class="sec">GERAR</button>
+          <button id="fCopyCode" class="sec">COPIAR</button>
+        </div>
+        <div class="fline">
+          <input id="fCodeInput" maxlength="12" autocomplete="off" spellcheck="false" placeholder="CÓDIGO">
+          <button id="fUseCode" class="sec">ENTRAR</button>
+        </div>
+        <div id="fInviteMsg"></div>
       </div>
       <div id="fList"></div>
       <button id="fClose" class="sec">VOLTAR</button>
@@ -351,7 +374,7 @@ const I18N = {
     shopHint: 'Colete ovos jogando e compre coisas pro seu tucano!', tabAcc: '👓 ACESSÓRIOS', tabPet: '🐦 AMIGUINHOS',
     back: 'VOLTAR', ideasTitle: 'IDEIAS', ideasSub: 'DO SUPER TUCAN', sendIdea: 'ENVIAR IDEIA', pause: 'PAUSADO', resume: 'CONTINUAR', quit: 'SAIR PARA O MENU',
     achTitle: '🏆 CONQUISTAS', achSub: 'Desbloqueie marcos jogando, enfrentando chefões e explorando o Brasil.',
-    friendsTitle: '❤️ AMIGOS', friendsList: 'AMIGOS', friendReq: 'PEDIDOS', friendAdd: 'ADICIONAR', search: 'BUSCAR',
+    friendsTitle: '❤️ MEU BANDO', friendsList: 'BANDO', friendReq: 'PEDIDOS', friendAdd: 'CONVITE', inviteCode: 'MEU CÓDIGO', makeCode: 'GERAR', copyCode: 'COPIAR', useCode: 'ENTRAR',
     bossPortal: '⚠ PORTAL DO CHEFÃO!', bossEnter: 'ENTRE PELO TRONCO!', bossMissed: 'PORTAL PASSOU', bossReturns: 'ELE VAI VOLTAR', bossUrubu: '💀 CHEFÃO URUBU!', bossSnake: '🐍 CHEFÃ ANACONDA!', bossReward: '🏆 CHEFÃO VENCIDO!', bossDodgeBones: 'DESVIE DOS OSSOS!', bossDodgeVenom: 'CUIDADO COM A ANACONDA!', bossClear: 'BOSS CONCLUÍDO', bossFair: 'RANKING JUSTO', bossBadgeUrubu: 'CORAGEM DO CEMITÉRIO', bossBadgeSnake: 'DENTE DA COBRA', etBonus: 'ET ×2 OVOS', urubuBlessing: 'MARCA DO URUBU ×3',
     cemetery: 'CEMITÉRIO CARTOON', snakeLair: 'TOCA DA COBRA', noEggsBoss: 'SEM OVOS NA BOSSFIGHT',
     ideaHint: 'Tem uma ideia pra deixar o jogo ainda melhor? Manda pra gente:', ideaName: 'SEU NOME (opcional)', ideaPlaceholder: 'Escreva sua ideia aqui...', ideaSending: 'ENVIANDO...', ideaThanks: '✅ VALEU! Sua ideia foi registrada 🦜', ideaShort: '✍️ Escreva um pouquinho mais...',
@@ -362,8 +385,9 @@ const I18N = {
     bookFast: 'MALDIÇÃO: 2× MAIS RÁPIDO!', bookSlow: 'MALDIÇÃO: 2× MAIS LENTO!', bookJump: 'MALDIÇÃO: PULO 1,5×!', bookScore: 'MALDIÇÃO: PONTOS 4×!',
     savedByShield: 'ESCUDO SALVOU!', careful: 'OPA! CUIDADO', phew: 'UFA!', points: 'PONTOS!', scoreBest: 'NOVO RECORDE PESSOAL', scoreYour: 'Seu recorde', scoreNeeded: 'faltaram',
     sendingRank: 'Enviando ao ranking', offlineSaved: 'Sem conexão — recorde salvo só neste aparelho.', rankPos: 'está em', rankTop: 'no TOP 10 GLOBAL de ovos!', keepPlaying: 'Continue jogando pra entrar no TOP 10 de ovos!',
-    you: 'VOCÊ', loading: 'Carregando...', friendHint: 'Busque um nome acima e peça amizade!', needNameFriends: 'DIGITE SEU NOME PARA USAR OS AMIGOS', nameTaken: 'JÁ PERTENCE A OUTRO JOGADOR',
-    noFriends: 'Você ainda não tem amigos por aqui. Use ADICIONAR!', offline: 'Sem conexão.', noRequests: 'Nenhum pedido de amizade pendente.', wantsFriend: 'quer ser seu amigo!', accept: 'ACEITAR', typeName: 'Digite parte do nome.', searching: 'Buscando...', nobodyFound: 'Ninguém encontrado com', askFriend: 'PEDIR', requested: 'PEDIDO ✓',
+    you: 'VOCÊ', loading: 'Carregando...', friendHint: 'Gere um código para chamar alguém ou use o código de outro jogador.', needNameFriends: 'DIGITE SEU NOME PARA USAR OS AMIGOS', nameTaken: 'JÁ PERTENCE A OUTRO JOGADOR',
+    noFriends: 'Seu bando ainda está vazio. Use CONVITE!', offline: 'Sem conexão.', noRequests: 'Nenhum pedido de amizade pendente.', wantsFriend: 'quer entrar no seu bando!', accept: 'ACEITAR', typeCode: 'Digite um código de convite.', codeCreated: 'Código criado! Vale por 7 dias.', codeCopied: 'Código copiado!', codeCopyFail: 'Copie o código manualmente.', codeInvalid: 'Código inválido ou expirado.', codeSelf: 'Esse código é seu.', codeRequested: 'Pedido enviado ao bando de',
+    search: 'BUSCAR', typeName: 'Digite parte do nome.', searching: 'Buscando...', nobodyFound: 'Ninguém encontrado com', askFriend: 'PEDIR', requested: 'PEDIDO ✓',
     active: 'ATIVO ✓', call: 'CHAMAR', equip: 'EQUIPAR', bought: '✅ Comprou! Já está ativo!', notEnoughEggs: '🥚 Ovos insuficientes — jogue mais pra comprar!', record: 'RECORDE', reached: 'CHEGOU EM',
     checkingName: 'VERIFICANDO NOME...', chooseOther: 'ESCOLHA OUTRO NOME', hardcoreSub: 'PANTANAL ∞ DIRETO', tutorialSub: 'SEM MORTE — SÓ APRENDER', tutorialDone: '🎓 TUTORIAL COMPLETO! +50 XP — AGORA JOGUE DE VERDADE!', now: 'AGORA'
   },
@@ -378,7 +402,7 @@ const I18N = {
     shopHint: 'Collect eggs by playing and buy stuff for your toucan!', tabAcc: '👓 ACCESSORIES', tabPet: '🐦 BUDDIES',
     back: 'BACK', ideasTitle: 'IDEAS', ideasSub: 'FOR SUPER TUCAN', sendIdea: 'SEND IDEA', pause: 'PAUSED', resume: 'RESUME', quit: 'QUIT TO MENU',
     achTitle: '🏆 ACHIEVEMENTS', achSub: 'Unlock milestones by playing, facing bosses and exploring Brazil.',
-    friendsTitle: '❤️ FRIENDS', friendsList: 'FRIENDS', friendReq: 'REQUESTS', friendAdd: 'ADD', search: 'SEARCH',
+    friendsTitle: '❤️ MY FLOCK', friendsList: 'FLOCK', friendReq: 'REQUESTS', friendAdd: 'INVITE', inviteCode: 'MY CODE', makeCode: 'CREATE', copyCode: 'COPY', useCode: 'JOIN',
     bossPortal: '⚠ BOSS PORTAL!', bossEnter: 'ENTER THE HOLLOW LOG!', bossMissed: 'PORTAL PASSED', bossReturns: 'IT WILL RETURN', bossUrubu: '💀 VULTURE BOSS!', bossSnake: '🐍 ANACONDA BOSS!', bossReward: '🏆 BOSS CLEARED!', bossDodgeBones: 'DODGE THE BONES!', bossDodgeVenom: 'WATCH THE ANACONDA!', bossClear: 'BOSS CLEARED', bossFair: 'FAIR RANKING', bossBadgeUrubu: 'CEMETERY COURAGE', bossBadgeSnake: 'SNAKE TOOTH', etBonus: 'ET ×2 EGGS', urubuBlessing: 'VULTURE MARK ×3',
     cemetery: 'CARTOON CEMETERY', snakeLair: 'SNAKE LAIR', noEggsBoss: 'NO EGGS IN BOSSFIGHT',
     ideaHint: 'Got an idea to make the game even better? Send it to us:', ideaName: 'YOUR NAME (optional)', ideaPlaceholder: 'Write your idea here...', ideaSending: 'SENDING...', ideaThanks: '✅ THANKS! Your idea was saved 🦜', ideaShort: '✍️ Write a little more...',
@@ -389,8 +413,9 @@ const I18N = {
     bookFast: 'CURSE: 2× FASTER!', bookSlow: 'CURSE: 2× SLOWER!', bookJump: 'CURSE: 1.5× JUMP!', bookScore: 'CURSE: POINTS 4×!',
     savedByShield: 'SHIELD SAVED YOU!', careful: 'WATCH OUT!', phew: 'PHEW!', points: 'POINTS!', scoreBest: 'NEW PERSONAL BEST', scoreYour: 'Your best', scoreNeeded: 'needed',
     sendingRank: 'Sending to ranking', offlineSaved: 'No connection — record saved only on this device.', rankPos: 'is', rankTop: 'on the GLOBAL TOP 10 for eggs!', keepPlaying: 'Keep playing to enter the egg TOP 10!',
-    you: 'YOU', loading: 'Loading...', friendHint: 'Search a name above and request friendship!', needNameFriends: 'ENTER YOUR NAME TO USE FRIENDS', nameTaken: 'ALREADY BELONGS TO ANOTHER PLAYER',
-    noFriends: 'No friends here yet. Use ADD!', offline: 'No connection.', noRequests: 'No pending friend requests.', wantsFriend: 'wants to be your friend!', accept: 'ACCEPT', typeName: 'Type part of a name.', searching: 'Searching...', nobodyFound: 'Nobody found with', askFriend: 'ASK', requested: 'REQUESTED ✓',
+    you: 'YOU', loading: 'Loading...', friendHint: 'Create a code to invite someone or use another player code.', needNameFriends: 'ENTER YOUR NAME TO USE FRIENDS', nameTaken: 'ALREADY BELONGS TO ANOTHER PLAYER',
+    noFriends: 'Your flock is empty. Use INVITE!', offline: 'No connection.', noRequests: 'No pending friend requests.', wantsFriend: 'wants to join your flock!', accept: 'ACCEPT', typeCode: 'Type an invite code.', codeCreated: 'Code created! Valid for 7 days.', codeCopied: 'Code copied!', codeCopyFail: 'Copy the code manually.', codeInvalid: 'Invalid or expired code.', codeSelf: 'This code is yours.', codeRequested: 'Request sent to',
+    search: 'SEARCH', typeName: 'Type part of a name.', searching: 'Searching...', nobodyFound: 'Nobody found with', askFriend: 'ASK', requested: 'REQUESTED ✓',
     active: 'ACTIVE ✓', call: 'CALL', equip: 'EQUIP', bought: '✅ Bought! Already active!', notEnoughEggs: '🥚 Not enough eggs — play more to buy!', record: 'BEST', reached: 'REACHED',
     checkingName: 'CHECKING NAME...', chooseOther: 'CHOOSE ANOTHER NAME', hardcoreSub: 'STRAIGHT TO PANTANAL ∞', tutorialSub: 'NO DEATHS — JUST LEARN', tutorialDone: '🎓 TUTORIAL COMPLETE! +50 XP — NOW PLAY FOR REAL!', now: 'NOW'
   },
@@ -405,7 +430,7 @@ const I18N = {
     shopHint: '¡Colecta huevos jugando y compra cosas para tu tucán!', tabAcc: '👓 ACCESORIOS', tabPet: '🐦 AMIGUITOS',
     back: 'VOLVER', ideasTitle: 'IDEAS', ideasSub: 'DE SUPER TUCAN', sendIdea: 'ENVIAR IDEA', pause: 'PAUSADO', resume: 'CONTINUAR', quit: 'SALIR AL MENÚ',
     achTitle: '🏆 LOGROS', achSub: 'Desbloquea metas jugando, enfrentando jefes y explorando Brasil.',
-    friendsTitle: '❤️ AMIGOS', friendsList: 'AMIGOS', friendReq: 'PEDIDOS', friendAdd: 'AÑADIR', search: 'BUSCAR',
+    friendsTitle: '❤️ MI BANDO', friendsList: 'BANDO', friendReq: 'PEDIDOS', friendAdd: 'INVITAR', inviteCode: 'MI CÓDIGO', makeCode: 'CREAR', copyCode: 'COPIAR', useCode: 'ENTRAR',
     bossPortal: '⚠ PORTAL DEL JEFE!', bossEnter: '¡ENTRA POR EL TRONCO!', bossMissed: 'EL PORTAL PASÓ', bossReturns: 'VOLVERÁ', bossUrubu: '💀 JEFE BUITRE!', bossSnake: '🐍 JEFA ANACONDA!', bossReward: '🏆 JEFE VENCIDO!', bossDodgeBones: '¡ESQUIVA LOS HUESOS!', bossDodgeVenom: '¡CUIDADO CON LA ANACONDA!', bossClear: 'JEFE COMPLETADO', bossFair: 'RANKING JUSTO', bossBadgeUrubu: 'VALOR DEL CEMENTERIO', bossBadgeSnake: 'DIENTE DE SERPIENTE', etBonus: 'ET ×2 HUEVOS', urubuBlessing: 'MARCA DEL BUITRE ×3',
     cemetery: 'CEMENTERIO CARTOON', snakeLair: 'GUARIDA DE LA SERPIENTE', noEggsBoss: 'SIN HUEVOS EN EL JEFE',
     ideaHint: '¿Tienes una idea para mejorar el juego? Envíanosla:', ideaName: 'TU NOMBRE (opcional)', ideaPlaceholder: 'Escribe tu idea aquí...', ideaSending: 'ENVIANDO...', ideaThanks: '✅ ¡GRACIAS! Tu idea fue registrada 🦜', ideaShort: '✍️ Escribe un poco más...',
@@ -416,8 +441,9 @@ const I18N = {
     bookFast: 'MALDICIÓN: 2× MÁS RÁPIDO!', bookSlow: 'MALDICIÓN: 2× MÁS LENTO!', bookJump: 'MALDICIÓN: SALTO 1,5×!', bookScore: 'MALDICIÓN: PUNTOS 4×!',
     savedByShield: '¡EL ESCUDO TE SALVÓ!', careful: '¡CUIDADO!', phew: '¡UF!', points: 'PUNTOS!', scoreBest: 'NUEVO RÉCORD PERSONAL', scoreYour: 'Tu récord', scoreNeeded: 'faltaron',
     sendingRank: 'Enviando al ranking', offlineSaved: 'Sin conexión — récord guardado solo en este dispositivo.', rankPos: 'está en', rankTop: 'en el TOP 10 GLOBAL de huevos!', keepPlaying: '¡Sigue jugando para entrar al TOP 10 de huevos!',
-    you: 'TÚ', loading: 'Cargando...', friendHint: '¡Busca un nombre arriba y pide amistad!', needNameFriends: 'ESCRIBE TU NOMBRE PARA USAR AMIGOS', nameTaken: 'YA PERTENECE A OTRO JUGADOR',
-    noFriends: 'Aún no tienes amigos por aquí. ¡Usa AÑADIR!', offline: 'Sin conexión.', noRequests: 'No hay pedidos de amistad pendientes.', wantsFriend: 'quiere ser tu amigo!', accept: 'ACEPTAR', typeName: 'Escribe parte del nombre.', searching: 'Buscando...', nobodyFound: 'Nadie encontrado con', askFriend: 'PEDIR', requested: 'PEDIDO ✓',
+    you: 'TÚ', loading: 'Cargando...', friendHint: 'Crea un código para invitar o usa el código de otro jugador.', needNameFriends: 'ESCRIBE TU NOMBRE PARA USAR AMIGOS', nameTaken: 'YA PERTENECE A OTRO JUGADOR',
+    noFriends: 'Tu bando está vacío. ¡Usa INVITAR!', offline: 'Sin conexión.', noRequests: 'No hay pedidos de amistad pendientes.', wantsFriend: 'quiere entrar en tu bando!', accept: 'ACEPTAR', typeCode: 'Escribe un código de invitación.', codeCreated: '¡Código creado! Vale 7 días.', codeCopied: '¡Código copiado!', codeCopyFail: 'Copia el código manualmente.', codeInvalid: 'Código inválido o vencido.', codeSelf: 'Ese código es tuyo.', codeRequested: 'Pedido enviado al bando de',
+    search: 'BUSCAR', typeName: 'Escribe parte del nombre.', searching: 'Buscando...', nobodyFound: 'Nadie encontrado con', askFriend: 'PEDIR', requested: 'PEDIDO ✓',
     active: 'ACTIVO ✓', call: 'LLAMAR', equip: 'EQUIPAR', bought: '✅ Comprado! Ya está activo!', notEnoughEggs: '🥚 Huevos insuficientes — juega más para comprar!', record: 'RÉCORD', reached: 'LLEGÓ A',
     checkingName: 'VERIFICANDO NOMBRE...', chooseOther: 'ELIGE OTRO NOMBRE', hardcoreSub: 'DIRECTO AL PANTANAL ∞', tutorialSub: 'SIN MUERTE — SOLO APRENDER', tutorialDone: '🎓 TUTORIAL COMPLETO! +50 XP — AHORA JUEGA DE VERDAD!', now: 'AHORA'
   },
@@ -432,7 +458,7 @@ const I18N = {
     shopHint: '玩游戏收集鸡蛋，为你的巨嘴鸟买东西！', tabAcc: '👓 配饰', tabPet: '🐦 伙伴',
     back: '返回', ideasTitle: '点子', ideasSub: '超级巨嘴鸟', sendIdea: '发送点子', pause: '暂停', resume: '继续', quit: '退出到菜单',
     achTitle: '🏆 成就', achSub: '通过游玩、挑战首领和探索巴西来解锁成就。',
-    friendsTitle: '❤️ 朋友', friendsList: '朋友', friendReq: '请求', friendAdd: '添加', search: '搜索',
+    friendsTitle: '❤️ 我的鸟群', friendsList: '鸟群', friendReq: '请求', friendAdd: '邀请', inviteCode: '我的代码', makeCode: '生成', copyCode: '复制', useCode: '加入',
     bossPortal: '⚠ 首领传送门！', bossEnter: '进入树洞！', bossMissed: '传送门过去了', bossReturns: '它会回来', bossUrubu: '💀 秃鹫首领！', bossSnake: '🐍 森蚺首领！', bossReward: '🏆 击败首领！', bossDodgeBones: '躲开骨头！', bossDodgeVenom: '小心森蚺！', bossClear: '首领完成', bossFair: '公平排行', bossBadgeUrubu: '墓地勇气', bossBadgeSnake: '蛇牙', etBonus: 'ET ×2 鸡蛋', urubuBlessing: '秃鹫印记 ×3',
     cemetery: '卡通墓地', snakeLair: '蛇洞', noEggsBoss: '首领战没有蛋',
     ideaHint: '有让游戏更棒的点子吗？发给我们：', ideaName: '你的名字（可选）', ideaPlaceholder: '在这里写下你的点子...', ideaSending: '发送中...', ideaThanks: '✅ 谢谢！你的点子已保存 🦜', ideaShort: '✍️ 再多写一点...',
@@ -443,8 +469,9 @@ const I18N = {
     bookFast: '诅咒：快 2 倍！', bookSlow: '诅咒：慢 2 倍！', bookJump: '诅咒：跳跃 1.5 倍！', bookScore: '诅咒：分数 4 倍！',
     savedByShield: '护盾救了你！', careful: '小心！', phew: '呼！', points: '分！', scoreBest: '新的个人最佳', scoreYour: '你的最佳', scoreNeeded: '还差',
     sendingRank: '发送到排行榜', offlineSaved: '无连接 — 记录只保存在本设备。', rankPos: '位于', rankTop: '全球鸡蛋前10名！', keepPlaying: '继续玩，进入鸡蛋前10名！',
-    you: '你', loading: '加载中...', friendHint: '在上方搜索名字并请求好友！', needNameFriends: '输入名字才能使用好友', nameTaken: '已属于其他玩家',
-    noFriends: '这里还没有好友。使用添加！', offline: '无连接。', noRequests: '没有待处理好友请求。', wantsFriend: '想成为你的好友！', accept: '接受', typeName: '输入部分名字。', searching: '搜索中...', nobodyFound: '没有找到', askFriend: '请求', requested: '已请求 ✓',
+    you: '你', loading: '加载中...', friendHint: '生成代码邀请别人，或输入其他玩家的代码。', needNameFriends: '输入名字才能使用好友', nameTaken: '已属于其他玩家',
+    noFriends: '你的鸟群还是空的。使用邀请！', offline: '无连接。', noRequests: '没有待处理好友请求。', wantsFriend: '想加入你的鸟群！', accept: '接受', typeCode: '输入邀请码。', codeCreated: '代码已生成！7天有效。', codeCopied: '代码已复制！', codeCopyFail: '请手动复制代码。', codeInvalid: '代码无效或已过期。', codeSelf: '这是你自己的代码。', codeRequested: '请求已发送给',
+    search: '搜索', typeName: '输入部分名字。', searching: '搜索中...', nobodyFound: '没有找到', askFriend: '请求', requested: '已请求 ✓',
     active: '已启用 ✓', call: '召唤', equip: '装备', bought: '✅ 已购买！已启用！', notEnoughEggs: '🥚 鸡蛋不足 — 多玩几局再买！', record: '最佳', reached: '到达',
     checkingName: '正在检查名字...', chooseOther: '请选择其他名字', hardcoreSub: '直接进入潘塔纳尔 ∞', tutorialSub: '不会死亡 — 只学习', tutorialDone: '🎓 教程完成！+50 XP — 现在认真玩吧！', now: '现在'
   }
@@ -5353,19 +5380,35 @@ document.getElementById('btnHardcore').addEventListener('click', () => startGame
 const elFriends = document.getElementById('friends');
 const elAch = document.getElementById('achievements');
 function frow(inner) { return '<div class="frow">' + inner + '</div>'; }
-function fSetTab(t) {
-  document.getElementById('fTabList').classList.toggle('active', t === 'list');
-  document.getElementById('fTabReq').classList.toggle('active', t === 'req');
-  document.getElementById('fTabAdd').classList.toggle('active', t === 'add');
-  document.getElementById('fSearchRow').style.display = t === 'add' ? 'flex' : 'none';
+function safeFriendName(name) { return String(name || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 9); }
+function safeInviteCode(code) { return String(code || '').toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, 12); }
+function friendRewardKey(other) {
+  return [safeFriendName(playerName), safeFriendName(other)].sort().join('_');
+}
+function grantFriendReward(other) {
+  const key = 'superTucan_friendRewards';
+  const done = storedList(key);
+  const pair = friendRewardKey(other);
+  if (!pair || done.includes(pair)) return 0;
+  const amount = done.length === 0 ? 30 : done.length < 3 ? 20 : 0;
+  done.push(pair);
+  localStorage.setItem(key, JSON.stringify(done));
+  if (amount) addEggs(amount);
+  return amount;
+}
+function fSetTab(tab) {
+  document.getElementById('fTabList').classList.toggle('active', tab === 'list');
+  document.getElementById('fTabReq').classList.toggle('active', tab === 'req');
+  document.getElementById('fTabAdd').classList.toggle('active', tab === 'add');
+  document.getElementById('fInviteRow').style.display = tab === 'add' ? 'flex' : 'none';
   const box = document.getElementById('fList');
   box.innerHTML = '<div class="fempty">' + t('loading') + '</div>';
-  if (t === 'list') fLoadFriends();
-  else if (t === 'req') fLoadRequests();
-  else box.innerHTML = '<div class="fempty">' + t('friendHint') + '</div>';
+  if (tab === 'list') fLoadFriends();
+  else if (tab === 'req') fLoadRequests();
+  else fLoadInvite();
 }
 async function openFriends() {
-  const name = (elInitials.value.trim() || '').slice(0, 9);
+  const name = safeFriendName(elInitials.value.trim() || '');
   if (!name) {
     document.getElementById('menuPB').textContent = t('needNameFriends');
     return;
@@ -5388,19 +5431,23 @@ async function fLoadFriends() {
     const names = Object.keys(data);
     if (!names.length) { box.innerHTML = '<div class="fempty">' + t('noFriends') + '</div>'; return; }
     let html = '';
+    let reward = 0;
     for (const n of names) {
+      reward += grantFriendReward(n);
       let info = null;
       try { info = await (await fetch(DB_URL + '/players/' + n + '.json')).json(); } catch (e) { /* segue sem info */ }
       const lv = levelLabel((info && info.xp) || 0);
       html += frow('<span>' + lv.emoji + ' <b>' + n + '</b> <small>' + lv.name + '</small></span><span class="pts">' + ((info && info.best) || 0) + ' 🥚</span>');
     }
-    box.innerHTML = html;
+    box.innerHTML = (reward ? frow('<span><b>+' + reward + ' 🥚</b> ' + t('friendsList') + '</span><span>✓</span>') : '') + html;
   } catch (e) { box.innerHTML = '<div class="fempty">' + t('offline') + '</div>'; }
 }
 async function fLoadRequests() {
   const box = document.getElementById('fList');
   try {
-    const data = await (await fetch(DB_URL + '/requests/' + playerName + '.json')).json() || {};
+    const data = await (await fetch(DB_URL + '/friendRequests/' + playerName + '.json')).json() || {};
+    const legacy = await (await fetch(DB_URL + '/requests/' + playerName + '.json')).json() || {};
+    Object.keys(legacy).forEach(n => { if (!data[n]) data[n] = { from: n }; });
     const names = Object.keys(data);
     if (!names.length) { box.innerHTML = '<div class="fempty">' + t('noRequests') + '</div>'; return; }
     box.innerHTML = names.map(n =>
@@ -5410,39 +5457,73 @@ async function fLoadRequests() {
   } catch (e) { box.innerHTML = '<div class="fempty">' + t('offline') + '</div>'; }
 }
 async function fAccept(n) {
+  n = safeFriendName(n);
   try {
     await fetch(DB_URL + '/friends/' + playerName + '/' + n + '.json', { method: 'PUT', body: 'true' });
     await fetch(DB_URL + '/friends/' + n + '/' + playerName + '.json', { method: 'PUT', body: 'true' });
+    await fetch(DB_URL + '/friendRequests/' + playerName + '/' + n + '.json', { method: 'DELETE' });
     await fetch(DB_URL + '/requests/' + playerName + '/' + n + '.json', { method: 'DELETE' });
+    grantFriendReward(n);
     sfx.egg();
   } catch (e) { /* tenta de novo depois */ }
   fSetTab('list');
 }
-async function fSearch() {
-  const q = document.getElementById('fSearch').value.trim().toUpperCase().replace(/[^A-Z]/g, '');
+function makeInviteCode() {
+  const words = ['TUCAN', 'BANDO', 'OVO', 'ASA', 'BIOMA', 'PAMPA', 'URUBU', 'COBRA'];
+  return words[Math.floor(Math.random() * words.length)] + '-' + String(Math.floor(1000 + Math.random() * 9000));
+}
+function fSetInviteMsg(msg) { document.getElementById('fInviteMsg').textContent = msg || ''; }
+async function fLoadInvite() {
   const box = document.getElementById('fList');
-  if (!q) { box.innerHTML = '<div class="fempty">' + t('typeName') + '</div>'; return; }
-  box.innerHTML = '<div class="fempty">' + t('searching') + '</div>';
+  box.innerHTML = '<div class="fempty">' + t('friendHint') + '</div>';
+  fSetInviteMsg('');
+  const code = localStorage.getItem('superTucan_inviteCode_' + playerName) || '';
+  document.getElementById('fMyCode').textContent = code || '---';
+}
+async function fMakeCode() {
+  fSetInviteMsg(t('loading'));
   try {
-    const url = DB_URL + '/names.json?orderBy=' + encodeURIComponent('"$key"')
-      + '&startAt=' + encodeURIComponent('"' + q + '"')
-      + '&endAt=' + encodeURIComponent('"' + q + '\uf8ff"')
-      + '&limitToFirst=10';
-    const data = await (await fetch(url)).json() || {};
-    const names = Object.keys(data).filter(n => n !== playerName);
-    if (!names.length) { box.innerHTML = '<div class="fempty">' + t('nobodyFound') + ' "' + q + '".</div>'; return; }
-    box.innerHTML = names.map(n =>
-      frow('<span><b>' + n + '</b></span><button data-req="' + n + '">&#10084; ' + t('askFriend') + '</button>')
-    ).join('');
-    box.querySelectorAll('[data-req]').forEach(b => b.addEventListener('click', async () => {
-      try {
-        await fetch(DB_URL + '/requests/' + b.dataset.req + '/' + playerName + '.json', { method: 'PUT', body: 'true' });
-        b.textContent = t('requested');
-        b.disabled = true;
-        sfx.comboUp();
-      } catch (e) { /* offline */ }
-    }));
-  } catch (e) { box.innerHTML = '<div class="fempty">' + t('offline') + '</div>'; }
+    const old = localStorage.getItem('superTucan_inviteCode_' + playerName);
+    if (old) await fetch(DB_URL + '/inviteCodes/' + old + '.json', { method: 'DELETE' });
+    const code = makeInviteCode();
+    const data = { owner: playerName, createdAt: Date.now(), expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000, usesLeft: 5 };
+    await fetch(DB_URL + '/inviteCodes/' + code + '.json', { method: 'PUT', body: JSON.stringify(data) });
+    localStorage.setItem('superTucan_inviteCode_' + playerName, code);
+    document.getElementById('fMyCode').textContent = code;
+    fSetInviteMsg(t('codeCreated'));
+    sfx.comboUp();
+  } catch (e) { fSetInviteMsg(t('offline')); }
+}
+async function fCopyCode() {
+  const code = document.getElementById('fMyCode').textContent;
+  if (!code || code === '---') { fSetInviteMsg(t('typeCode')); return; }
+  try {
+    await navigator.clipboard.writeText(code);
+    fSetInviteMsg(t('codeCopied'));
+  } catch (e) { fSetInviteMsg(t('codeCopyFail') + ' ' + code); }
+}
+async function fUseCode() {
+  const code = safeInviteCode(document.getElementById('fCodeInput').value);
+  if (!code) { fSetInviteMsg(t('typeCode')); return; }
+  fSetInviteMsg(t('loading'));
+  try {
+    const ref = DB_URL + '/inviteCodes/' + encodeURIComponent(code) + '.json';
+    const invite = await (await fetch(ref)).json();
+    if (!invite || !invite.owner || invite.expiresAt < Date.now() || invite.usesLeft <= 0) {
+      fSetInviteMsg(t('codeInvalid'));
+      return;
+    }
+    const owner = safeFriendName(invite.owner);
+    if (owner === playerName) { fSetInviteMsg(t('codeSelf')); return; }
+    await fetch(DB_URL + '/friendRequests/' + owner + '/' + playerName + '.json', {
+      method: 'PUT',
+      body: JSON.stringify({ from: playerName, code, at: Date.now() })
+    });
+    await fetch(ref, { method: 'PATCH', body: JSON.stringify({ usesLeft: Math.max(0, (invite.usesLeft || 1) - 1) }) });
+    document.getElementById('fCodeInput').value = '';
+    fSetInviteMsg(t('codeRequested') + ' ' + owner + ' ✓');
+    sfx.comboUp();
+  } catch (e) { fSetInviteMsg(t('offline')); }
 }
 document.getElementById('btnFriends').addEventListener('click', openFriends);
 document.getElementById('fClose').addEventListener('click', () => {
@@ -5543,11 +5624,13 @@ document.getElementById('shopClose').addEventListener('click', () => {
 document.getElementById('fTabList').addEventListener('click', () => fSetTab('list'));
 document.getElementById('fTabReq').addEventListener('click', () => fSetTab('req'));
 document.getElementById('fTabAdd').addEventListener('click', () => fSetTab('add'));
-document.getElementById('fSearchBtn').addEventListener('click', fSearch);
-document.getElementById('fSearch').addEventListener('keydown', e => { if (e.key === 'Enter') fSearch(); });
-document.getElementById('fSearch').addEventListener('input', () => {
-  const el = document.getElementById('fSearch');
-  el.value = el.value.toUpperCase().replace(/[^A-Z]/g, '');
+document.getElementById('fMakeCode').addEventListener('click', fMakeCode);
+document.getElementById('fCopyCode').addEventListener('click', fCopyCode);
+document.getElementById('fUseCode').addEventListener('click', fUseCode);
+document.getElementById('fCodeInput').addEventListener('keydown', e => { if (e.key === 'Enter') fUseCode(); });
+document.getElementById('fCodeInput').addEventListener('input', () => {
+  const el = document.getElementById('fCodeInput');
+  el.value = safeInviteCode(el.value);
 });
 
 // ---------- aplica o idioma escolhido nos textos do HTML (ideia 23) ----------
@@ -5560,7 +5643,8 @@ function applyLang() {
     ['rankTabEggs','tabEggs'], ['rankTabXp','tabXp'], ['hintControls','controls'], ['creditFrancisco','credit'],
     ['btnAgain','playAgain'], ['btnMenu','menuRanking'], ['shopClose','back'], ['ideaClose','back'], ['achClose','back'],
     ['shopTabAcc','tabAcc'], ['shopTabPet','tabPet'], ['btnResume','resume'], ['btnQuit','quit'], ['btnIdeaSend','sendIdea'],
-    ['achTitle','achTitle'], ['achSub','achSub'], ['fTabList','friendsList'], ['fTabReq','friendReq'], ['fTabAdd','friendAdd'], ['fSearchBtn','search']
+    ['achTitle','achTitle'], ['achSub','achSub'], ['fTabList','friendsList'], ['fTabReq','friendReq'], ['fTabAdd','friendAdd'],
+    ['fMyCodeLabel','inviteCode'], ['fMakeCode','makeCode'], ['fCopyCode','copyCode'], ['fUseCode','useCode']
   ].forEach(([id, key]) => setText(id, t(key)));
   // textos que exigem seletor
   const sub = document.querySelector('#menu .sub'); if (sub) sub.textContent = t('tagline');
@@ -5632,7 +5716,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.13.21';
+const GAME_VERSION = '5.13.22';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)

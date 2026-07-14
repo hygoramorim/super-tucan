@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.13.21` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.13.22` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -224,3 +224,5 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
   como fogos de artifício ao tocar o chão.
 - **v5.13.21** — itens extras além dos ovos agora têm 33% de chance de surgir a cada 3 galhos,
   mantendo distância mínima de 200px entre coletáveis.
+- **v5.13.22** — sistema de Amigos evoluiu para "Meu Bando": convite por código, pedidos com aceite,
+  remoção da busca pública por nome e recompensa local controlada para os primeiros vínculos.
