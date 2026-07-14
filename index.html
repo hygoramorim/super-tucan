@@ -1264,7 +1264,7 @@ function resetGame() {
   pena = 0; shield = 0; slowmo = 0; invuln = 0;
   agua = 0; aguaShield = 0; lowGravityTimer = 0; bookMod = 1; bookJump = 1; bookScore = 1; bookTimer = 0;
   clearFood();
-  obsSinceItem = 5;
+  obsSinceItem = 3;
   event = null; eventTimer = 0; eventCooldown = 900; alertTimer = 0;
   fireballs = []; quakePhase = 0;
   magicNight = 0; etCooldown = 0; etBonusTimer = 0;
@@ -1355,9 +1355,10 @@ canvas.addEventListener('pointerdown', (e) => {
 // telas largas deixam de dar segundos extras de antecipação no ranking.
 const SPAWN_AHEAD = 460;
 let lastGapY = 320;
-const ITEM_MIN_GAP = 5;   // ideia 22: itens a no mínimo 5 galhos de distância
+const ITEM_MIN_GAP = 3;   // a cada 3 galhos há chance de item extra além dos ovos
+const ITEM_SPAWN_CHANCE = 0.33;
 const ITEM_MIN_DISTANCE = 200; // ovos/frutas/power-ups não podem embolar visualmente
-let obsSinceItem = 5;     // começa liberado (permite item logo nos primeiros galhos)
+let obsSinceItem = 3;     // começa liberado (permite item logo nos primeiros galhos)
 const NIGHT_STAR_COUNT = 58;
 const SHOOTING_STAR_INTERVAL = 480; // 8s a 60fps
 function starRand(seed) {
@@ -1440,11 +1441,11 @@ function spawnObstacle() {
     const by = Math.max(120, Math.min(H - GROUND_H - 60, gapY + (rng() * 140 - 70)));
     placeEggItem({ x: ob.x + d.spacing / 2, y: by, golden: false, taken: false, bob: rng() * 6.28, age: 0 }, placedItems);
   }
-  // Power-up / comida ocasional — nunca no hardcore/tutorial. Ideia 22 do Francisco:
-  // itens ficam a pelo menos ITEM_MIN_GAP galhos de distância um do outro.
+  // Power-up / comida ocasional — nunca no hardcore/tutorial.
+  // A cada ITEM_MIN_GAP galhos, há 33% de chance de item além dos ovos.
   obsSinceItem++;
   if (gameMode !== 'hardcore' && gameMode !== 'tutorial' && !jewelBetween
-      && obsSinceItem >= ITEM_MIN_GAP && rng() < 0.32) {
+      && obsSinceItem >= ITEM_MIN_GAP && rng() < ITEM_SPAWN_CHANCE) {
     const py = Math.max(130, Math.min(H - GROUND_H - 70, gapY + (rng() * 160 - 80)));
     let powerupPlaced = false;
     // 40% das vezes é uma COMIDA do Brasil (ideia 21); senão, um power-up clássico
@@ -5631,7 +5632,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.13.20';
+const GAME_VERSION = '5.13.21';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
