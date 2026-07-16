@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.13.22` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.13.23` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -92,7 +92,7 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
     entrar já, para o jogador ver primeiro o banner do novo bioma.
 - **Power-ups:** pena (veloc.+pontos), escudo, relógio (câmera lenta), água (pulo alto), livro das
   maldições (4 efeitos aleatórios), 6 comidas.
-- **Eventos:** ventania, tempestade, vulcão (bolas de fogo centralizadas e letais), noite de 30s. +
+- **Eventos:** tempestade, vulcão, noite de 30s, terremoto e eventos do ET. +
   nave do ET e clique no ET (noite mágica 15s + ovos `×2` por 15s).
 - **Economia de ovos:** carteira persistente (`superTucan_eggBank`) → loja de acessórios e pets.
 - **Amiguinhos:** aves equipadas seguem o tucano e têm hitbox apenas de coleta (ovos/power-ups);
@@ -226,3 +226,5 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
   mantendo distância mínima de 200px entre coletáveis.
 - **v5.13.22** — sistema de Amigos evoluiu para "Meu Bando": convite por código, pedidos com aceite,
   remoção da busca pública por nome e recompensa local controlada para os primeiros vínculos.
+- **v5.13.23** — ventania removida dos eventos, alimentos dobrados dentro dos itens extras, fauna/revoadas
+  do Pantanal reduzidas pela metade e toque no ET agora também bate asa/subindo o tucano.

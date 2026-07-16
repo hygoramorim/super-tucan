@@ -1373,7 +1373,10 @@ function tryClickET(clientX, clientY) {
 }
 canvas.addEventListener('pointerdown', (e) => {
   audio();
-  if (tryClickET(e.clientX, e.clientY)) return; // clicou no ET: não voa
+  if (tryClickET(e.clientX, e.clientY)) {
+    flap(); // tocar no ET também mantém o controle normal de subida
+    return;
+  }
   flap();
 });
 
@@ -1475,8 +1478,8 @@ function spawnObstacle() {
       && obsSinceItem >= ITEM_MIN_GAP && rng() < ITEM_SPAWN_CHANCE) {
     const py = Math.max(130, Math.min(H - GROUND_H - 70, gapY + (rng() * 160 - 80)));
     let powerupPlaced = false;
-    // 40% das vezes é uma COMIDA do Brasil (ideia 21); senão, um power-up clássico
-    if (rng() < 0.4) {
+    // 80% das vezes é uma COMIDA do Brasil (pedido: dobrar alimentos); senão, power-up clássico.
+    if (rng() < 0.8) {
       const fk = FOOD_KINDS[Math.floor(rng() * FOOD_KINDS.length)];
       powerupPlaced = placePowerupItem({ x: ob.x + d.spacing * 0.35, y: py, type: 'food', food: fk, bob: rng() * 6.28, age: 0, taken: false }, placedItems);
     } else {
@@ -1630,9 +1633,10 @@ function update() {
 
   // fauna decorativa: bichos no chão e revoadas ao fundo (todos os estados)
   const fSpeed = state === 'play' ? currentDiff().speed : 0.3;
+  const pantanalFaunaRelief = phaseIdx === LAST ? 2 : 1;
   if (--critterTimer <= 0) {
-    critterTimer = 320 + Math.random() * 430; // fauna mais espaçada (−40%)
-    if (critters.length < 4) {
+    critterTimer = (320 + Math.random() * 430) * pantanalFaunaRelief; // Pantanal com metade da fauna
+    if (critters.length < (phaseIdx === LAST ? 2 : 4)) {
       // à noite, a fauna noturna substitui a diurna
       const kinds = isNight() ? NIGHT_FAUNA[phase().deco] : FAUNA[phase().deco];
       const kind = kinds[Math.floor(Math.random() * kinds.length)];
@@ -1672,7 +1676,7 @@ function update() {
   });
   bugs = bugs.filter(b => b.x > -20);
   if (--flockTimer <= 0) {
-    flockTimer = 1000 + Math.random() * 1500;
+    flockTimer = (1000 + Math.random() * 1500) * pantanalFaunaRelief;
     // à noite, revoadas de morcegos em vez de aves
     const night = isNight();
     const sets = night ? [['#1a1a2a']] : FLOCKS[phase().deco];
@@ -1681,7 +1685,7 @@ function update() {
       y: 60 + Math.random() * 170,
       vx: 0.5 + Math.random() * 0.35,
       colors: sets[Math.floor(Math.random() * sets.length)],
-      n: 5 + Math.floor(Math.random() * 5),
+      n: phaseIdx === LAST ? 3 + Math.floor(Math.random() * 3) : 5 + Math.floor(Math.random() * 5),
       ph: Math.random() * 6.28,
       bat: night
     });
@@ -1814,7 +1818,8 @@ function update() {
   // eventos climáticos (da fase 3 em diante; nunca no tutorial)
   if (gameMode !== 'tutorial' && phaseIdx >= 2 && !bossArena && !bossPortal) {
     if (!event && --eventCooldown <= 0) {
-      event = ['VENTANIA', 'TEMPESTADE', 'VULCÃO', 'NOITE', 'TERREMOTO'][Math.floor(rng() * 5)];
+      const events = ['TEMPESTADE', 'VULCÃO', 'NOITE', 'TERREMOTO'];
+      event = events[Math.floor(rng() * events.length)];
       // ideia 2 do Francisco: noite mais longa (30s). Vulcão dura um pouco mais tb.
       eventTimer = event === 'NOITE' ? 1800 : (event === 'VULCÃO' ? 600 : event === 'TERREMOTO' ? 540 : 480);
       alertTimer = 160;
@@ -2043,7 +2048,6 @@ function update() {
   // física do tucano (eventos mexem no ar)
   bird.vy += lowGravityTimer > 0 ? 0.23 : 0.42;
   if (event === 'TEMPESTADE') bird.vy += 0.07;                       // chuva pesa
-  if (event === 'VENTANIA') bird.vy += Math.sin(frames * 0.05) * 0.22; // rajadas
   if (bird.vy > (lowGravityTimer > 0 ? 7.5 : 10)) bird.vy = lowGravityTimer > 0 ? 7.5 : 10;
   bird.y += bird.vy;
   bird.rot = Math.max(-0.45, Math.min(1.2, bird.vy * 0.09));
@@ -5067,17 +5071,6 @@ function draw() {
       for (let x = 0; x <= W; x += 40) ctx.lineTo(x, y + Math.sin(frames * 0.25 + i + x * 0.03) * 6);
       ctx.stroke();
     }
-  } else if (event === 'VENTANIA') {
-    ctx.strokeStyle = 'rgba(255,255,255,.3)';
-    ctx.lineWidth = 2;
-    for (let i = 0; i < 8; i++) {
-      const ry = 50 + (i * 89 + Math.sin(frames * 0.05 + i) * 30) % (H - GROUND_H - 80);
-      const rx = ((frames * 9 + i * 160) % (W + 200)) - 100;
-      ctx.beginPath();
-      ctx.moveTo(rx, ry);
-      ctx.quadraticCurveTo(rx + 30, ry - 6, rx + 60, ry);
-      ctx.stroke();
-    }
   }
   if (slowmo > 0 && state === 'play') {
     ctx.fillStyle = 'rgba(125,211,252,.08)';
@@ -5716,7 +5709,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.13.22';
+const GAME_VERSION = '5.13.23';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
