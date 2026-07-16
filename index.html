@@ -1357,6 +1357,9 @@ function resetGame() {
 }
 
 function phase() { return PHASES[phaseIdx]; }
+function lakeEase() {
+  return phase().deco === 'lago' ? Math.max(0, Math.min(1, phaseDist / 720)) : 1;
+}
 
 // ---------- Entrada ----------
 function flap() {
@@ -1364,7 +1367,8 @@ function flap() {
   if (state !== 'play') return;
   // força do pulo: ÁGUA (+alto), LIVRO-pulo (×1.5), ALFACE (+leve), TEMPESTADE reduz (ideia 7)
   let jump = -7.2 * (agua > 0 ? 1.35 : 1) * bookJump * foodJump;
-  if (event === 'TEMPESTADE' || event === 'NEVE' || phase().deco === 'lago') jump *= 0.78; // chuva/neve/lago: pulo mais pesado
+  if (event === 'TEMPESTADE' || event === 'NEVE') jump *= 0.78; // chuva/neve: pulo mais pesado
+  if (phase().deco === 'lago') jump *= 0.9 - lakeEase() * 0.12; // água pesa aos poucos para dar adaptação
   bird.vy = jump;
   bird.flapAnim = 10;
   sfx.flap();
@@ -2158,8 +2162,10 @@ function update() {
   }
 
   // física do tucano (eventos mexem no ar)
-  bird.vy += lowGravityTimer > 0 ? 0.23 : 0.42;
-  if (event === 'TEMPESTADE' || event === 'NEVE' || phase().deco === 'lago') bird.vy += 0.07;    // chuva/neve/lago pesam
+  const inLakePhysics = phase().deco === 'lago';
+  bird.vy += lowGravityTimer > 0 ? 0.23 : (inLakePhysics ? 0.36 + lakeEase() * 0.06 : 0.42);
+  if (event === 'TEMPESTADE' || event === 'NEVE') bird.vy += 0.07;    // chuva/neve pesam
+  if (inLakePhysics) bird.vy += lakeEase() * 0.04;                    // lago pesa só depois da adaptação
   if (bird.vy > (lowGravityTimer > 0 ? 7.5 : 10)) bird.vy = lowGravityTimer > 0 ? 7.5 : 10;
   bird.y += bird.vy;
   bird.rot = Math.max(-0.45, Math.min(1.2, bird.vy * 0.09));
@@ -2205,7 +2211,7 @@ function update() {
     }
     if (phaseIdx === LAGO_PHASE_IDX) {
       lakeDiveTimer = 150;
-      bird.vy = 5.5;
+      bird.vy = 2.4;
       bird.y = Math.max(bird.y, H * 0.34);
     } else if (p.deco === 'lago') {
       lakeExitTimer = 130;
@@ -2486,6 +2492,18 @@ function drawLakeBackground() {
   ctx.beginPath(); ctx.ellipse(tx + 22, ty - 2, 7, 5, 0, 0, 7); ctx.fill();
   ctx.fillStyle = 'rgba(42,120,75,.28)';
   ctx.beginPath(); ctx.ellipse(tx - 9, ty - 10, 7, 3, .4, 0, 7); ctx.ellipse(tx + 7, ty + 10, 7, 3, .4, 0, 7); ctx.fill();
+
+  const px = ((W + 40 - (totalDist * 0.15) % (W + 300)) % (W + 300)) - 80;
+  const py = 210 + Math.sin(frames * 0.025) * 12;
+  ctx.fillStyle = 'rgba(255,195,74,.50)';
+  ctx.beginPath(); ctx.arc(px, py, 15, 0, 7); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(px - 14, py); ctx.lineTo(px - 25, py - 8); ctx.lineTo(px - 24, py + 8); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = 'rgba(255,244,170,.65)';
+  for (let i = 0; i < 5; i++) {
+    ctx.beginPath(); ctx.arc(px - 7 + i * 4, py - 12 + (i % 2) * 23, 1.5, 0, 7); ctx.fill();
+  }
+  ctx.fillStyle = 'rgba(20,40,45,.55)';
+  ctx.beginPath(); ctx.arc(px + 6, py - 4, 2, 0, 7); ctx.fill();
 
   ctx.strokeStyle = 'rgba(255,255,255,.38)';
   for (let i = 0; i < 6; i++) {
@@ -6130,7 +6148,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.13.35';
+const GAME_VERSION = '5.13.36';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)

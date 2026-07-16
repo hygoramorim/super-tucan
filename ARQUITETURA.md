@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.13.35` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.13.36` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -253,3 +253,5 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
   refatorada para pesar como os demais biomas, sem fauna terrestre/insetos/revoadas na água.
 - **v5.13.35** — Lago bonito leve v2: mais peixes simples, tartaruguinha aquática discreta, bolhas
   limitadas e algas um pouco mais coloridas sem reativar fauna terrestre ou render pesado.
+- **v5.13.36** — física de entrada no Lago suavizada para dar tempo de adaptação ao jogador, com peso
+  da água progressivo, mergulho inicial menos brusco e baiacu aquático leve no fundo.
