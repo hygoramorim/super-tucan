@@ -650,7 +650,15 @@ const sfx = {
   jewel()   { [1318, 1568, 2093, 2637, 3136].forEach((f, i) => setTimeout(() => tone(f, 0.2, 'sine', 0.15), i * 70)); }, // cristalino
   power()   { [523, 784, 1046].forEach((f, i) => setTimeout(() => tone(f, 0.12, 'square', 0.1), i * 70)); },   // pegou power-up
   shieldPop() { noiseBurst(0.15, 0.22); tone(320, 0.22, 'triangle', 0.16, 140); },                              // escudo absorveu
-  milestone() { [784, 988, 1175, 1568, 1975].forEach((f, i) => setTimeout(() => tone(f, 0.15, 'triangle', 0.14), i * 75)); }, // marco de pontos
+  milestone(level) {
+    level = Math.max(1, level || 1);
+    const pitch = 1 + Math.min(level, 12) * 0.045;
+    const gap = Math.max(36, 86 - level * 5);
+    const dur = Math.max(0.08, 0.15 - level * 0.004);
+    const seq = [784, 988, 1175, 1568, 1975, 2349, 2637, 3136].slice(0, Math.min(8, 4 + Math.ceil(level / 2)));
+    seq.forEach((f, i) => setTimeout(() => tone(f * pitch, dur, i % 2 ? 'square' : 'triangle', 0.13), i * gap));
+    if (level >= 4) setTimeout(() => tone(1568 * pitch, 0.22, 'sine', 0.1, 3136 * pitch), seq.length * gap);
+  }, // marco de pontos: fica mais rapido e ritmado a cada 100 pontos
   comboUp() { tone(660, 0.1, 'square', 0.12); setTimeout(() => tone(990, 0.13, 'square', 0.12), 85); },         // combo ativado
   alert()   { [620, 470, 620].forEach((f, i) => setTimeout(() => tone(f, 0.2, 'sawtooth', 0.09), i * 210)); },  // sirene de evento
 
@@ -1244,7 +1252,7 @@ function finishBossArena() {
 function isNight() { return event === 'NOITE' || magicNight > 0; }
 // Celebrações
 let floaters = []; // textos flutuantes {x, y, text, color, life}
-let nextMilestone = 50;
+let nextMilestone = 100, scorePulse = 0;
 let tutIdx = 0;
 const TUT_TEXTS = {
   flap: { pt:'TOQUE PARA SUBIR', en:'TAP TO CLIMB', es:'TOCA PARA SUBIR', zh:'点击上升' },
@@ -1346,7 +1354,8 @@ function resetGame() {
   bossAppearances = 0; bossQueued = 0; mandatorySnakeQueued = 0;
   petTrail = [];
   floaters = [];
-  nextMilestone = 50;
+  nextMilestone = 100;
+  scorePulse = 0;
   tutIdx = 0;
   lastGapY = H / 2;
   deathTimer = 0;
@@ -1695,7 +1704,11 @@ function collectPowerup(pu, py) {
     aguaShield = 300;
     floater('💧 ' + t('waterFx'), '#38bdf8');
   }
-  else if (pu.type === 'food') { applyFood(pu.food); } // COMIDAS DO BRASIL (ideia 21)
+  else if (pu.type === 'food') {
+    applyFood(pu.food);
+    collectEgg({ x: pu.x, foodScore: true, food: pu.food }, py);
+    return; // collectEgg ja faz combo, score, som e burst das comidas pontuaveis.
+  } // COMIDAS DO BRASIL (ideia 21)
   burst(pu.x, py, pu.type === 'food' ? (FOODS[pu.food].cor) : '#ffffff', 14);
 }
 
@@ -1707,7 +1720,7 @@ function collectEgg(e, ey) {
   if (newMult > comboMult(combo - 1) && newMult > 1) {
     floater('🔥 COMBO ×' + newMult + '!', '#ff2e93'); sfx.comboUp();
   }
-  // combo, power-ups e bônus temporários multiplicam ovos sem virar recompensa permanente infinita.
+  // combo, power-ups e bônus temporários multiplicam ovos/alimentos sem virar recompensa permanente infinita.
   const mult = newMult
     * (pena > 0 ? 2 : 1)
     * (agua > 0 ? 2 : 1)
@@ -1715,10 +1728,14 @@ function collectEgg(e, ey) {
     * (urubuBonusBiomes > 0 && phaseIdx > urubuBonusStartPhase ? 3 : 1)
     * (gameMode === 'hardcore' ? 3 : 1)
     * bookScore;
-  score += (e.urubuSuper ? 25 : e.jewel ? 10 : e.golden ? 5 : 1) * mult;
+  const baseValue = e.foodScore ? 2 : e.urubuSuper ? 25 : e.jewel ? 10 : e.golden ? 5 : 1;
+  const gained = baseValue * mult;
+  score += gained;
   unlockAchievement('firstEgg');
-  burst(e.x, ey, e.urubuSuper ? '#8a3a2a' : e.jewel ? '#7dd3fc' : e.golden ? '#ffd23f' : '#ffffff', e.urubuSuper ? 24 : e.jewel ? 30 : e.golden ? 16 : 8);
-  if (e.urubuSuper) { celebrateUrubuSuperEgg(e.x, ey); floater('OVO DO URUBU!', '#ffd23f', e.x, ey - 48); sfx.gold(); }
+  const scoreColor = e.foodScore ? FOODS[e.food].cor : e.urubuSuper ? '#8a3a2a' : e.jewel ? '#7dd3fc' : e.golden ? '#ffd23f' : '#ffffff';
+  burst(e.x, ey, scoreColor, e.urubuSuper ? 24 : e.jewel ? 30 : e.golden ? 16 : e.foodScore ? 18 : 8);
+  if (e.foodScore) { floater('+' + gained + ' 🥚', scoreColor, e.x, ey - 32); sfx.comboUp(); }
+  else if (e.urubuSuper) { celebrateUrubuSuperEgg(e.x, ey); floater('OVO DO URUBU!', '#ffd23f', e.x, ey - 48); sfx.gold(); }
   else if (e.jewel) sfx.jewel(); else if (e.golden) sfx.gold(); else sfx.egg();
 }
 
@@ -1729,6 +1746,7 @@ function update() {
   if (bossRotatePrompt) return;
   const p = phase();
   if (celebrateTimer > 0) celebrateTimer--;
+  if (scorePulse > 0) scorePulse--;
 
   // pios de pássaros ambiente
   if (--chirpTimer <= 0) {
@@ -2323,12 +2341,14 @@ function update() {
     }
   });
 
-  // marco de pontos: a cada 50, festa!
+  // marco de pontos: a cada 100, festa com score em destaque e som mais intenso.
   if (score >= nextMilestone) {
+    const milestoneLevel = Math.floor(nextMilestone / 100);
     floater('🎉 ' + nextMilestone + ' ' + t('points'), '#ffd23f', W / 2, H / 2 - 100);
-    celebrate(['#ffd23f', '#ff2e93', '#7dd3fc', '#7ee08a'], 45);
-    sfx.milestone();
-    nextMilestone += 50;
+    celebrate(['#ffd23f', '#ff2e93', '#7dd3fc', '#7ee08a'], 45 + Math.min(45, milestoneLevel * 5));
+    sfx.milestone(milestoneLevel);
+    scorePulse = 90;
+    nextMilestone += 100;
   }
   obstacles = obstacles.filter(o => o.x > -80);
   eggs = eggs.filter(e => e.x > -30 && !e.taken);
@@ -5175,7 +5195,9 @@ function hudPanel(x, y, w, h, r) {
 function drawHUD(p) {
   // placar de ovos
   ctx.save();
-  hudPanel(12, 12, 118, 40, 10);
+  const pulse = scorePulse > 0 ? Math.sin(scorePulse * 0.32) * (scorePulse / 90) : 0;
+  const pulseAmt = Math.max(0, pulse);
+  hudPanel(12, 12, 118 + pulseAmt * 18, 40, 10);
   // mini ovo
   ctx.fillStyle = '#fdf6e3';
   ctx.strokeStyle = '#d9cbb0';
@@ -5185,8 +5207,19 @@ function drawHUD(p) {
   ctx.textAlign = 'left';
   ctx.strokeStyle = 'rgba(0,0,0,.65)';
   ctx.lineWidth = 3;
-  ctx.strokeText(String(score), 52, 41);
-  ctx.fillText(String(score), 52, 41);
+  if (scorePulse > 0) {
+    ctx.save();
+    ctx.translate(52, 33);
+    ctx.scale(1 + pulseAmt * 0.22, 1 + pulseAmt * 0.22);
+    ctx.strokeStyle = 'rgba(255,46,147,.85)';
+    ctx.lineWidth = 5;
+    ctx.strokeText(String(score), 0, 8);
+    ctx.fillText(String(score), 0, 8);
+    ctx.restore();
+  } else {
+    ctx.strokeText(String(score), 52, 41);
+    ctx.fillText(String(score), 52, 41);
+  }
   if (combo >= 5) {
     ctx.fillStyle = '#ff2e93';
     ctx.font = "10px Bungee, 'Courier New', monospace";
@@ -6148,7 +6181,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.13.36';
+const GAME_VERSION = '5.13.38';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)

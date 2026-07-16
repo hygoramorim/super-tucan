@@ -255,3 +255,7 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
   limitadas e algas um pouco mais coloridas sem reativar fauna terrestre ou render pesado.
 - **v5.13.36** — física de entrada no Lago suavizada para dar tempo de adaptação ao jogador, com peso
   da água progressivo, mergulho inicial menos brusco e baiacu aquático leve no fundo.
+- **v5.13.37** — alimentos passaram a pontuar como ovos especiais: valem 2 pontos base, entram no
+  combo acumulativo, recebem multiplicadores ativos e mostram `+N 🥚` ao serem coletados.
+- **v5.13.38** — festa de pontuação ajustada para acontecer apenas a cada 100 pontos: o placar pulsa,
+  ganha destaque visual e toca uma musiquinha de conquista mais rápida/ritmada a cada novo marco.
