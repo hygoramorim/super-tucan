@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.13.32` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.13.33` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -247,3 +247,5 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
   para reforçar o visual multicolorido da fase.
 - **v5.13.32** — Lago Cristalino otimizado para não travar ao entrar na água: modo leve automático em
   telas menores/retina, menos gradientes/animais/bolhas por frame e algas arco-íris mais legíveis.
+- **v5.13.33** — corte extra de ~50% no peso visual do Lago Cristalino: DPR máximo reduzido, modo leve
+  sempre ativo no lago, menos raios/rochas/plantas/animais/bolhas e snorkel mais leve.

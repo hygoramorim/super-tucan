@@ -486,9 +486,9 @@ function t(key) { return (I18N[LANG] && I18N[LANG][key]) || I18N.pt[key] || key;
 
 const GROUND_H = 70;
 let W = 480, H = 640; // dimensões lógicas: acompanham a proporção da tela
-// Renderiza na densidade real do aparelho (retina) — elimina o tremor/serrilhado
-// dos sprites em movimento rápido causado pelo esticamento do canvas.
-const DPR = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+// Renderiza com densidade controlada: 1.5 segura boa nitidez sem pesar demais
+// em celulares retina durante fases com muitos elementos animados, como o Lago.
+const DPR = Math.max(1, Math.min(1.5, window.devicePixelRatio || 1));
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 
@@ -513,7 +513,7 @@ function isPortraitMobile() {
   return window.innerHeight > window.innerWidth && W < 520;
 }
 function isLakeLightMode() {
-  return W < 560 || DPR > 1.5;
+  return true;
 }
 
 // ---------- Configuração das fases ----------
@@ -2421,34 +2421,36 @@ function drawLakeBackground() {
   ctx.fillStyle = 'rgba(255,255,255,.42)';
   ctx.beginPath();
   ctx.moveTo(0, 34);
-  for (let x = 0; x <= W; x += light ? 44 : 28) ctx.lineTo(x, 34 + Math.sin(frames * 0.035 + x * 0.04) * 6);
+  for (let x = 0; x <= W; x += light ? 72 : 28) ctx.lineTo(x, 34 + Math.sin(frames * 0.03 + x * 0.04) * 5);
   ctx.lineTo(W, 0); ctx.lineTo(0, 0); ctx.closePath(); ctx.fill();
   ctx.fillStyle = light ? 'rgba(255,255,210,.10)' : 'rgba(255,255,210,.18)';
-  for (let i = 0; i < (light ? 3 : 5); i++) {
-    const x = (i * 128 - totalDist * 0.06) % (W + 180) - 90;
+  for (let i = 0; i < (light ? 2 : 5); i++) {
+    const x = (i * 220 - totalDist * 0.05) % (W + 240) - 120;
     ctx.beginPath();
     ctx.moveTo(x, 20); ctx.lineTo(x + 36, 20); ctx.lineTo(x + 150, H - GROUND_H); ctx.lineTo(x + 40, H - GROUND_H);
     ctx.closePath(); ctx.fill();
   }
 
   // parallax 1: morros/rochas distantes
-  const far = (totalDist * 0.16) % 260;
+  const farStep = light ? 380 : 260;
+  const far = (totalDist * 0.12) % farStep;
   ctx.fillStyle = 'rgba(5,88,120,.38)';
-  for (let x = -far - 260; x < W + 260; x += 260) {
+  for (let x = -far - farStep; x < W + farStep; x += farStep) {
     ctx.beginPath();
     ctx.arc(x + 70, H - GROUND_H + 18, 86, Math.PI, 0);
-    ctx.arc(x + 175, H - GROUND_H + 30, 70, Math.PI, 0);
+    if (!light) ctx.arc(x + 175, H - GROUND_H + 30, 70, Math.PI, 0);
     ctx.fill();
   }
 
   // parallax 2: plantas médias
-  const mid = (totalDist * 0.34) % 170;
-  for (let x = -mid - 170; x < W + 170; x += 170) {
+  const midStep = light ? 270 : 170;
+  const mid = (totalDist * 0.26) % midStep;
+  for (let x = -mid - midStep; x < W + midStep; x += midStep) {
     ctx.strokeStyle = light ? 'rgba(29,185,135,.24)' : 'rgba(29,185,135,.42)';
     ctx.lineWidth = light ? 3 : 4;
     ctx.lineCap = 'round';
-    for (let i = 0; i < (light ? 3 : 5); i++) {
-      const bx = x + 28 + i * 32;
+    for (let i = 0; i < (light ? 2 : 5); i++) {
+      const bx = x + 38 + i * 54;
       const h = 44 + (i % 3) * 22;
       ctx.beginPath();
       ctx.moveTo(bx, H - GROUND_H + 4);
@@ -2459,9 +2461,8 @@ function drawLakeBackground() {
 
   // parallax 3: animais felizes brasileiros de água doce
   const animals = (light ? [
-    ['dourado', '#ffd23f', 0.20, 105, 0.9],
-    ['tartaruga', '#7ee08a', 0.31, 350, 0.86],
-    ['boto', '#ff9fbd', 0.14, 185, 1.15]
+    ['dourado', '#ffd23f', 0.18, 115, 0.82],
+    ['tartaruga', '#7ee08a', 0.27, 355, 0.78]
   ] : [
     ['dourado', '#ffd23f', 0.22, 105, 0.9],
     ['pirarucu', '#e46f55', 0.30, 190, 1.25],
@@ -2479,7 +2480,7 @@ function drawLakeBackground() {
   // bolhas da água
   ctx.fillStyle = 'rgba(255,255,255,.34)';
   ctx.strokeStyle = 'rgba(255,255,255,.55)';
-  for (let i = 0; i < (light ? 10 : 18); i++) {
+  for (let i = 0; i < (light ? 5 : 18); i++) {
     const bx = (i * 61 + Math.sin(frames * 0.02 + i) * 18) % W;
     const by = H - GROUND_H - ((frames * (0.7 + (i % 4) * 0.18) + i * 39) % (H - GROUND_H + 80));
     const r = 2 + (i % 4);
@@ -2806,24 +2807,26 @@ function drawLakePlants(o, p) {
     ctx.lineTo(o.x + o.w / 2 + 2, edgeY);
     ctx.stroke();
 
-    const count = light ? Math.max(3, Math.min(5, Math.floor(len / 64))) : Math.max(4, Math.min(7, Math.floor(len / 42)));
+    const count = light ? Math.max(2, Math.min(3, Math.floor(len / 120))) : Math.max(4, Math.min(7, Math.floor(len / 42)));
     for (let i = 0; i < count; i++) {
       const px = o.x - o.w * 0.42 + (i / Math.max(1, count - 1)) * o.w * 0.84;
       const h = len * (0.62 + (i % 3) * 0.12);
       const c = plantCol[(i + Math.floor(o.seed)) % plantCol.length];
       const hi = glowCol[(i + Math.floor(o.seed)) % glowCol.length];
       const wob = Math.sin(frames * (light ? 0.02 : 0.032) + o.seed + i);
-      const tipX = px + wob * (light ? 14 : 22);
-      const midX = px + Math.sin(frames * 0.024 + o.seed + i) * (light ? 10 : 16);
-      ctx.strokeStyle = 'rgba(145,244,220,.42)';
-      ctx.lineWidth = light ? 6 : 7;
-      ctx.lineCap = 'round';
-      ctx.beginPath();
-      ctx.moveTo(px, baseY);
-      ctx.quadraticCurveTo(midX, baseY - up * h * 0.48, tipX, baseY - up * h);
-      ctx.stroke();
+      const tipX = px + wob * (light ? 10 : 22);
+      const midX = px + wob * (light ? 7 : 16);
+      if (!light) {
+        ctx.strokeStyle = 'rgba(145,244,220,.42)';
+        ctx.lineWidth = 7;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(px, baseY);
+        ctx.quadraticCurveTo(midX, baseY - up * h * 0.48, tipX, baseY - up * h);
+        ctx.stroke();
+      }
       ctx.strokeStyle = '#2dd4bf';
-      ctx.lineWidth = light ? 3.5 : 4.5;
+      ctx.lineWidth = light ? 3 : 4.5;
       ctx.lineCap = 'round';
       ctx.beginPath();
       ctx.moveTo(px, baseY);
@@ -2831,12 +2834,12 @@ function drawLakePlants(o, p) {
       ctx.stroke();
       ctx.fillStyle = hi;
       ctx.beginPath();
-      ctx.ellipse(tipX, baseY - up * h, light ? 10 : 12, light ? 5 : 6, wob * 0.45, 0, 7);
+      ctx.ellipse(tipX, baseY - up * h, light ? 9 : 12, light ? 4.5 : 6, wob * 0.45, 0, 7);
       ctx.fill();
       ctx.fillStyle = c;
       ctx.beginPath();
-      ctx.ellipse(tipX + 7, baseY - up * (h - 8), light ? 7 : 8, 3.8, wob, 0, 7);
-      ctx.ellipse(tipX - 7, baseY - up * (h - 15), light ? 7 : 8, 3.8, -wob, 0, 7);
+      ctx.ellipse(tipX + 7, baseY - up * (h - 8), light ? 6 : 8, 3.5, wob, 0, 7);
+      if (!light) ctx.ellipse(tipX - 7, baseY - up * (h - 15), 8, 3.8, -wob, 0, 7);
       ctx.fill();
     }
     if (!light) {
@@ -4957,7 +4960,7 @@ function drawToucan(p) {
     ctx.stroke();
     ctx.strokeStyle = 'rgba(255,255,255,.7)';
     ctx.lineWidth = 1.4;
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 2; i++) {
       const bx = 31 + i * 10 + Math.sin(frames * 0.07 + i) * 3;
       const by = -36 - ((frames * 0.55 + i * 13) % 42);
       ctx.beginPath();
@@ -6173,7 +6176,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.13.32';
+const GAME_VERSION = '5.13.33';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
