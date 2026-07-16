@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.13.28` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.13.29` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -238,3 +238,5 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
   3 galhos, 80% desses itens são alimentos e o posicionamento tenta áreas longe dos ovos.
 - **v5.13.28** — alimentos mais presentes e justos: chance de item extra em 75%, 85% viram alimentos,
   distância para ovos reduzida para 1/3, spawn dentro da abertura longe das folhas e sem repetir alimento.
+- **v5.13.29** — Pampas ganhou evento exclusivo de Neve: cenário fica branquinho, flocos caem e o
+  tucano fica mais pesado, com queda e pulo afetados como na chuva.
