@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.13.23` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.13.24` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -226,5 +226,7 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
   mantendo distância mínima de 200px entre coletáveis.
 - **v5.13.22** — sistema de Amigos evoluiu para "Meu Bando": convite por código, pedidos com aceite,
   remoção da busca pública por nome e recompensa local controlada para os primeiros vínculos.
-- **v5.13.23** — ventania removida dos eventos, alimentos dobrados dentro dos itens extras, fauna/revoadas
-  do Pantanal reduzidas pela metade e toque no ET agora também bate asa/subindo o tucano.
+- **v5.13.23** — ventania removida dos eventos, alimentos dobrados dentro dos itens extras e toque no
+  ET agora também bate asa/subindo o tucano.
+- **v5.13.24** — correção de alvo: a redução de dificuldade foi aplicada aos pássaros inimigos letais
+  do Pantanal, com frequência pela metade, mantendo a fauna/revoadas decorativas do cenário.

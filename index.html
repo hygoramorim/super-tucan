@@ -1633,10 +1633,9 @@ function update() {
 
   // fauna decorativa: bichos no chão e revoadas ao fundo (todos os estados)
   const fSpeed = state === 'play' ? currentDiff().speed : 0.3;
-  const pantanalFaunaRelief = phaseIdx === LAST ? 2 : 1;
   if (--critterTimer <= 0) {
-    critterTimer = (320 + Math.random() * 430) * pantanalFaunaRelief; // Pantanal com metade da fauna
-    if (critters.length < (phaseIdx === LAST ? 2 : 4)) {
+    critterTimer = 320 + Math.random() * 430; // fauna mais espaçada (−40%)
+    if (critters.length < 4) {
       // à noite, a fauna noturna substitui a diurna
       const kinds = isNight() ? NIGHT_FAUNA[phase().deco] : FAUNA[phase().deco];
       const kind = kinds[Math.floor(Math.random() * kinds.length)];
@@ -1676,7 +1675,7 @@ function update() {
   });
   bugs = bugs.filter(b => b.x > -20);
   if (--flockTimer <= 0) {
-    flockTimer = (1000 + Math.random() * 1500) * pantanalFaunaRelief;
+    flockTimer = 1000 + Math.random() * 1500;
     // à noite, revoadas de morcegos em vez de aves
     const night = isNight();
     const sets = night ? [['#1a1a2a']] : FLOCKS[phase().deco];
@@ -1685,7 +1684,7 @@ function update() {
       y: 60 + Math.random() * 170,
       vx: 0.5 + Math.random() * 0.35,
       colors: sets[Math.floor(Math.random() * sets.length)],
-      n: phaseIdx === LAST ? 3 + Math.floor(Math.random() * 3) : 5 + Math.floor(Math.random() * 5),
+      n: 5 + Math.floor(Math.random() * 5),
       ph: Math.random() * 6.28,
       bat: night
     });
@@ -2109,7 +2108,7 @@ function update() {
   // fase final: pássaros de outras espécies cruzando em sentido contrário
   if (phaseIdx === LAST && !bossArena && !bossPortal) {
     if (--enemyTimer <= 0) {
-      enemyTimer = 130 + Math.floor(rng() * 160); // ~2,2 a 4,8 s
+      enemyTimer = 260 + Math.floor(rng() * 320); // metade da frequência: ~4,3 a 9,7 s
       enemies.push({
         x: bird.x + SPAWN_AHEAD + 60,
         y: 110 + rng() * (H - GROUND_H - 230),
@@ -5709,7 +5708,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.13.23';
+const GAME_VERSION = '5.13.24';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
