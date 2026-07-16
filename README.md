@@ -1,6 +1,6 @@
 # 🦜 SUPER TUCAN REMASTERED
 
-Um Flappy Bird brasileiro, cartoon e cheio de vida — voe com o tucano por 6 biomas do Brasil (Amazônia, Cerrado, Mata Atlântica, Caatinga, Pampas e o Pantanal infinito), desviando de galhos, coletando ovos e enfrentando eventos como vulcões, tempestades e a noite.
+Um Flappy Bird brasileiro, cartoon e cheio de vida — voe com o tucano por biomas do Brasil e mergulhe no Lago Cristalino, desviando de galhos, coletando ovos e enfrentando eventos como vulcões, tempestades, neve, terremotos e a noite.
 
 **🎮 Jogar:** https://hygoramorim.github.io/super-tucan/
 
@@ -10,13 +10,22 @@ Um Flappy Bird brasileiro, cartoon e cheio de vida — voe com o tucano por 6 bi
 
 ## ✨ O que tem no jogo
 
-- 6 biomas brasileiros com fauna nativa animada, o ET de Varginha escondido e sua nave
+- Biomas brasileiros, fase subaquática no Lago Cristalino, fauna nativa animada, o ET de Varginha escondido e sua nave
 - Itens: pena, escudo, relógio, água turbinada, o Livro das Maldições e 6 Comidas do Brasil (café, brigadeiro, pimenta…)
-- Eventos: ventania, tempestade, terremoto, vulcão com tremor e bolas de fogo letais, noite de 30s e bônus do ET
-- Bossfights com portal, arena do Cemitério, Urubu, Cobra com 4 ataques, ranking global (ovos e XP), lojinha, conquistas e aves companheiras
+- Eventos: tempestade, neve nos Pampas, terremoto, vulcão com tremor e bolas de fogo cenográficas, noite de 30s e bônus do ET
+- Bossfights com Urubu opcional por portal, Cobra/Anaconda obrigatória nos Pampas, ranking global (ovos e XP), lojinha, conquistas e aves companheiras
 - HUD e arte com leitura mobile-first: contornos cartoon, telegráficos de boss e recompensas cosméticas
 - Amiguinhos equipados ajudam a coletar ovos e power-ups com hitbox própria; a lojinha tem novas aves brasileiras e acessórios
 - 4 idiomas: 🇧🇷 🇺🇸 🇪🇸 🇨🇳
+
+## 📁 Organização do projeto
+
+- `index.html`: jogo completo em Canvas 2D.
+- `ARQUITETURA.md`: guia técnico e histórico de versões.
+- `CLAUDE.md`: instruções rápidas para agentes retomarem o projeto.
+- `docs/`: visão do projeto, roadmap e fluxo de trabalho.
+- `SUGESTOES.txt`: sugestões sincronizadas da comunidade.
+- `preview/`: galeria local para revisar personagens e artes do jogo.
 
 ## 💡 Sugestões da comunidade
 
