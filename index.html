@@ -261,7 +261,7 @@
     <div id="menu" class="overlay">
       <div class="studio">&#10022; CISCO GAMES &#10022;<small>APRESENTA</small></div>
       <h1>SUPER TUCAN<small>REMASTERED</small></h1>
-      <p class="sub">Bata as asas, desvie dos GALHOS e colete OVOS pelos 6 biomas do Brasil: Amazônia, Cerrado, Mata Atlântica, Caatinga, Pampas e o PANTANAL INFINITO, que acelera a cada 15 segundos!</p>
+      <p class="sub">Bata as asas, desvie dos GALHOS, mergulhe no LAGO CRISTALINO e colete OVOS pelo Brasil até o PANTANAL INFINITO, que acelera a cada 15 segundos!</p>
       <div>
         <div class="hint" style="margin-bottom:6px">SEU NOME (ATÉ 9 LETRAS)</div>
         <input id="initials" maxlength="9" autocomplete="off" spellcheck="false" placeholder="TUCANO">
@@ -364,7 +364,7 @@
 // ---------- i18n: pt / en / es / zh (ideia 23 do Francisco) ----------
 const I18N = {
   pt: {
-    tagline: 'Bata as asas, desvie dos GALHOS e colete OVOS pelos 6 biomas do Brasil: Amazônia, Cerrado, Mata Atlântica, Caatinga, Pampas e o PANTANAL INFINITO!',
+    tagline: 'Bata as asas, desvie dos GALHOS, mergulhe no LAGO CRISTALINO e colete OVOS pelo Brasil até o PANTANAL INFINITO!',
     nameLabel: 'SEU NOME (ATÉ 9 LETRAS)', play: 'JOGAR', daily: '📅 DESAFIO DO DIA', tutorial: '🎓 TUTORIAL',
     hardcore: '💀 HARDCORE', friends: '❤️ AMIGOS', shop: '🛍️ LOJINHA', ideas: '💡 IDEIAS', achievements: '🏆 CONQUISTAS',
     rankTitle: '🏆 RANKING GLOBAL · TOP 10', tabEggs: '🥚 RECORDISTAS', tabXp: '⭐ VETERANOS',
@@ -393,7 +393,7 @@ const I18N = {
     checkingName: 'VERIFICANDO NOME...', chooseOther: 'ESCOLHA OUTRO NOME', hardcoreSub: 'PANTANAL ∞ DIRETO', tutorialSub: 'SEM MORTE — SÓ APRENDER', tutorialDone: '🎓 TUTORIAL COMPLETO! +50 XP — AGORA JOGUE DE VERDADE!', now: 'AGORA'
   },
   en: {
-    tagline: 'Flap your wings, dodge the BRANCHES and collect EGGS across 6 Brazilian biomes: Amazon, Cerrado, Atlantic Forest, Caatinga, Pampas and the ENDLESS PANTANAL!',
+    tagline: 'Flap your wings, dodge BRANCHES, dive into the CRYSTAL LAKE and collect EGGS across Brazil until the ENDLESS PANTANAL!',
     nameLabel: 'YOUR NAME (UP TO 9 LETTERS)', play: 'PLAY', daily: '📅 DAILY CHALLENGE', tutorial: '🎓 TUTORIAL',
     hardcore: '💀 HARDCORE', friends: '❤️ FRIENDS', shop: '🛍️ SHOP', ideas: '💡 IDEAS', achievements: '🏆 ACHIEVEMENTS',
     rankTitle: '🏆 GLOBAL RANKING · TOP 10', tabEggs: '🥚 EGG KINGS', tabXp: '⭐ VETERANS',
@@ -422,7 +422,7 @@ const I18N = {
     checkingName: 'CHECKING NAME...', chooseOther: 'CHOOSE ANOTHER NAME', hardcoreSub: 'STRAIGHT TO PANTANAL ∞', tutorialSub: 'NO DEATHS — JUST LEARN', tutorialDone: '🎓 TUTORIAL COMPLETE! +50 XP — NOW PLAY FOR REAL!', now: 'NOW'
   },
   es: {
-    tagline: '¡Bate las alas, esquiva las RAMAS y colecta HUEVOS por los 6 biomas de Brasil: Amazonía, Cerrado, Mata Atlántica, Caatinga, Pampas y el PANTANAL INFINITO!',
+    tagline: '¡Bate las alas, esquiva RAMAS, sumérgete en el LAGO CRISTALINO y colecta HUEVOS por Brasil hasta el PANTANAL INFINITO!',
     nameLabel: 'TU NOMBRE (HASTA 9 LETRAS)', play: 'JUGAR', daily: '📅 RETO DEL DÍA', tutorial: '🎓 TUTORIAL',
     hardcore: '💀 HARDCORE', friends: '❤️ AMIGOS', shop: '🛍️ TIENDA', ideas: '💡 IDEAS', achievements: '🏆 LOGROS',
     rankTitle: '🏆 RANKING GLOBAL · TOP 10', tabEggs: '🥚 RÉCORDS', tabXp: '⭐ VETERANOS',
@@ -451,7 +451,7 @@ const I18N = {
     checkingName: 'VERIFICANDO NOMBRE...', chooseOther: 'ELIGE OTRO NOMBRE', hardcoreSub: 'DIRECTO AL PANTANAL ∞', tutorialSub: 'SIN MUERTE — SOLO APRENDER', tutorialDone: '🎓 TUTORIAL COMPLETO! +50 XP — AHORA JUEGA DE VERDAD!', now: 'AHORA'
   },
   zh: {
-    tagline: '扇动翅膀，躲避树枝，在巴西的6个生态区收集鸡蛋：亚马逊、塞拉多、大西洋森林、卡廷加、潘帕斯和无尽的潘塔纳尔！',
+    tagline: '扇动翅膀，躲避树枝，潜入水晶湖，在巴西一路收集鸡蛋直到无尽的潘塔纳尔！',
     nameLabel: '你的名字（最多9个字母）', play: '开始', daily: '📅 每日挑战', tutorial: '🎓 教程',
     hardcore: '💀 硬核', friends: '❤️ 朋友', shop: '🛍️ 商店', ideas: '💡 点子', achievements: '🏆 成就',
     rankTitle: '🏆 全球排行榜 · 前10名', tabEggs: '🥚 蛋王', tabXp: '⭐ 老手',
@@ -516,7 +516,7 @@ function isPortraitMobile() {
 // ---------- Configuração das fases ----------
 // dist = deslocamento horizontal necessário p/ concluir a fase (cresce a cada fase)
 // speed = velocidade horizontal | gap = abertura entre galhos | spacing = distância entre obstáculos
-// 6 biomas brasileiros — cada paleta em forte contraste com a anterior
+// Biomas brasileiros + interlúdio do Lago — cada paleta em forte contraste com a anterior
 const PHASES = [
   { // verde profundo e úmido
     name: 'AMAZÔNIA', dist: 1600, speed: 2.3, gap: 358, spacing: 286,
@@ -531,6 +531,13 @@ const PHASES = [
     skyTop: '#ff9e3d', skyBot: '#ffe3ad', far: '#b26a1e', mid: '#8a4d17',
     branch: '#7d5a3c', leaf: '#d9a441', ground: '#b8813f', groundTop: '#d9a55c',
     deco: 'cerrado'
+  },
+  { // fase passeio: lago cristalino depois do Cerrado (~60s)
+    name: 'LAGO CRISTALINO', dist: 7920, speed: 2.2, gap: 318, spacing: 304,
+    body: '#112233', wing: '#1f5f7a', beak: ['#ffef8a', '#f5a623'], eye: '#ffffff',
+    skyTop: '#3dd5ff', skyBot: '#d9fbff', far: '#0f7ea7', mid: '#15b5b0',
+    branch: '#2f9f73', leaf: '#8ef0a1', ground: '#0f7c78', groundTop: '#7dd3fc',
+    deco: 'lago'
   },
   { // névoa fria azul-esverdeada (contraste com o dourado)
     name: 'MATA ATLÂNTICA', dist: 3000, speed: 2.95, gap: 168, spacing: 248,
@@ -562,7 +569,9 @@ const PHASES = [
   }
 ];
 const LAST = PHASES.length - 1;
-const PAMPAS_PHASE_IDX = 4;
+const LAGO_PHASE_IDX = 2;
+const PAMPAS_PHASE_IDX = 5;
+function bossProgressPhaseIdx() { return phaseIdx > LAGO_PHASE_IDX ? phaseIdx - 1 : phaseIdx; }
 // Fase final infinita: +1 nível a cada 15 s, com teto calibrado para ser
 // difícil porém vencível por um jogador de alto nível (nunca impossível)
 const P3_LEVEL_FRAMES = 900;
@@ -705,6 +714,12 @@ const MUSIC = [
     bass: [43,0,43,0, 50,0,0,0, 48,0,48,0, 50,0,0,0, 43,0,43,0, 52,0,0,0, 50,0,48,0, 45,0,0,0],
     lead: [67,0,71,74, 0,76,0,74, 71,0,67,0, 74,0,0,0, 76,0,74,76, 79,0,76,74, 71,0,74,0, 67,0,0,0],
     kick: [0,8,16,24], hatEvery: 2, hatOff: 1, hatVol: 0.025
+  },
+  { // LAGO CRISTALINO: feliz, aquática, bolhas e arpejos leves
+    bpm: 118, leadType: 'triangle', leadVol: 0.065, bassVol: 0.075,
+    bass: [36,0,43,0, 48,0,55,0, 40,0,47,0, 52,0,59,0, 38,0,45,0, 50,0,57,0, 43,0,50,0, 55,0,62,0],
+    lead: [72,76,79,84, 81,79,76,72, 74,78,81,86, 83,81,78,74, 76,79,83,88, 86,83,79,76, 79,83,86,91, 88,86,83,79],
+    kick: [0,16], hatEvery: 4, hatOff: 2, hatVol: 0.018
   },
   { // MATA ATLÂNTICA: fluida e fresca
     bpm: 114, leadType: 'triangle', leadVol: 0.065, bassVol: 0.09,
@@ -1031,6 +1046,7 @@ let playerName = 'AAA';
 let frames = 0;
 let bird, obstacles, eggs, particles, clouds;
 let score, totalDist, phaseIdx, phaseDist, bannerTimer, deathTimer, shake;
+let lakeDiveTimer = 0, lakeExitTimer = 0;
 let p3Level, p3Timer, bannerText, bannerSub;
 let celebrateTimer = 0, celebrateColors = ['#ffd23f'];
 let combo = 0; // ovos coletados em sequência sem deixar nenhum passar
@@ -1290,6 +1306,8 @@ function resetGame() {
   totalDist = 0;
   phaseIdx = 0;
   phaseDist = 0;
+  lakeDiveTimer = 0;
+  lakeExitTimer = 0;
   bannerTimer = 120; // banner da fase 1
   bannerText = t('phase') + ' 1';
   bannerSub = PHASES[0].name;
@@ -1337,7 +1355,7 @@ function flap() {
   if (state !== 'play') return;
   // força do pulo: ÁGUA (+alto), LIVRO-pulo (×1.5), ALFACE (+leve), TEMPESTADE reduz (ideia 7)
   let jump = -7.2 * (agua > 0 ? 1.35 : 1) * bookJump * foodJump;
-  if (event === 'TEMPESTADE' || event === 'NEVE') jump *= 0.78; // chuva/neve: pulo mais pesado
+  if (event === 'TEMPESTADE' || event === 'NEVE' || phase().deco === 'lago') jump *= 0.78; // chuva/neve/lago: pulo mais pesado
   bird.vy = jump;
   bird.flapAnim = 10;
   sfx.flap();
@@ -1893,7 +1911,7 @@ function update() {
   }
 
   // eventos climáticos (da fase 3 em diante; nunca no tutorial)
-  if (gameMode !== 'tutorial' && phaseIdx >= 2 && !bossArena && !bossPortal) {
+  if (gameMode !== 'tutorial' && phaseIdx >= 2 && phase().deco !== 'lago' && !bossArena && !bossPortal) {
     if (!event && --eventCooldown <= 0) {
       const events = ['TEMPESTADE', 'VULCÃO', 'NOITE', 'TERREMOTO'];
       if (phaseIdx === PAMPAS_PHASE_IDX) events.push('NEVE');
@@ -2125,7 +2143,7 @@ function update() {
 
   // física do tucano (eventos mexem no ar)
   bird.vy += lowGravityTimer > 0 ? 0.23 : 0.42;
-  if (event === 'TEMPESTADE' || event === 'NEVE') bird.vy += 0.07;    // chuva/neve pesam
+  if (event === 'TEMPESTADE' || event === 'NEVE' || phase().deco === 'lago') bird.vy += 0.07;    // chuva/neve/lago pesam
   if (bird.vy > (lowGravityTimer > 0 ? 7.5 : 10)) bird.vy = lowGravityTimer > 0 ? 7.5 : 10;
   bird.y += bird.vy;
   bird.rot = Math.max(-0.45, Math.min(1.2, bird.vy * 0.09));
@@ -2144,6 +2162,15 @@ function update() {
   const d = currentDiff();
   totalDist += d.speed;
   if (!bossArena) phaseDist += d.speed;
+  if (lakeDiveTimer > 0) lakeDiveTimer--;
+  if (lakeExitTimer > 0) lakeExitTimer--;
+  if (phase().deco === 'lago' && phaseDist > phase().dist - 260 && lakeExitTimer <= 0) {
+    lakeExitTimer = 130;
+    bannerTimer = 100;
+    bannerText = 'SUBA!';
+    bannerSub = 'SAINDO DO LAGO';
+    sfx.phase();
+  }
 
   // transição de fase (a fase final é infinita; tutorial não avança)
   if (gameMode !== 'tutorial' && phaseIdx < LAST && phaseDist >= p.dist) {
@@ -2151,16 +2178,29 @@ function update() {
     phaseIdx++;
     phaseDist = 0;
     const np = PHASES[phaseIdx];
+    if (phaseIdx === LAGO_PHASE_IDX || p.deco === 'lago') {
+      obstacles = []; eggs = []; powerups = []; enemies = [];
+    }
+    if (phaseIdx === LAGO_PHASE_IDX) {
+      lakeDiveTimer = 150;
+      bird.vy = 5.5;
+      bird.y = Math.max(bird.y, H * 0.34);
+    } else if (p.deco === 'lago') {
+      lakeExitTimer = 130;
+      bird.vy = -8.5;
+      bird.y = Math.min(bird.y, H * 0.62);
+    }
     if (phaseIdx === 1) unlockAchievement('amazon');
     if (phaseIdx === LAST) unlockAchievement('pantanal');
     bannerTimer = 130;
-    bannerText = t('phase') + ' ' + (phaseIdx + 1);
+    bannerText = phaseIdx === LAGO_PHASE_IDX ? 'MERGULHE' : t('phase') + ' ' + (phaseIdx + 1);
     bannerSub = np.name;
     sfx.phase();
     startMusic(phaseIdx);
     celebrate([np.beak[0], np.leaf, '#ffffff', '#ffd23f']);
+    if (phaseIdx === LAGO_PHASE_IDX) celebrate(['#7dd3fc', '#22d3ee', '#ffffff', '#8ef0a1'], 44);
     if (phaseIdx === PAMPAS_PHASE_IDX && !boss && !bossPortal && !bossArena) mandatorySnakeQueued = 140;
-    else if (phaseIdx % 3 === 0 && !boss && !bossPortal && !bossArena) bossQueued = 140;
+    else if (bossProgressPhaseIdx() % 3 === 0 && !boss && !bossPortal && !bossArena) bossQueued = 140;
   }
 
   // Pantanal infinito: +1 nível a cada 15 s até o teto (nível 10 = tudo no máximo);
@@ -2365,7 +2405,120 @@ function spawnFeathers() {
 }
 
 // ---------- Desenho ----------
+function drawLakeBackground() {
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, '#75f4ff');
+  g.addColorStop(0.38, '#1fb6d1');
+  g.addColorStop(1, '#064e6a');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+
+  // superfície ondulada + raios de sol
+  ctx.fillStyle = 'rgba(255,255,255,.42)';
+  ctx.beginPath();
+  ctx.moveTo(0, 34);
+  for (let x = 0; x <= W; x += 28) ctx.lineTo(x, 34 + Math.sin(frames * 0.04 + x * 0.04) * 7);
+  ctx.lineTo(W, 0); ctx.lineTo(0, 0); ctx.closePath(); ctx.fill();
+  for (let i = 0; i < 6; i++) {
+    const x = (i * 96 - totalDist * 0.08) % (W + 160) - 80;
+    const rg = ctx.createLinearGradient(x, 20, x + 80, H - GROUND_H);
+    rg.addColorStop(0, 'rgba(255,255,210,.22)');
+    rg.addColorStop(1, 'rgba(255,255,210,0)');
+    ctx.fillStyle = rg;
+    ctx.beginPath();
+    ctx.moveTo(x, 20); ctx.lineTo(x + 36, 20); ctx.lineTo(x + 150, H - GROUND_H); ctx.lineTo(x + 40, H - GROUND_H);
+    ctx.closePath(); ctx.fill();
+  }
+
+  // parallax 1: morros/rochas distantes
+  const far = (totalDist * 0.16) % 260;
+  ctx.fillStyle = 'rgba(5,88,120,.38)';
+  for (let x = -far - 260; x < W + 260; x += 260) {
+    ctx.beginPath();
+    ctx.arc(x + 70, H - GROUND_H + 18, 86, Math.PI, 0);
+    ctx.arc(x + 175, H - GROUND_H + 30, 70, Math.PI, 0);
+    ctx.fill();
+  }
+
+  // parallax 2: plantas médias
+  const mid = (totalDist * 0.34) % 170;
+  for (let x = -mid - 170; x < W + 170; x += 170) {
+    ctx.strokeStyle = 'rgba(29,185,135,.55)';
+    ctx.lineWidth = 4;
+    ctx.lineCap = 'round';
+    for (let i = 0; i < 6; i++) {
+      const bx = x + 22 + i * 22;
+      const h = 44 + (i % 3) * 22;
+      ctx.beginPath();
+      ctx.moveTo(bx, H - GROUND_H + 4);
+      ctx.quadraticCurveTo(bx + Math.sin(frames * 0.035 + i) * 15, H - GROUND_H - h * 0.55, bx + Math.sin(frames * 0.025 + i) * 22, H - GROUND_H - h);
+      ctx.stroke();
+    }
+  }
+
+  // parallax 3: animais felizes brasileiros de água doce
+  const animals = [
+    ['dourado', '#ffd23f', 0.22, 105, 0.9],
+    ['pirarucu', '#e46f55', 0.30, 190, 1.25],
+    ['tambaqui', '#6ee7b7', 0.42, 265, 1.05],
+    ['arraia', '#b8a07a', 0.20, 330, 1.1],
+    ['tartaruga', '#7ee08a', 0.36, 385, 0.9],
+    ['boto', '#ff9fbd', 0.16, 150, 1.35]
+  ];
+  animals.forEach((a, i) => {
+    const x = ((i * 170 + 80 - totalDist * a[2]) % (W + 240) + W + 240) % (W + 240) - 120;
+    const y = 80 + (a[3] % Math.max(120, H - GROUND_H - 130)) + Math.sin(frames * 0.035 + i) * 12;
+    drawLakeAnimal(a[0], x, y, a[1], a[4], frames * 0.04 + i);
+  });
+
+  // bolhas da água
+  ctx.fillStyle = 'rgba(255,255,255,.34)';
+  ctx.strokeStyle = 'rgba(255,255,255,.55)';
+  for (let i = 0; i < 24; i++) {
+    const bx = (i * 61 + Math.sin(frames * 0.02 + i) * 18) % W;
+    const by = H - GROUND_H - ((frames * (0.7 + (i % 4) * 0.18) + i * 39) % (H - GROUND_H + 80));
+    const r = 2 + (i % 4);
+    ctx.beginPath(); ctx.arc(bx, by, r, 0, 7); ctx.stroke();
+  }
+}
+
+function drawLakeAnimal(kind, x, y, color, s, ph) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(s, s);
+  const tail = Math.sin(ph * 3) * 5;
+  if (kind === 'tartaruga') {
+    ctx.fillStyle = '#4a9a66';
+    ctx.beginPath(); ctx.ellipse(0, 0, 18, 12, 0, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#246b45'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = '#6ee7b7';
+    ctx.beginPath(); ctx.ellipse(22, -2, 7, 5, 0, 0, 7); ctx.fill();
+    blinkEye(24, -4, 1.4, ph);
+    [[-10,-11],[-10,11],[8,-11],[8,11]].forEach(p => { ctx.beginPath(); ctx.ellipse(p[0], p[1], 7, 3, 0.5, 0, 7); ctx.fill(); });
+  } else if (kind === 'arraia') {
+    ctx.fillStyle = color;
+    ctx.beginPath(); ctx.ellipse(0, 0, 24, 12, 0, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(18, 0); ctx.quadraticCurveTo(34, 4 + tail * 0.2, 48, 0); ctx.strokeStyle = color; ctx.lineWidth = 3; ctx.stroke();
+    blinkEye(-6, -4, 1.4, ph); blinkEye(6, -4, 1.4, ph);
+  } else if (kind === 'boto') {
+    ctx.fillStyle = color;
+    ctx.beginPath(); ctx.ellipse(0, 0, 30, 10, -0.05, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(-26, 0); ctx.lineTo(-42, -9 + tail); ctx.lineTo(-38, 0); ctx.lineTo(-42, 9 - tail); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(5, -8); ctx.lineTo(16, -22); ctx.lineTo(18, -6); ctx.closePath(); ctx.fill();
+    blinkEye(19, -4, 1.5, ph);
+  } else {
+    ctx.fillStyle = color;
+    ctx.beginPath(); ctx.ellipse(0, 0, 22, 10, 0, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(-20, 0); ctx.lineTo(-34, -9 + tail); ctx.lineTo(-30, 0); ctx.lineTo(-34, 9 - tail); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.35)';
+    ctx.beginPath(); ctx.ellipse(4, -2, 9, 3, -0.2, 0, 7); ctx.fill();
+    blinkEye(14, -3, 1.6, ph);
+  }
+  ctx.restore();
+}
+
 function drawBackground(p) {
+  if (p.deco === 'lago') { drawLakeBackground(); return; }
   // céu
   const sky = ctx.createLinearGradient(0, 0, 0, H);
   sky.addColorStop(0, p.skyTop);
@@ -2602,6 +2755,19 @@ function drawBackground(p) {
 
 function drawGround(p) {
   const y = H - GROUND_H;
+  if (p.deco === 'lago') {
+    ctx.fillStyle = '#d7b46a';
+    ctx.fillRect(0, y, W, GROUND_H);
+    ctx.fillStyle = 'rgba(255,255,255,.28)';
+    ctx.fillRect(0, y, W, 10);
+    ctx.fillStyle = 'rgba(90,65,35,.18)';
+    const off = totalDist % 46;
+    for (let x = -off; x < W; x += 46) {
+      ctx.beginPath(); ctx.ellipse(x + 18, y + 28, 16, 5, 0, 0, 7); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(x + 42, y + 51, 9, 4, 0, 0, 7); ctx.fill();
+    }
+    return;
+  }
   ctx.fillStyle = p.ground;
   ctx.fillRect(0, y, W, GROUND_H);
   ctx.fillStyle = p.groundTop;
@@ -2615,7 +2781,43 @@ function drawGround(p) {
   }
 }
 
+function drawLakePlants(o, p) {
+  const topLen = o.gapY - o.gap / 2;
+  const botY = o.gapY + o.gap / 2;
+  ctx.save();
+  ctx.globalAlpha = Math.min(1, (o.age === undefined ? 30 : o.age) / 15);
+  const plantCol = ['#1bbf72', '#20d08a', '#0ea66f', '#8ef0a1'];
+  const drawPlantColumn = (baseY, len, up) => {
+    const count = Math.max(4, Math.floor(len / 34));
+    for (let i = 0; i < count; i++) {
+      const px = o.x - o.w * 0.42 + (i / Math.max(1, count - 1)) * o.w * 0.84;
+      const h = len * (0.62 + (i % 3) * 0.12);
+      ctx.strokeStyle = plantCol[i % plantCol.length];
+      ctx.lineWidth = 5;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(px, baseY);
+      ctx.quadraticCurveTo(px + Math.sin(frames * 0.045 + o.seed + i) * 20, baseY - up * h * 0.48, px + Math.sin(frames * 0.032 + i) * 28, baseY - up * h);
+      ctx.stroke();
+      ctx.fillStyle = plantCol[(i + 1) % plantCol.length];
+      ctx.beginPath();
+      ctx.ellipse(px + Math.sin(frames * 0.032 + i) * 28, baseY - up * h, 11, 5, Math.sin(frames * 0.04 + i) * 0.5, 0, 7);
+      ctx.fill();
+    }
+    ctx.fillStyle = 'rgba(255,255,255,.24)';
+    for (let b = 0; b < 5; b++) {
+      ctx.beginPath();
+      ctx.arc(o.x + (b - 2) * 8, baseY - up * (len * 0.82 + b * 8), 2 + (b % 2), 0, 7);
+      ctx.stroke();
+    }
+  };
+  drawPlantColumn(0, topLen, -1);
+  drawPlantColumn(H - GROUND_H, H - GROUND_H - botY, 1);
+  ctx.restore();
+}
+
 function drawBranch(o, p) {
+  if (p.deco === 'lago') { drawLakePlants(o, p); return; }
   const topLen = o.gapY - o.gap / 2;
   const botY = o.gapY + o.gap / 2;
   ctx.save();
@@ -4691,6 +4893,42 @@ function drawToucan(p) {
   ctx.arc(14.8, -9.8, 0.7, 0, 7);
   ctx.fill();
 
+  if (p.deco === 'lago') {
+    // snorkel + máscara aquática, com bolhas constantes.
+    ctx.strokeStyle = '#12d4ff';
+    ctx.lineWidth = 3.2;
+    ctx.beginPath();
+    ctx.moveTo(10, -17);
+    ctx.quadraticCurveTo(9, -30, 19, -31);
+    ctx.lineTo(25, -31);
+    ctx.stroke();
+    ctx.strokeStyle = '#ffef8a';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(12, -31); ctx.lineTo(26, -31);
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(125,211,252,.35)';
+    ctx.strokeStyle = '#e0f2fe';
+    ctx.lineWidth = 1.7;
+    ctx.beginPath();
+    ctx.ellipse(14, -9, 8, 6, -0.08, 0, 7);
+    ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = '#10281a';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(19, -8); ctx.lineTo(25, -7);
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,255,255,.7)';
+    ctx.lineWidth = 1.4;
+    for (let i = 0; i < 4; i++) {
+      const bx = 31 + i * 10 + Math.sin(frames * 0.07 + i) * 3;
+      const by = -36 - ((frames * 0.55 + i * 13) % 42);
+      ctx.beginPath();
+      ctx.arc(bx, by, 2 + (i % 2), 0, 7);
+      ctx.stroke();
+    }
+  }
+
   // patas
   ctx.strokeStyle = '#f5a623';
   ctx.lineWidth = 2.5;
@@ -5121,6 +5359,44 @@ function drawBossRotatePrompt() {
   ctx.restore();
 }
 
+function drawDiveLakeSign() {
+  if (phaseIdx !== 1 || phaseDist < PHASES[1].dist - 520) return;
+  const t = Math.min(1, (phaseDist - (PHASES[1].dist - 520)) / 260);
+  const x = W - 150 + (1 - t) * 120;
+  const y = H - GROUND_H;
+  ctx.save();
+  ctx.globalAlpha = t;
+  // lago surgindo no horizonte do Cerrado
+  ctx.fillStyle = 'rgba(20,170,220,.55)';
+  ctx.beginPath();
+  ctx.ellipse(x + 64, y - 8, 92, 18, 0, 0, 7);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(255,255,255,.6)';
+  ctx.lineWidth = 2;
+  for (let i = 0; i < 3; i++) {
+    ctx.beginPath();
+    ctx.moveTo(x - 10 + i * 42, y - 10);
+    ctx.quadraticCurveTo(x + 8 + i * 42, y - 18, x + 28 + i * 42, y - 10);
+    ctx.stroke();
+  }
+  // placa
+  ctx.strokeStyle = '#5b3a21';
+  ctx.lineWidth = 5;
+  ctx.beginPath(); ctx.moveTo(x + 8, y - 4); ctx.lineTo(x + 8, y - 68); ctx.stroke();
+  ctx.fillStyle = '#f4d28b';
+  ctx.strokeStyle = '#5b3a21';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(x - 48, y - 96, 112, 38, 7);
+  else ctx.rect(x - 48, y - 96, 112, 38);
+  ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#10281a';
+  ctx.font = "12px Bungee, 'Courier New', monospace";
+  ctx.textAlign = 'center';
+  ctx.fillText('MERGULHE', x + 8, y - 72);
+  ctx.restore();
+}
+
 function draw() {
   const p = phase();
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0); // desenha na densidade nativa (nítido)
@@ -5171,6 +5447,7 @@ function draw() {
     }
   }
 
+  drawDiveLakeSign();
   drawComboAura();
 
   // overlays dos eventos climáticos
@@ -5859,7 +6136,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.13.29';
+const GAME_VERSION = '5.13.30';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
