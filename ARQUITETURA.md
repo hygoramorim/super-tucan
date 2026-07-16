@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.13.26` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.13.27` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -234,3 +234,5 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
   e preferem faixas afastadas da altura atual do tucano, evitando fechar o trajeto normal.
 - **v5.13.26** — antes de qualquer bossfight, se o jogador estiver em celular vertical, o jogo congela
   e mostra uma animação pedindo para virar para horizontal; após virar, um toque inicia a arena.
+- **v5.13.27** — correção do spawn de alimentos: chance real de item extra subiu para 66% a cada
+  3 galhos, 80% desses itens são alimentos e o posicionamento tenta áreas longe dos ovos.

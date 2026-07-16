@@ -1410,7 +1410,8 @@ canvas.addEventListener('pointerdown', (e) => {
 const SPAWN_AHEAD = 460;
 let lastGapY = 320;
 const ITEM_MIN_GAP = 3;   // a cada 3 galhos há chance de item extra além dos ovos
-const ITEM_SPAWN_CHANCE = 0.33;
+const ITEM_SPAWN_CHANCE = 0.66;
+const FOOD_SPAWN_SHARE = 0.8;
 const ITEM_MIN_DISTANCE = 200; // ovos/frutas/power-ups não podem embolar visualmente
 let obsSinceItem = 3;     // começa liberado (permite item logo nos primeiros galhos)
 const NIGHT_STAR_COUNT = 58;
@@ -1447,6 +1448,15 @@ function placePowerupItem(item, placed) {
   powerups.push(item);
   if (placed) placed.push(item);
   return true;
+}
+function tryPlaceExtraItem(ob, d, gapY, item, placed) {
+  for (let i = 0; i < 10; i++) {
+    const side = i % 2 === 0 ? 1 : -1;
+    const x = ob.x + d.spacing * (0.62 + rng() * 0.56);
+    const y = Math.max(110, Math.min(H - GROUND_H - 55, gapY + side * (95 + rng() * 150)));
+    if (placePowerupItem({ ...item, x, y, bob: rng() * 6.28, age: 0, taken: false }, placed)) return true;
+  }
+  return false;
 }
 function enemySafeY(spawnX) {
   const minY = 92;
@@ -1516,20 +1526,19 @@ function spawnObstacle() {
     placeEggItem({ x: ob.x + d.spacing / 2, y: by, golden: false, taken: false, bob: rng() * 6.28, age: 0 }, placedItems);
   }
   // Power-up / comida ocasional — nunca no hardcore/tutorial.
-  // A cada ITEM_MIN_GAP galhos, há 33% de chance de item além dos ovos.
+  // A cada ITEM_MIN_GAP galhos, há 66% de chance de item além dos ovos.
   obsSinceItem++;
   if (gameMode !== 'hardcore' && gameMode !== 'tutorial' && !jewelBetween
       && obsSinceItem >= ITEM_MIN_GAP && rng() < ITEM_SPAWN_CHANCE) {
-    const py = Math.max(130, Math.min(H - GROUND_H - 70, gapY + (rng() * 160 - 80)));
     let powerupPlaced = false;
     // 80% das vezes é uma COMIDA do Brasil (pedido: dobrar alimentos); senão, power-up clássico.
-    if (rng() < 0.8) {
+    if (rng() < FOOD_SPAWN_SHARE) {
       const fk = FOOD_KINDS[Math.floor(rng() * FOOD_KINDS.length)];
-      powerupPlaced = placePowerupItem({ x: ob.x + d.spacing * 0.35, y: py, type: 'food', food: fk, bob: rng() * 6.28, age: 0, taken: false }, placedItems);
+      powerupPlaced = tryPlaceExtraItem(ob, d, gapY, { type: 'food', food: fk }, placedItems);
     } else {
       const r2 = rng();
       const type = r2 < 0.28 ? 'pena' : r2 < 0.5 ? 'escudo' : r2 < 0.68 ? 'relogio' : r2 < 0.84 ? 'livro' : 'agua';
-      powerupPlaced = placePowerupItem({ x: ob.x + d.spacing * 0.35, y: py, type, bob: rng() * 6.28, age: 0, taken: false }, placedItems);
+      powerupPlaced = tryPlaceExtraItem(ob, d, gapY, { type }, placedItems);
     }
     if (powerupPlaced) obsSinceItem = 0;
   }
@@ -5811,7 +5820,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.13.26';
+const GAME_VERSION = '5.13.27';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
