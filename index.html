@@ -1424,6 +1424,26 @@ function placePowerupItem(item, placed) {
   if (placed) placed.push(item);
   return true;
 }
+function enemySafeY(spawnX) {
+  const minY = 92;
+  const maxY = H - GROUND_H - 92;
+  const near = obstacles
+    .filter(o => o.x > bird.x - 40)
+    .sort((a, b) => Math.abs(a.x - spawnX) - Math.abs(b.x - spawnX))[0];
+  const bands = [];
+  if (near) {
+    const buffer = 56;
+    const topMax = near.gapY - near.gap / 2 - buffer;
+    const botMin = near.gapY + near.gap / 2 + buffer;
+    if (topMax > minY + 24) bands.push([minY, Math.min(maxY, topMax)]);
+    if (botMin < maxY - 24) bands.push([Math.max(minY, botMin), maxY]);
+  }
+  if (!bands.length) bands.push([minY, minY + 75], [maxY - 75, maxY]);
+  const safer = bands.filter(([a, b]) => bird.y < a - 80 || bird.y > b + 80);
+  const list = safer.length ? safer : bands;
+  const band = list[Math.floor(rng() * list.length)];
+  return band[0] + rng() * (band[1] - band[0]);
+}
 function spawnObstacle() {
   if (bossPortal || bossArena) return; // durante entrada/arena do chefe não há galhos/ovos comuns
   const d = currentDiff();
@@ -2109,9 +2129,10 @@ function update() {
   if (phaseIdx === LAST && !bossArena && !bossPortal) {
     if (--enemyTimer <= 0) {
       enemyTimer = 260 + Math.floor(rng() * 320); // metade da frequência: ~4,3 a 9,7 s
+      const enemyX = bird.x + SPAWN_AHEAD + 60;
       enemies.push({
-        x: bird.x + SPAWN_AHEAD + 60,
-        y: 110 + rng() * (H - GROUND_H - 230),
+        x: enemyX,
+        y: enemySafeY(enemyX),
         species: Math.floor(rng() * 3),
         wing: rng() * 6.28
       });
@@ -5708,7 +5729,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.13.24';
+const GAME_VERSION = '5.13.25';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)

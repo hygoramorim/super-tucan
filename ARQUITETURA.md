@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.13.24` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.13.25` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -230,3 +230,5 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
   ET agora também bate asa/subindo o tucano.
 - **v5.13.24** — correção de alvo: a redução de dificuldade foi aplicada aos pássaros inimigos letais
   do Pantanal, com frequência pela metade, mantendo a fauna/revoadas decorativas do cenário.
+- **v5.13.25** — pássaros inimigos letais do Pantanal agora nascem fora da abertura segura entre galhos
+  e preferem faixas afastadas da altura atual do tucano, evitando fechar o trajeto normal.
