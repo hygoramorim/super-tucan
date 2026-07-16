@@ -2469,18 +2469,27 @@ function drawLakeBackground() {
     ctx.stroke();
   }
 
-  const fishOff = (totalDist * 0.18) % (W + 260);
-  for (let i = 0; i < 2; i++) {
-    const x = ((i * 230 + 120 - fishOff) % (W + 260) + W + 260) % (W + 260) - 130;
-    const y = 145 + i * 145;
-    ctx.fillStyle = i ? 'rgba(126,224,138,.42)' : 'rgba(255,210,63,.48)';
+  const fishOff = (totalDist * 0.18) % (W + 280);
+  const fishCols = ['rgba(255,210,63,.50)', 'rgba(126,224,138,.44)', 'rgba(255,117,180,.40)'];
+  for (let i = 0; i < 3; i++) {
+    const x = ((i * 190 + 120 - fishOff) % (W + 280) + W + 280) % (W + 280) - 140;
+    const y = 125 + i * 105;
+    ctx.fillStyle = fishCols[i];
     ctx.beginPath(); ctx.ellipse(x, y, 18, 8, 0, 0, 7); ctx.fill();
     ctx.beginPath(); ctx.moveTo(x - 16, y); ctx.lineTo(x - 30, y - 8); ctx.lineTo(x - 28, y + 8); ctx.closePath(); ctx.fill();
   }
 
+  const tx = ((W + 170 - (totalDist * 0.11) % (W + 360)) % (W + 360)) - 90;
+  const ty = H - GROUND_H - 155;
+  ctx.fillStyle = 'rgba(126,224,138,.38)';
+  ctx.beginPath(); ctx.ellipse(tx, ty, 22, 12, 0, 0, 7); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(tx + 22, ty - 2, 7, 5, 0, 0, 7); ctx.fill();
+  ctx.fillStyle = 'rgba(42,120,75,.28)';
+  ctx.beginPath(); ctx.ellipse(tx - 9, ty - 10, 7, 3, .4, 0, 7); ctx.ellipse(tx + 7, ty + 10, 7, 3, .4, 0, 7); ctx.fill();
+
   ctx.strokeStyle = 'rgba(255,255,255,.38)';
-  for (let i = 0; i < 4; i++) {
-    const bx = (i * 92 + frames * 0.45) % W;
+  for (let i = 0; i < 6; i++) {
+    const bx = (i * 78 + frames * 0.42) % W;
     const by = H - GROUND_H - ((frames * 0.55 + i * 63) % (H - GROUND_H));
     ctx.beginPath(); ctx.arc(bx, by, 2 + (i % 2), 0, 7); ctx.stroke();
   }
@@ -2769,7 +2778,7 @@ function drawLakePlants(o, p) {
     ctx.lineTo(o.x + o.w / 2 + 2, edgeY);
     ctx.stroke();
 
-    const count = 2;
+    const count = len > 180 ? 3 : 2;
     for (let i = 0; i < count; i++) {
       const px = o.x - o.w * 0.42 + (i / Math.max(1, count - 1)) * o.w * 0.84;
       const h = len * (0.62 + (i % 3) * 0.12);
@@ -2792,6 +2801,7 @@ function drawLakePlants(o, p) {
       ctx.fillStyle = c;
       ctx.beginPath();
       ctx.ellipse(tipX + 7, baseY - up * (h - 8), 6, 3.5, wob, 0, 7);
+      ctx.ellipse(tipX - 6, baseY - up * (h - 14), 5, 3, -wob, 0, 7);
       ctx.fill();
     }
   };
@@ -6120,7 +6130,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.13.34';
+const GAME_VERSION = '5.13.35';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
