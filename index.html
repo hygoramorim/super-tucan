@@ -1099,6 +1099,7 @@ let foodSpeed = 1; // multiplicador de velocidade
 let foodSize = 1;  // multiplicador de tamanho do tucano (afeta desenho E hitbox)
 let foodJump = 1;  // multiplicador do pulo (alface deixa mais leve)
 let foodVis = null; // efeito visual: 'saturado' (cenoura) | 'pimenta'
+let lastFoodSpawned = '';
 // catálogo das comidas: emoji, cor, rótulo e efeitos que aplica
 const FOODS = {
   cafe:       { emoji: '☕', cor: '#6f4e37', label: 'CAFÉ! ACELEROU!',        speed: 1.4 },
@@ -1305,6 +1306,7 @@ function resetGame() {
   pena = 0; shield = 0; slowmo = 0; invuln = 0;
   agua = 0; aguaShield = 0; lowGravityTimer = 0; bookMod = 1; bookJump = 1; bookScore = 1; bookTimer = 0;
   clearFood();
+  lastFoodSpawned = '';
   obsSinceItem = 3;
   event = null; eventTimer = 0; eventCooldown = 900; alertTimer = 0;
   fireballs = []; quakePhase = 0;
@@ -1410,9 +1412,11 @@ canvas.addEventListener('pointerdown', (e) => {
 const SPAWN_AHEAD = 460;
 let lastGapY = 320;
 const ITEM_MIN_GAP = 3;   // a cada 3 galhos há chance de item extra além dos ovos
-const ITEM_SPAWN_CHANCE = 0.66;
-const FOOD_SPAWN_SHARE = 0.8;
-const ITEM_MIN_DISTANCE = 200; // ovos/frutas/power-ups não podem embolar visualmente
+const ITEM_SPAWN_CHANCE = 0.75;
+const FOOD_SPAWN_SHARE = 0.85;
+const ITEM_MIN_DISTANCE = 200; // ovos entre si não podem embolar visualmente
+const EXTRA_ITEM_MIN_DISTANCE = Math.round(ITEM_MIN_DISTANCE / 3);
+const EXTRA_BRANCH_CLEARANCE = 38;
 let obsSinceItem = 3;     // começa liberado (permite item logo nos primeiros galhos)
 const NIGHT_STAR_COUNT = 58;
 const SHOOTING_STAR_INTERVAL = 480; // 8s a 60fps
@@ -1437,6 +1441,16 @@ function canPlaceItemAt(x, y, placed) {
   if (eggs.some(blockedBy) || powerups.some(blockedBy)) return false;
   return !(placed || []).some(blockedBy);
 }
+function canPlaceExtraItemAt(x, y, placed) {
+  const min2 = EXTRA_ITEM_MIN_DISTANCE * EXTRA_ITEM_MIN_DISTANCE;
+  const blockedBy = it => {
+    if (!it || it.taken) return false;
+    const dx = x - it.x, dy = y - it.y;
+    return dx * dx + dy * dy < min2;
+  };
+  if (eggs.some(blockedBy) || powerups.some(blockedBy)) return false;
+  return !(placed || []).some(blockedBy);
+}
 function placeEggItem(item, placed) {
   if (!canPlaceItemAt(item.x, item.y, placed)) return false;
   eggs.push(item);
@@ -1444,19 +1458,28 @@ function placeEggItem(item, placed) {
   return true;
 }
 function placePowerupItem(item, placed) {
-  if (!canPlaceItemAt(item.x, item.y, placed)) return false;
+  if (!canPlaceExtraItemAt(item.x, item.y, placed)) return false;
   powerups.push(item);
   if (placed) placed.push(item);
   return true;
 }
-function tryPlaceExtraItem(ob, d, gapY, item, placed) {
-  for (let i = 0; i < 10; i++) {
-    const side = i % 2 === 0 ? 1 : -1;
-    const x = ob.x + d.spacing * (0.62 + rng() * 0.56);
-    const y = Math.max(110, Math.min(H - GROUND_H - 55, gapY + side * (95 + rng() * 150)));
+function safeExtraItemY(ob) {
+  const minY = Math.max(110, ob.gapY - ob.gap / 2 + EXTRA_BRANCH_CLEARANCE);
+  const maxY = Math.min(H - GROUND_H - 55, ob.gapY + ob.gap / 2 - EXTRA_BRANCH_CLEARANCE);
+  if (maxY <= minY + 12) return ob.gapY;
+  return minY + rng() * (maxY - minY);
+}
+function tryPlaceExtraItem(ob, d, item, placed) {
+  for (let i = 0; i < 18; i++) {
+    const x = ob.x + d.spacing * (0.36 + rng() * 0.38);
+    const y = safeExtraItemY(ob);
     if (placePowerupItem({ ...item, x, y, bob: rng() * 6.28, age: 0, taken: false }, placed)) return true;
   }
   return false;
+}
+function randomFoodKind() {
+  const options = FOOD_KINDS.filter(k => k !== lastFoodSpawned);
+  return options[Math.floor(rng() * options.length)];
 }
 function enemySafeY(spawnX) {
   const minY = 92;
@@ -1526,19 +1549,20 @@ function spawnObstacle() {
     placeEggItem({ x: ob.x + d.spacing / 2, y: by, golden: false, taken: false, bob: rng() * 6.28, age: 0 }, placedItems);
   }
   // Power-up / comida ocasional — nunca no hardcore/tutorial.
-  // A cada ITEM_MIN_GAP galhos, há 66% de chance de item além dos ovos.
+  // A cada ITEM_MIN_GAP galhos, há 75% de chance de item além dos ovos.
   obsSinceItem++;
   if (gameMode !== 'hardcore' && gameMode !== 'tutorial' && !jewelBetween
       && obsSinceItem >= ITEM_MIN_GAP && rng() < ITEM_SPAWN_CHANCE) {
     let powerupPlaced = false;
-    // 80% das vezes é uma COMIDA do Brasil (pedido: dobrar alimentos); senão, power-up clássico.
+    // 85% das vezes é uma COMIDA do Brasil; senão, power-up clássico.
     if (rng() < FOOD_SPAWN_SHARE) {
-      const fk = FOOD_KINDS[Math.floor(rng() * FOOD_KINDS.length)];
-      powerupPlaced = tryPlaceExtraItem(ob, d, gapY, { type: 'food', food: fk }, placedItems);
+      const fk = randomFoodKind();
+      powerupPlaced = tryPlaceExtraItem(ob, d, { type: 'food', food: fk }, placedItems);
+      if (powerupPlaced) lastFoodSpawned = fk;
     } else {
       const r2 = rng();
       const type = r2 < 0.28 ? 'pena' : r2 < 0.5 ? 'escudo' : r2 < 0.68 ? 'relogio' : r2 < 0.84 ? 'livro' : 'agua';
-      powerupPlaced = tryPlaceExtraItem(ob, d, gapY, { type }, placedItems);
+      powerupPlaced = tryPlaceExtraItem(ob, d, { type }, placedItems);
     }
     if (powerupPlaced) obsSinceItem = 0;
   }
@@ -5820,7 +5844,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.13.27';
+const GAME_VERSION = '5.13.28';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
