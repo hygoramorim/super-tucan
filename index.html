@@ -2786,22 +2786,37 @@ function drawLakePlants(o, p) {
   const botY = o.gapY + o.gap / 2;
   ctx.save();
   ctx.globalAlpha = Math.min(1, (o.age === undefined ? 30 : o.age) / 15);
-  const plantCol = ['#1bbf72', '#20d08a', '#0ea66f', '#8ef0a1'];
+  const plantCol = ['#ff4fa3', '#ff8a2a', '#ffd23f', '#7ee08a', '#22d3ee', '#3b82f6', '#a855f7'];
+  const glowCol = ['#ffc1df', '#ffd0a3', '#fff2a8', '#c7f9cc', '#b5f4ff', '#bfdbfe', '#e9d5ff'];
   const drawPlantColumn = (baseY, len, up) => {
     const count = Math.max(4, Math.floor(len / 34));
     for (let i = 0; i < count; i++) {
       const px = o.x - o.w * 0.42 + (i / Math.max(1, count - 1)) * o.w * 0.84;
       const h = len * (0.62 + (i % 3) * 0.12);
-      ctx.strokeStyle = plantCol[i % plantCol.length];
-      ctx.lineWidth = 5;
+      const c = plantCol[(i + Math.floor(o.seed)) % plantCol.length];
+      const hi = glowCol[(i + Math.floor(o.seed)) % glowCol.length];
+      ctx.strokeStyle = 'rgba(255,255,255,.22)';
+      ctx.lineWidth = 8;
       ctx.lineCap = 'round';
       ctx.beginPath();
       ctx.moveTo(px, baseY);
       ctx.quadraticCurveTo(px + Math.sin(frames * 0.045 + o.seed + i) * 20, baseY - up * h * 0.48, px + Math.sin(frames * 0.032 + i) * 28, baseY - up * h);
       ctx.stroke();
-      ctx.fillStyle = plantCol[(i + 1) % plantCol.length];
+      ctx.strokeStyle = c;
+      ctx.lineWidth = 5.5;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(px, baseY);
+      ctx.quadraticCurveTo(px + Math.sin(frames * 0.045 + o.seed + i) * 20, baseY - up * h * 0.48, px + Math.sin(frames * 0.032 + i) * 28, baseY - up * h);
+      ctx.stroke();
+      ctx.fillStyle = hi;
       ctx.beginPath();
       ctx.ellipse(px + Math.sin(frames * 0.032 + i) * 28, baseY - up * h, 11, 5, Math.sin(frames * 0.04 + i) * 0.5, 0, 7);
+      ctx.fill();
+      ctx.fillStyle = c;
+      ctx.beginPath();
+      ctx.ellipse(px + Math.sin(frames * 0.032 + i) * 28 + 7, baseY - up * (h - 8), 7, 3.5, Math.sin(frames * 0.05 + i), 0, 7);
+      ctx.ellipse(px + Math.sin(frames * 0.032 + i) * 28 - 7, baseY - up * (h - 15), 7, 3.5, -Math.sin(frames * 0.05 + i), 0, 7);
       ctx.fill();
     }
     ctx.fillStyle = 'rgba(255,255,255,.24)';
@@ -6136,7 +6151,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.13.30';
+const GAME_VERSION = '5.13.31';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)

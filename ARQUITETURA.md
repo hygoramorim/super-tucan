@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.13.30` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.13.31` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -243,3 +243,5 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
 - **v5.13.30** — nova fase `LAGO CRISTALINO` após o Cerrado: entrada com placa "MERGULHE", fase
   subaquática fácil de ~60s, parallax aquático, peixes/animais brasileiros, plantas como obstáculos,
   snorkel/bolhas no Tucano e música feliz de tema aquático.
+- **v5.13.31** — plantas/algas do Lago Cristalino ganharam paleta arco-íris, brilho e folhas coloridas
+  para reforçar o visual multicolorido da fase.
