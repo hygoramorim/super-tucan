@@ -49,7 +49,7 @@ node -e "const fs=require('fs'); const html=fs.readFileSync('preview/jogo-para-p
 
 ## Publicacao
 
-1. Atualize `GAME_VERSION` em `index.html`.
+1. Atualize `GAME_VERSION` em `index.html`, sempre somando `0.01` por push: `5.14`, `5.15`... `5.99`, depois `6.01`.
 2. Atualize `ARQUITETURA.md` se houver mudanca de regra, fase, boss, item ou arquitetura.
 3. Rode as validacoes.
 4. Commit e push:
@@ -87,4 +87,3 @@ Sugestoes simples:
 - [ ] Commit feito.
 - [ ] Push enviado.
 - [ ] Versao confirmada no GitHub Pages.
-

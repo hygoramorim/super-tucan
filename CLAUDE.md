@@ -11,6 +11,7 @@ Este arquivo existe para qualquer agente de IA retomar o projeto com contexto, c
 - Jogo publicado: https://hygoramorim.github.io/super-tucan/
 - Stack: HTML + CSS + JavaScript em arquivo unico (`index.html`), Canvas 2D, sem build.
 - Versao atual no codigo: procurar `GAME_VERSION` em `index.html`.
+- Versionamento: a cada push, avance `GAME_VERSION` em `+0.01`. Exemplo: `5.14`, `5.15`... `5.99`, depois `6.01`. Nao usar terceiro numero de patch.
 
 ## Antes de mexer
 
@@ -51,6 +52,8 @@ node -e "const fs=require('fs'); const html=fs.readFileSync('preview/jogo-para-p
 
 O GitHub Pages publica a partir da branch `main`.
 
+Antes de commitar, atualize `GAME_VERSION` seguindo o padrao do projeto: `+0.01` por push.
+
 ```bash
 git add index.html README.md ARQUITETURA.md docs CLAUDE.md
 git commit -m "docs: organiza retomada do projeto"
@@ -71,4 +74,3 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
 - `docs/PROJETO.md`: estado atual do produto, universo e regras de design.
 - `docs/ROADMAP.md`: proximas evolucoes organizadas por prioridade.
 - `docs/FLUXO-DE-TRABALHO.md`: rotina para desenvolver, testar e publicar.
-

@@ -56,6 +56,5 @@ O jogo precisa parecer vivo, alegre e brasileiro, mas sem perder a leitura imedi
 - Manter performance estavel em celular.
 - Evitar objetos animados demais no Lago.
 - Evitar crescimento descontrolado de estado global.
-- Atualizar `GAME_VERSION` a cada publicacao.
+- Atualizar `GAME_VERSION` a cada push, somando `0.01` no padrão `5.14`, `5.15`... `5.99`, depois `6.01`.
 - Atualizar `ARQUITETURA.md` quando mexer em regra importante.
-

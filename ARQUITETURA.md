@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.13.36` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.14` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -71,7 +71,7 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
 | drawPet | 3662 | Aves companheiras. Arara-azul e beija-flor têm desenho próprio; resto é genérico. |
 | drawAccessory | 3772 | Óculos (grandes, de sol), cartola, capa (Superman), coroa, gravata, laço. |
 | draw() (render) | 3940 | Ordem de desenho da cena. |
-| GAME_VERSION | 4647 | **Bump a cada release** e confirme no ar via curl. |
+| GAME_VERSION | 4647 | **Bump a cada push** pelo padrão `5.14`, `5.15`... `5.99`, `6.01` e confirme no ar via curl. |
 
 ## 5. Sistemas de gameplay (resumo)
 
@@ -141,7 +141,7 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
 3. Para feedback de **design de personagem**: `node gerar-preview.js` e sirva `preview/index.html`
    (galeria com a arte real; marque "ajustar" nos cards).
 4. Valide sem erro de console (Playwright, `?v=` furando cache). Confirme que a **seed diária** não mudou.
-5. Bump `GAME_VERSION`, commit (com crédito ao Francisco quando a ideia for dele), `git push origin main`.
+5. Bump `GAME_VERSION` pelo padrão novo (`+0.01` a cada push: `5.14`, `5.15`... `5.99`, `6.01`), commit (com crédito ao Francisco quando a ideia for dele), `git push origin main`.
 6. Aguarde o build e confirme a versão no ar com `curl`.
 
 ## 10. Histórico de versões (resumo)
@@ -259,3 +259,5 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
   combo acumulativo, recebem multiplicadores ativos e mostram `+N 🥚` ao serem coletados.
 - **v5.13.38** — festa de pontuação ajustada para acontecer apenas a cada 100 pontos: o placar pulsa,
   ganha destaque visual e toca uma musiquinha de conquista mais rápida/ritmada a cada novo marco.
+- **v5.14** — padrão de versionamento simplificado: a partir de agora cada push avança `+0.01`
+  (`5.14`, `5.15`... `5.99`, depois `6.01`), sem usar terceiro número de patch.
