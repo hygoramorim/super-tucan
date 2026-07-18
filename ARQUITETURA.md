@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.32` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.33` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -310,3 +310,6 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
 - **v5.32** — revisão game design/UX de legibilidade: cartões do tutorial ficaram maiores e mais
   contrastados, HUD de efeitos usa texto curto e legível, banners/floaters ganharam contraste e
   loja/ideias/ranking/créditos tiveram fontes mínimas ampliadas.
+- **v5.33** — revisão do fluxo de amizade/código: chamadas ao Firebase agora validam `Permission denied`
+  e erros reais antes de mostrar sucesso, códigos antigos locais são checados no backend, geração evita
+  colisão e a tela mostra mensagem clara quando amigos online estão indisponíveis.
