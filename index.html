@@ -270,6 +270,7 @@
       <button id="btnPlay">JOGAR</button>
       <div style="display:flex;gap:7px;flex-wrap:wrap;justify-content:center">
         <button id="btnDaily" class="sec">&#128197; DESAFIO DO DIA</button>
+        <button id="btnTraining" class="sec">&#127919; TREINO</button>
         <button id="btnTutorial" class="sec">&#127891; TUTORIAL</button>
         <button id="btnHardcore" class="sec">&#128128; HARDCORE</button>
         <button id="btnFriends" class="sec">&#10084;&#65039; AMIGOS</button>
@@ -366,7 +367,7 @@
 const I18N = {
   pt: {
     tagline: 'Bata as asas, desvie dos GALHOS, mergulhe no LAGO CRISTALINO e colete OVOS pelo Brasil até o PANTANAL INFINITO!',
-    nameLabel: 'SEU NOME (ATÉ 9 LETRAS)', play: 'JOGAR', daily: '📅 DESAFIO DO DIA', tutorial: '🎓 TUTORIAL',
+    nameLabel: 'SEU NOME (ATÉ 9 LETRAS)', play: 'JOGAR', daily: '📅 DESAFIO DO DIA', training: '🎯 TREINO', tutorial: '🎓 TUTORIAL',
     hardcore: '💀 HARDCORE', friends: '❤️ AMIGOS', shop: '🛍️ LOJINHA', ideas: '💡 IDEIAS', achievements: '🏆 CONQUISTAS',
     rankTitle: '🏆 RANKING GLOBAL · TOP 10', tabEggs: '🥚 RECORDISTAS', tabXp: '⭐ VETERANOS',
     controls: 'ESPAÇO / CLIQUE / TOQUE para voar · E ou P pausa', credit: 'Ideias & co-criação',
@@ -391,11 +392,11 @@ const I18N = {
     noFriends: 'Seu bando ainda está vazio. Use CONVITE!', offline: 'Sem conexão.', noRequests: 'Nenhum pedido de amizade pendente.', wantsFriend: 'quer entrar no seu bando!', accept: 'ACEITAR', typeCode: 'Digite um código de convite.', codeCreated: 'Código criado! Vale por 7 dias.', codeCopied: 'Código copiado!', codeCopyFail: 'Copie o código manualmente.', codeInvalid: 'Código inválido ou expirado.', codeSelf: 'Esse código é seu.', codeRequested: 'Pedido enviado ao bando de',
     search: 'BUSCAR', typeName: 'Digite parte do nome.', searching: 'Buscando...', nobodyFound: 'Ninguém encontrado com', askFriend: 'PEDIR', requested: 'PEDIDO ✓',
     active: 'ATIVO ✓', call: 'CHAMAR', equip: 'EQUIPAR', bought: '✅ Comprou! Já está ativo!', notEnoughEggs: '🥚 Ovos insuficientes — jogue mais pra comprar!', record: 'RECORDE', reached: 'CHEGOU EM',
-    checkingName: 'VERIFICANDO NOME...', chooseOther: 'ESCOLHA OUTRO NOME', hardcoreSub: 'PANTANAL ∞ DIRETO', tutorialSub: 'SEM MORTE — SÓ APRENDER', tutorialDone: '🎓 TUTORIAL COMPLETO! +50 XP — AGORA JOGUE DE VERDADE!', now: 'AGORA'
+    checkingName: 'VERIFICANDO NOME...', chooseOther: 'ESCOLHA OUTRO NOME', hardcoreSub: 'PANTANAL ∞ DIRETO', trainingSub: 'SÓ AMAZÔNIA · PONTOS PELA METADE', trainingNoRank: 'Modo treino: sem ranking global.', tutorialSub: 'SEM MORTE — SÓ APRENDER', tutorialDone: '🎓 TUTORIAL COMPLETO! +50 XP — AGORA JOGUE DE VERDADE!', now: 'AGORA'
   },
   en: {
     tagline: 'Flap your wings, dodge BRANCHES, dive into the CRYSTAL LAKE and collect EGGS across Brazil until the ENDLESS PANTANAL!',
-    nameLabel: 'YOUR NAME (UP TO 9 LETTERS)', play: 'PLAY', daily: '📅 DAILY CHALLENGE', tutorial: '🎓 TUTORIAL',
+    nameLabel: 'YOUR NAME (UP TO 9 LETTERS)', play: 'PLAY', daily: '📅 DAILY CHALLENGE', training: '🎯 TRAINING', tutorial: '🎓 TUTORIAL',
     hardcore: '💀 HARDCORE', friends: '❤️ FRIENDS', shop: '🛍️ SHOP', ideas: '💡 IDEAS', achievements: '🏆 ACHIEVEMENTS',
     rankTitle: '🏆 GLOBAL RANKING · TOP 10', tabEggs: '🥚 EGG KINGS', tabXp: '⭐ VETERANS',
     controls: 'SPACE / CLICK / TAP to fly · E or P to pause', credit: 'Ideas & co-creation',
@@ -420,11 +421,11 @@ const I18N = {
     noFriends: 'Your flock is empty. Use INVITE!', offline: 'No connection.', noRequests: 'No pending friend requests.', wantsFriend: 'wants to join your flock!', accept: 'ACCEPT', typeCode: 'Type an invite code.', codeCreated: 'Code created! Valid for 7 days.', codeCopied: 'Code copied!', codeCopyFail: 'Copy the code manually.', codeInvalid: 'Invalid or expired code.', codeSelf: 'This code is yours.', codeRequested: 'Request sent to',
     search: 'SEARCH', typeName: 'Type part of a name.', searching: 'Searching...', nobodyFound: 'Nobody found with', askFriend: 'ASK', requested: 'REQUESTED ✓',
     active: 'ACTIVE ✓', call: 'CALL', equip: 'EQUIP', bought: '✅ Bought! Already active!', notEnoughEggs: '🥚 Not enough eggs — play more to buy!', record: 'BEST', reached: 'REACHED',
-    checkingName: 'CHECKING NAME...', chooseOther: 'CHOOSE ANOTHER NAME', hardcoreSub: 'STRAIGHT TO PANTANAL ∞', tutorialSub: 'NO DEATHS — JUST LEARN', tutorialDone: '🎓 TUTORIAL COMPLETE! +50 XP — NOW PLAY FOR REAL!', now: 'NOW'
+    checkingName: 'CHECKING NAME...', chooseOther: 'CHOOSE ANOTHER NAME', hardcoreSub: 'STRAIGHT TO PANTANAL ∞', trainingSub: 'ONLY AMAZON · HALF POINTS', trainingNoRank: 'Training mode: no global ranking.', tutorialSub: 'NO DEATHS — JUST LEARN', tutorialDone: '🎓 TUTORIAL COMPLETE! +50 XP — NOW PLAY FOR REAL!', now: 'NOW'
   },
   es: {
     tagline: '¡Bate las alas, esquiva RAMAS, sumérgete en el LAGO CRISTALINO y colecta HUEVOS por Brasil hasta el PANTANAL INFINITO!',
-    nameLabel: 'TU NOMBRE (HASTA 9 LETRAS)', play: 'JUGAR', daily: '📅 RETO DEL DÍA', tutorial: '🎓 TUTORIAL',
+    nameLabel: 'TU NOMBRE (HASTA 9 LETRAS)', play: 'JUGAR', daily: '📅 RETO DEL DÍA', training: '🎯 ENTRENAMIENTO', tutorial: '🎓 TUTORIAL',
     hardcore: '💀 HARDCORE', friends: '❤️ AMIGOS', shop: '🛍️ TIENDA', ideas: '💡 IDEAS', achievements: '🏆 LOGROS',
     rankTitle: '🏆 RANKING GLOBAL · TOP 10', tabEggs: '🥚 RÉCORDS', tabXp: '⭐ VETERANOS',
     controls: 'ESPACIO / CLIC / TOCA para volar · E o P pausa', credit: 'Ideas y co-creación',
@@ -449,11 +450,11 @@ const I18N = {
     noFriends: 'Tu bando está vacío. ¡Usa INVITAR!', offline: 'Sin conexión.', noRequests: 'No hay pedidos de amistad pendientes.', wantsFriend: 'quiere entrar en tu bando!', accept: 'ACEPTAR', typeCode: 'Escribe un código de invitación.', codeCreated: '¡Código creado! Vale 7 días.', codeCopied: '¡Código copiado!', codeCopyFail: 'Copia el código manualmente.', codeInvalid: 'Código inválido o vencido.', codeSelf: 'Ese código es tuyo.', codeRequested: 'Pedido enviado al bando de',
     search: 'BUSCAR', typeName: 'Escribe parte del nombre.', searching: 'Buscando...', nobodyFound: 'Nadie encontrado con', askFriend: 'PEDIR', requested: 'PEDIDO ✓',
     active: 'ACTIVO ✓', call: 'LLAMAR', equip: 'EQUIPAR', bought: '✅ Comprado! Ya está activo!', notEnoughEggs: '🥚 Huevos insuficientes — juega más para comprar!', record: 'RÉCORD', reached: 'LLEGÓ A',
-    checkingName: 'VERIFICANDO NOMBRE...', chooseOther: 'ELIGE OTRO NOMBRE', hardcoreSub: 'DIRECTO AL PANTANAL ∞', tutorialSub: 'SIN MUERTE — SOLO APRENDER', tutorialDone: '🎓 TUTORIAL COMPLETO! +50 XP — AHORA JUEGA DE VERDAD!', now: 'AHORA'
+    checkingName: 'VERIFICANDO NOMBRE...', chooseOther: 'ELIGE OTRO NOMBRE', hardcoreSub: 'DIRECTO AL PANTANAL ∞', trainingSub: 'SOLO AMAZONÍA · MITAD DE PUNTOS', trainingNoRank: 'Modo entrenamiento: sin ranking global.', tutorialSub: 'SIN MUERTE — SOLO APRENDER', tutorialDone: '🎓 TUTORIAL COMPLETO! +50 XP — AHORA JUEGA DE VERDAD!', now: 'AHORA'
   },
   zh: {
     tagline: '扇动翅膀，躲避树枝，潜入水晶湖，在巴西一路收集鸡蛋直到无尽的潘塔纳尔！',
-    nameLabel: '你的名字（最多9个字母）', play: '开始', daily: '📅 每日挑战', tutorial: '🎓 教程',
+    nameLabel: '你的名字（最多9个字母）', play: '开始', daily: '📅 每日挑战', training: '🎯 训练', tutorial: '🎓 教程',
     hardcore: '💀 硬核', friends: '❤️ 朋友', shop: '🛍️ 商店', ideas: '💡 点子', achievements: '🏆 成就',
     rankTitle: '🏆 全球排行榜 · 前10名', tabEggs: '🥚 蛋王', tabXp: '⭐ 老手',
     controls: '空格 / 点击 / 触摸 飞翔 · E 或 P 暂停', credit: '创意与共同创作',
@@ -478,7 +479,7 @@ const I18N = {
     noFriends: '你的鸟群还是空的。使用邀请！', offline: '无连接。', noRequests: '没有待处理好友请求。', wantsFriend: '想加入你的鸟群！', accept: '接受', typeCode: '输入邀请码。', codeCreated: '代码已生成！7天有效。', codeCopied: '代码已复制！', codeCopyFail: '请手动复制代码。', codeInvalid: '代码无效或已过期。', codeSelf: '这是你自己的代码。', codeRequested: '请求已发送给',
     search: '搜索', typeName: '输入部分名字。', searching: '搜索中...', nobodyFound: '没有找到', askFriend: '请求', requested: '已请求 ✓',
     active: '已启用 ✓', call: '召唤', equip: '装备', bought: '✅ 已购买！已启用！', notEnoughEggs: '🥚 鸡蛋不足 — 多玩几局再买！', record: '最佳', reached: '到达',
-    checkingName: '正在检查名字...', chooseOther: '请选择其他名字', hardcoreSub: '直接进入潘塔纳尔 ∞', tutorialSub: '不会死亡 — 只学习', tutorialDone: '🎓 教程完成！+50 XP — 现在认真玩吧！', now: '现在'
+    checkingName: '正在检查名字...', chooseOther: '请选择其他名字', hardcoreSub: '直接进入潘塔纳尔 ∞', trainingSub: '只在亚马逊 · 分数减半', trainingNoRank: '训练模式：不进全球排行。', tutorialSub: '不会死亡 — 只学习', tutorialDone: '🎓 教程完成！+50 XP — 现在认真玩吧！', now: '现在'
   }
 };
 let LANG = localStorage.getItem('superTucan_lang') || 'pt';
@@ -583,6 +584,7 @@ function pantanalScoreMult() { return phaseIdx === LAST ? 1 + Math.min(p3Level, 
 function currentDiff() {
   // tutorial: bem lento e escancarado, para aprender o voo
   if (gameMode === 'tutorial') return { speed: 2.2, gap: 340, spacing: 310 };
+  if (gameMode === 'training') return { speed: 2.05, gap: 390, spacing: 310 };
   const p = PHASES[phaseIdx];
   let d;
   if (phaseIdx < LAST) d = { speed: p.speed, gap: p.gap, spacing: p.spacing };
@@ -1051,7 +1053,7 @@ function mulberry32(a) {
   };
 }
 let rng = Math.random;    // modo normal usa aleatório de verdade
-let gameMode = 'normal';  // 'normal' | 'daily'
+let gameMode = 'normal';  // 'normal' | 'daily' | 'training' | 'tutorial' | 'hardcore'
 
 // ---------- Estado do jogo ----------
 let state = 'menu'; // menu | play | paused | dead
@@ -1063,6 +1065,7 @@ let lakeDiveTimer = 0, lakeExitTimer = 0;
 let p3Level, p3Timer, bannerText, bannerSub;
 let celebrateTimer = 0, celebrateColors = ['#ffd23f'];
 let bonusActive = false, bonusTimer = 0, bonusItems = [], bonusScore = 0, bonusBiomeCount = 0, nextBonusAt = 0, bonusPopupsMuted = false;
+let trainingScoreCarry = 0;
 let combo = 0; // ovos coletados em sequência sem deixar nenhum passar
 // ideia 10 do Francisco: combo mais acessível, com TETO ×4.
 // (4 coletas = ×2, 8 = ×3, 12+ = ×4). Teto protege o ranking de inflar.
@@ -1345,6 +1348,7 @@ function resetGame() {
   bonusItems = [];
   bonusScore = 0;
   bonusPopupsMuted = false;
+  trainingScoreCarry = 0;
   bonusBiomeCount = 0;
   nextBonusAt = 1 + Math.floor(rng() * 3);
   bannerTimer = 120; // banner da fase 1
@@ -1752,7 +1756,14 @@ function collectEgg(e, ey) {
     * pantanalScoreMult()
     * bookScore;
   const baseValue = e.foodScore ? 3 : e.urubuSuper ? 25 : e.jewel ? 10 : e.golden ? 5 : 1;
-  const gained = Math.ceil(baseValue * mult);
+  let gained;
+  if (gameMode === 'training') {
+    const rawGain = baseValue * mult * 0.5 + trainingScoreCarry;
+    gained = Math.floor(rawGain);
+    trainingScoreCarry = rawGain - gained;
+  } else {
+    gained = Math.ceil(baseValue * mult);
+  }
   score += gained;
   unlockAchievement('firstEgg');
   const scoreColor = e.foodScore ? FOODS[e.food].cor : e.urubuSuper ? '#8a3a2a' : e.jewel ? '#7dd3fc' : e.golden ? '#ffd23f' : '#ffffff';
@@ -1763,7 +1774,7 @@ function collectEgg(e, ey) {
 }
 
 function shouldStartBonusPhase() {
-  return !bonusActive && gameMode !== 'tutorial' && gameMode !== 'hardcore' && state === 'play' && !boss && !bossPortal && !bossArena
+  return !bonusActive && gameMode !== 'tutorial' && gameMode !== 'training' && gameMode !== 'hardcore' && state === 'play' && !boss && !bossPortal && !bossArena
     && !bossRotatePrompt && phase().deco !== 'lago' && bonusBiomeCount >= nextBonusAt;
 }
 function startBonusPhase() {
@@ -2363,6 +2374,14 @@ function update() {
   }
 
   // transição de fase (a fase final é infinita; no tutorial avança só até o Lago)
+  if (gameMode === 'training' && phaseDist >= phaseGoal) {
+    phaseDist = 0;
+    combo = 0;
+    obstacles = []; eggs = []; powerups = []; enemies = [];
+    bannerTimer = 100; bannerText = t('training'); bannerSub = PHASES[0].name;
+    celebrate([PHASES[0].beak[0], PHASES[0].leaf, '#ffffff', '#ffd23f'], 28);
+    sfx.phase();
+  }
   if (phaseIdx < LAST && phaseDist >= phaseGoal && !(gameMode === 'tutorial' && phaseIdx >= LAGO_PHASE_IDX)) {
     if (p.deco !== 'lago') bonusBiomeCount++;
     phaseIdx++;
@@ -5967,6 +5986,9 @@ async function startGame(mode) {
     phaseIdx = LAST; // direto no Pantanal, sem power-ups
     bannerText = t('hardcore');
     bannerSub = t('hardcoreSub');
+  } else if (gameMode === 'training') {
+    bannerText = t('training');
+    bannerSub = t('trainingSub');
   } else if (gameMode === 'tutorial') {
     bannerText = t('tutorial');
     bannerSub = t('tutorialSub');
@@ -6001,6 +6023,15 @@ function showGameOver() {
   document.getElementById('goScore').textContent = score;
   // os ovos coletados vão pra carteira da lojinha (ideia 17 do Francisco)
   if (score > 0 && gameMode !== 'tutorial') addEggs(score);
+  if (gameMode === 'training') {
+    document.getElementById('goPB').textContent = t('trainingSub');
+    document.getElementById('goXP').textContent = '+0 XP';
+    const rec = document.getElementById('goRecord');
+    rec.classList.add('hidden');
+    document.getElementById('goRank').textContent = t('trainingNoRank') + level;
+    elGO.classList.remove('hidden');
+    return;
+  }
 
   // status do jogador: recorde e maior distância (neste aparelho)
   const st = getStats(playerName);
@@ -6056,6 +6087,7 @@ function showGameOver() {
 
 document.getElementById('btnPlay').addEventListener('click', () => startGame('normal'));
 document.getElementById('btnDaily').addEventListener('click', () => startGame('daily'));
+document.getElementById('btnTraining').addEventListener('click', () => startGame('training'));
 document.getElementById('btnAgain').addEventListener('click', () => startGame(gameMode));
 document.getElementById('btnMenu').addEventListener('click', () => {
   state = 'menu';
@@ -6335,7 +6367,7 @@ function setText(id, txt) { const e = document.getElementById(id); if (e) e.text
 function applyLang() {
   document.documentElement.lang = LANG === 'pt' ? 'pt-BR' : LANG;
   [
-    ['btnPlay','play'], ['btnDaily','daily'], ['btnTutorial','tutorial'], ['btnHardcore','hardcore'],
+    ['btnPlay','play'], ['btnDaily','daily'], ['btnTraining','training'], ['btnTutorial','tutorial'], ['btnHardcore','hardcore'],
     ['btnFriends','friends'], ['btnShop','shop'], ['btnIdeas','ideas'], ['btnAch','achievements'],
     ['rankTabEggs','tabEggs'], ['rankTabXp','tabXp'], ['hintControls','controls'], ['creditFrancisco','credit'],
     ['btnAgain','playAgain'], ['btnMenu','menuRanking'], ['shopClose','back'], ['ideaClose','back'], ['achClose','back'],
@@ -6413,7 +6445,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.20';
+const GAME_VERSION = '5.21';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
