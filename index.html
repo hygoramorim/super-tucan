@@ -62,8 +62,8 @@
     text-shadow: 3px 3px 0 #e0532f, 6px 6px 0 rgba(0,0,0,.4);
     letter-spacing: .5px;
   }
-  h1 small { display: block; font-family: 'Grandstander', sans-serif; font-weight: 700; font-size: 15px; color: #7ee08a; letter-spacing: 3px; margin-top: 4px; }
-  .sub { color: #b8d8c0; font-size: 13px; max-width: 340px; }
+  h1 small { display: block; font-family: 'Grandstander', sans-serif; font-weight: 700; font-size: 15px; color: #9ff0ad; letter-spacing: 2px; margin-top: 4px; }
+  .sub { color: #dff7e6; font-size: 14px; line-height: 1.25; max-width: 360px; }
   #initials {
     width: 230px;
     text-align: center;
@@ -104,7 +104,7 @@
     min-width: 260px;
     font-size: 14px;
   }
-  #ranking h2 { font-size: 14px; color: #7ee08a; letter-spacing: 3px; margin-bottom: 8px; }
+  #ranking h2 { font-size: 15px; color: #9ff0ad; letter-spacing: 2px; margin-bottom: 8px; }
   #ranking ol { list-style: none; }
   #ranking li {
     display: flex; justify-content: space-between; gap: 20px;
@@ -112,12 +112,12 @@
   }
   #ranking li:first-child { color: #ffd23f; font-weight: bold; }
   #ranking li .pts { color: #f5a623; }
-  #ranking .empty { color: #5a7a62; font-style: italic; }
+  #ranking .empty { color: #bfe8c8; font-style: italic; }
   .bigscore { font-family: 'Bungee', 'Courier New', monospace; font-weight: 400; font-size: 44px; color: #ffd23f; text-shadow: 3px 3px 0 rgba(0,0,0,.5); }
   .newrec { color: #ff5c5c; font-weight: bold; font-size: 15px; animation: blink 0.6s infinite alternate; }
   @keyframes blink { from { opacity: 1; } to { opacity: 0.3; } }
   #goTitle { font-size: 30px; }
-  .hint { font-size: 11px; color: #6a8a72; }
+  .hint { font-size: 13px; color: #cfead5; line-height: 1.25; }
   .studio {
     font-size: 13px;
     font-weight: 800;
@@ -127,18 +127,18 @@
   }
   .studio small {
     display: block;
-    font-size: 9px;
+    font-size: 10px;
     font-weight: 500;
-    letter-spacing: 3px;
-    color: #7ee08a;
+    letter-spacing: 2px;
+    color: #9ff0ad;
     margin-top: 3px;
   }
-  .credit { font-size: 10px; color: #5a7a62; letter-spacing: 2px; }
+  .credit { font-size: 11px; color: #bfe8c8; letter-spacing: 1px; }
   #ver {
     position: absolute; top: 4px; right: 8px; z-index: 6;
     font-size: 10px; letter-spacing: 1px;
-    color: rgba(255,255,255,.7);
-    text-shadow: 1px 1px 2px rgba(0,0,0,.8);
+    color: rgba(255,255,255,.88);
+    text-shadow: 1px 1px 3px rgba(0,0,0,.95);
     pointer-events: none;
   }
   #btnPause {
@@ -158,14 +158,14 @@
   }
   .tabs { display: flex; gap: 6px; justify-content: center; margin-bottom: 7px; }
   .tab {
-    font-size: 11px; padding: 4px 14px; border-radius: 6px;
-    background: #16331f; color: #7ee08a; box-shadow: none;
+    font-size: 12px; padding: 5px 14px; border-radius: 6px;
+    background: #16331f; color: #9ff0ad; box-shadow: none;
     letter-spacing: 1px; font-weight: 700;
   }
   .tab.active { background: linear-gradient(180deg, #ffd23f, #f5a623); color: #10281a; }
   #menuPB { color: #f5a623; margin-top: 4px; }
-  #goPB { font-size: 12px; color: #f5a623; }
-  #goXP { font-size: 12px; color: #7ee08a; }
+  #goPB { font-size: 13px; color: #ffd23f; }
+  #goXP { font-size: 13px; color: #9ff0ad; }
   #fInviteInput, #fCodeInput {
     width: 150px; font-size: 16px; font-family: inherit; font-weight: 700;
     text-align: center; text-transform: uppercase;
@@ -183,18 +183,18 @@
     border-radius: 8px; padding: 8px 10px;
   }
   #fCodeCard b { color: #ffd23f; font-size: 18px; letter-spacing: 1px; }
-  #fInviteMsg { min-height: 16px; color: #7ee08a; font-size: 11px; text-align: center; }
+  #fInviteMsg { min-height: 16px; color: #9ff0ad; font-size: 13px; text-align: center; }
   #fList {
     min-width: 260px; max-width: 320px; max-height: 38vh; overflow-y: auto;
-    font-size: 13px; text-align: left;
+    font-size: 14px; text-align: left;
   }
   #fList .frow {
     display: flex; justify-content: space-between; align-items: center; gap: 10px;
     background: rgba(16,40,26,.9); border: 1px solid #2e6e3e;
     border-radius: 8px; padding: 6px 10px; margin-bottom: 5px;
   }
-  #fList .frow button { font-size: 11px; padding: 5px 10px; box-shadow: none; }
-  #fList .fempty { color: #5a7a62; font-style: italic; text-align: center; padding: 8px; }
+  #fList .frow button { font-size: 12px; padding: 6px 10px; box-shadow: none; }
+  #fList .fempty { color: #bfe8c8; font-style: italic; text-align: center; padding: 8px; }
   /* ---- Ajustes para telas pequenas (mobile) ---- */
   @media (max-width: 520px), (max-height: 700px) {
     .overlay { gap: 9px; padding: 12px; overflow-y: auto; }
@@ -202,12 +202,12 @@
     #menu { justify-content: flex-start; padding-top: 26px; }
     h1 { font-size: 24px; }
     h1 small { font-size: 12px; letter-spacing: 2px; }
-    .sub { font-size: 11px; max-width: 300px; }
+    .sub { font-size: 12px; max-width: 310px; }
     #initials { font-size: 19px; padding: 6px 4px; letter-spacing: 2px; width: 190px; }
     button { font-size: 16px; padding: 10px 26px; min-height: 46px; }
     button.sec { font-size: 13px; padding: 8px 18px; min-height: 44px; }
-    #ranking { padding: 8px 14px; min-width: 220px; font-size: 12px; }
-    #ranking h2 { font-size: 12px; }
+    #ranking { padding: 8px 14px; min-width: 220px; font-size: 13px; }
+    #ranking h2 { font-size: 13px; }
     .bigscore { font-size: 34px; }
     #goTitle { font-size: 24px; }
   }
@@ -309,7 +309,7 @@
       <h1 style="font-size:26px">&#128161; IDEIAS<small>DO SUPER TUCAN</small></h1>
       <div id="ideasCredits">
         <p class="sub" style="max-width:360px"><b>Cisco (Francisco, 9 anos)</b> é o <b>Game Designer</b> do Super Tucan &#127918;. Mas o jogo cresce com a criatividade de todo mundo — <b>qualquer jogador pode colaborar com a evolução do jogo enviando ideias e sugestões!</b> &#127881;</p>
-        <div style="max-width:360px;background:rgba(16,40,26,.86);border:1px solid #2e6e3e;border-radius:8px;padding:8px 10px;margin:8px auto 0;text-align:left;font-size:11px;line-height:1.35">
+        <div style="max-width:380px;background:rgba(8,18,14,.94);border:1px solid #7ee08a;border-radius:8px;padding:9px 11px;margin:8px auto 0;text-align:left;font-size:13px;line-height:1.35;color:#e8f5ea">
           <b style="color:#ffd23f">Créditos das ideias</b><br>
           <span style="color:#7ee08a">Cisco / Francisco:</span> game design, eventos, ET, bossfights, loja, água turbinada e polimentos.<br>
           <span style="color:#7ee08a">Guilherme:</span> chefã cobra e ideias de itens/visão.<br>
@@ -318,7 +318,7 @@
         </div>
         <p class="hint" style="margin-top:10px">Tem uma ideia pra deixar o jogo ainda melhor? Manda pra gente:</p>
       </div>
-      <textarea id="ideaText" maxlength="720" placeholder="Escreva sua ideia aqui..." rows="3" style="width:280px;max-width:86vw;font-family:inherit;font-size:14px;background:#10281a;color:#e8f5ea;border:2px solid #2e6e3e;border-radius:8px;padding:8px;outline:none;resize:none"></textarea>
+      <textarea id="ideaText" maxlength="720" placeholder="Escreva sua ideia aqui..." rows="3" style="width:280px;max-width:86vw;font-family:inherit;font-size:16px;background:#10281a;color:#e8f5ea;border:2px solid #7ee08a;border-radius:8px;padding:8px;outline:none;resize:none"></textarea>
       <div class="hint" style="margin-bottom:2px">SEU NOME (opcional)</div>
       <input id="ideaWho" maxlength="16" autocomplete="off" placeholder="QUEM SUGERIU" style="width:200px;text-align:center;font-family:inherit;font-size:15px;text-transform:uppercase;background:#10281a;color:#ffd23f;border:2px solid #7ee08a;border-radius:8px;padding:6px;outline:none">
       <div class="hint" id="ideaMsg" style="min-height:16px"></div>
@@ -5593,36 +5593,36 @@ function drawHUD(p) {
   }
   // efeitos ativos (power-ups) com contagem regressiva
   let fxY = combo >= 5 ? 80 : 64;
-  ctx.font = '700 11px Grandstander, sans-serif';
+  ctx.font = '800 14px Grandstander, sans-serif';
   ctx.shadowColor = 'rgba(0,0,0,.85)';
-  ctx.shadowBlur = 3;
-  if (pena > 0) { ctx.fillStyle = '#ff9f1c'; ctx.fillText('🪶 ' + t('featherFx') + ' · ' + Math.ceil(pena / 60) + 's', 14, fxY); fxY += 15; }
-  if (hasShield()) { ctx.fillStyle = '#7ee08a'; ctx.fillText('🛡 ' + t('shieldFx') + (aguaShield > 0 ? ' · ' + Math.ceil(aguaShield / 60) + 's' : ''), 14, fxY); fxY += 15; }
-  if (slowmo > 0) { ctx.fillStyle = '#7dd3fc'; ctx.fillText('⏰ ' + t('slowFx') + ' · ' + Math.ceil(slowmo / 60) + 's', 14, fxY); fxY += 15; }
-  if (agua > 0) { ctx.fillStyle = '#38bdf8'; ctx.fillText('💧 ' + t('waterFx') + ' · ' + Math.ceil(agua / 60) + 's', 14, fxY); fxY += 15; }
-  if (lowGravityTimer > 0 && fxY < 142) { ctx.fillStyle = '#c9a0ff'; ctx.fillText('🛸 ' + t('lowGravityFx') + ' · ' + Math.ceil(lowGravityTimer / 60) + 's', 14, fxY); fxY += 15; }
+  ctx.shadowBlur = 4;
+  if (pena > 0) { ctx.fillStyle = '#ffb020'; ctx.fillText('🪶 PONTOS ×2 · ' + Math.ceil(pena / 60) + 's', 14, fxY); fxY += 18; }
+  if (hasShield()) { ctx.fillStyle = '#9ff0ad'; ctx.fillText('🛡 ESCUDO' + (aguaShield > 0 ? ' · ' + Math.ceil(aguaShield / 60) + 's' : ''), 14, fxY); fxY += 18; }
+  if (slowmo > 0) { ctx.fillStyle = '#9de7ff'; ctx.fillText('⏰ LENTO · ' + Math.ceil(slowmo / 60) + 's', 14, fxY); fxY += 18; }
+  if (agua > 0) { ctx.fillStyle = '#7dd3fc'; ctx.fillText('💧 ÁGUA ×2 · ' + Math.ceil(agua / 60) + 's', 14, fxY); fxY += 18; }
+  if (lowGravityTimer > 0 && fxY < 156) { ctx.fillStyle = '#d8b4fe'; ctx.fillText('🛸 GRAVIDADE BAIXA · ' + Math.ceil(lowGravityTimer / 60) + 's', 14, fxY); fxY += 18; }
   if (bookTimer > 0) {
     let bico = '📖', bcor = '#c9a0ff';
     if (bookMod > 1) { bico = '🔥 ' + t('bookFast'); bcor = '#ff2e93'; }
     else if (bookMod < 1) { bico = '🐌 ' + t('bookSlow'); bcor = '#7dd3fc'; }
     else if (bookJump > 1) { bico = '🦘 ' + t('bookJump'); bcor = '#a7f432'; }
     else if (bookScore > 1) { bico = '💎 ' + t('bookScore'); bcor = '#ffd23f'; }
-    ctx.fillStyle = bcor; ctx.fillText('📖 ' + bico + ' · ' + Math.ceil(bookTimer / 60) + 's', 14, fxY); fxY += 15;
+    ctx.fillStyle = bcor; ctx.fillText('📖 ' + bico + ' · ' + Math.ceil(bookTimer / 60) + 's', 14, fxY); fxY += 18;
   }
   if (foodTimer > 0 && food) {
     const f = FOODS[food];
     ctx.fillStyle = f.cor === '#4a2c2a' ? '#c98a6a' : f.cor; // brigadeiro escuro → tom legível
     ctx.fillText(f.emoji + ' ' + foodLabel(food) + ' · ' + Math.ceil(foodTimer / 60) + 's', 14, fxY);
-    fxY += 15;
+    fxY += 18;
   }
-  if (etBonusTimer > 0 && fxY < 142) { ctx.fillStyle = '#c9a0ff'; ctx.fillText('🛸 ' + t('etBonus') + ' · ' + Math.ceil(etBonusTimer / 60) + 's', 14, fxY); fxY += 15; }
-  if (urubuBonusDist > 0 && fxY < 142) { ctx.fillStyle = '#ffd23f'; ctx.fillText('💀 ' + t('urubuBlessing') + ' · ' + Math.ceil(urubuBonusDist) + 'm', 14, fxY); fxY += 15; }
-  if (bossBonusTimer > 0) { ctx.fillStyle = '#ffd23f'; ctx.fillText('🏆 ' + (bossBadgeText || t('bossClear')) + ' · ' + Math.ceil(bossBonusTimer / 60) + 's', 14, fxY); fxY += 15; }
-  if (bossArena && fxY < 142) { ctx.fillStyle = '#ffb020'; ctx.fillText('⚔ ' + t('noEggsBoss'), 14, fxY); fxY += 15; }
-  if (event && alertTimer <= 0 && fxY < 142) {
+  if (etBonusTimer > 0 && fxY < 156) { ctx.fillStyle = '#d8b4fe'; ctx.fillText('🛸 OVOS ×2 · ' + Math.ceil(etBonusTimer / 60) + 's', 14, fxY); fxY += 18; }
+  if (urubuBonusDist > 0 && fxY < 156) { ctx.fillStyle = '#ffd23f'; ctx.fillText('💀 URUBU ×3 · ' + Math.ceil(urubuBonusDist) + 'm', 14, fxY); fxY += 18; }
+  if (bossBonusTimer > 0) { ctx.fillStyle = '#ffd23f'; ctx.fillText('🏆 ' + (bossBadgeText || t('bossClear')) + ' · ' + Math.ceil(bossBonusTimer / 60) + 's', 14, fxY); fxY += 18; }
+  if (bossArena && fxY < 156) { ctx.fillStyle = '#ffb020'; ctx.fillText('⚔ ' + t('noEggsBoss'), 14, fxY); fxY += 18; }
+  if (event && alertTimer <= 0 && fxY < 156) {
     const icon = event === 'NOITE' ? '🌙 ' + t('nightEvent') : event === 'VULCÃO' ? '🌋 ' + (eventTimer > 480 ? 'TREMOR...' : t('volcanoEvent')) : event === 'TERREMOTO' ? '🌎 ' + t('earthquakeEvent') : event === 'NEVE' ? '❄ ' + t('snowEvent') : '⚠ ' + event;
-    ctx.fillStyle = event === 'NOITE' ? '#c9a0ff' : event === 'VULCÃO' ? '#ff9f1c' : event === 'TERREMOTO' ? '#f59e0b' : event === 'NEVE' ? '#e0f2fe' : '#ffffff';
-    ctx.fillText(icon + ' · ' + Math.ceil(eventTimer / 60) + 's', 14, fxY); fxY += 15;
+    ctx.fillStyle = event === 'NOITE' ? '#d8b4fe' : event === 'VULCÃO' ? '#ffb020' : event === 'TERREMOTO' ? '#ffd23f' : event === 'NEVE' ? '#ffffff' : '#ffffff';
+    ctx.fillText(icon + ' · ' + Math.ceil(eventTimer / 60) + 's', 14, fxY); fxY += 18;
   }
   ctx.shadowBlur = 0;
 
@@ -5633,7 +5633,7 @@ function drawHUD(p) {
   const infinite = phaseIdx === LAST;
   hudPanel(bx, 22, boxW, infinite && !narrow ? 54 : 40, 10);
   ctx.fillStyle = '#fff';
-  ctx.font = '700 ' + (narrow ? 9 : 11) + 'px Grandstander, sans-serif';
+  ctx.font = '800 ' + (narrow ? 11 : 13) + 'px Grandstander, sans-serif';
   ctx.textAlign = 'left';
   const maxed = infinite && p3Level >= 10;
   const label = infinite
@@ -5648,7 +5648,7 @@ function drawHUD(p) {
   ctx.fillRect(bx + 10, 45, (boxW - 20) * Math.min(1, maxed ? 1 : infinite ? p3Timer / P3_LEVEL_FRAMES : phaseDist / p.dist), 9);
   if (infinite && !narrow) {
     ctx.fillStyle = '#ffd23f';
-    ctx.font = '700 9px Grandstander, sans-serif';
+    ctx.font = '800 13px Grandstander, sans-serif';
     ctx.fillText('OVOS ×' + pantanalScoreMult().toFixed(1), bx + 10, 67);
   }
   ctx.restore();
@@ -5660,10 +5660,10 @@ function drawBanner(p) {
   const a = Math.min(1, bannerTimer / 25);
   ctx.save();
   ctx.globalAlpha = a * 0.9;
-  ctx.fillStyle = 'rgba(0,0,0,.5)';
+  ctx.fillStyle = 'rgba(8,18,14,.88)';
   ctx.fillRect(0, 66, W, 26);
   ctx.fillStyle = '#ffd23f';
-  ctx.font = (W < 460 ? 12 : 14) + "px Bungee, 'Courier New', monospace";
+  ctx.font = (W < 460 ? 13 : 16) + "px Bungee, 'Courier New', monospace";
   ctx.textAlign = 'center';
   ctx.fillText(bannerText + ' · ' + bannerSub, W / 2, 84);
   ctx.restore();
@@ -6021,13 +6021,14 @@ function drawTutorialCard() {
   const w = Math.min(W - 34, 520);
   const x = W / 2 - w / 2;
   const y = Math.max(112, H * 0.24);
-  const titleFont = "16px Bungee, 'Courier New', monospace";
-  const bodyFont = "800 17px Grandstander, sans-serif";
-  const lines = wrapTextLines(tutorialCard.text, w - 42, bodyFont).slice(0, 4);
-  const h = 92 + lines.length * 25;
-  ctx.fillStyle = 'rgba(16,40,26,.96)';
+  const titleFont = (W < 460 ? 18 : 21) + "px Bungee, 'Courier New', monospace";
+  const bodyFont = "800 " + (W < 460 ? 19 : 21) + "px Grandstander, sans-serif";
+  const lines = wrapTextLines(tutorialCard.text, w - 42, bodyFont).slice(0, 3);
+  const lineH = W < 460 ? 27 : 30;
+  const h = 104 + lines.length * lineH;
+  ctx.fillStyle = 'rgba(8,18,14,.97)';
   ctx.strokeStyle = '#ffd23f';
-  ctx.lineWidth = 3;
+  ctx.lineWidth = 4;
   if (ctx.roundRect) {
     ctx.beginPath(); ctx.roundRect(x, y, w, h, 12); ctx.fill(); ctx.stroke();
   } else {
@@ -6036,10 +6037,13 @@ function drawTutorialCard() {
   ctx.textAlign = 'center';
   ctx.fillStyle = '#ffd23f';
   ctx.font = titleFont;
-  ctx.fillText(tutorialCard.title, W / 2, y + 32);
+  ctx.shadowColor = 'rgba(0,0,0,.85)';
+  ctx.shadowBlur = 4;
+  ctx.fillText(tutorialCard.title, W / 2, y + 36);
   ctx.fillStyle = '#ffffff';
   ctx.font = bodyFont;
-  lines.forEach((line, i) => ctx.fillText(line, W / 2, y + 65 + i * 24));
+  lines.forEach((line, i) => ctx.fillText(line, W / 2, y + 72 + i * lineH));
+  ctx.shadowBlur = 0;
   const pct = tutorialCard.timer / Math.max(1, tutorialCard.total || tutorialCard.timer);
   ctx.fillStyle = 'rgba(255,255,255,.18)';
   ctx.fillRect(x + 22, y + h - 21, w - 44, 6);
@@ -6201,7 +6205,7 @@ function draw() {
     ctx.fillStyle = 'rgba(0,0,0,.5)';
     ctx.fillRect(0, 96, W, 26);
     ctx.fillStyle = '#ffd23f';
-    ctx.font = (W < 460 ? 10 : 12) + "px Bungee, 'Courier New', monospace";
+    ctx.font = (W < 460 ? 12 : 14) + "px Bungee, 'Courier New', monospace";
     ctx.textAlign = 'center';
     const place = bossArena.place === 'cemetery' ? t('cemetery') : t('snakeLair');
     ctx.fillText(place + ' · ' + t('noEggsBoss'), W / 2, 114);
@@ -6212,10 +6216,10 @@ function draw() {
   floaters.forEach(f => {
     ctx.globalAlpha = Math.min(1, f.life / 30) * (f.blink ? (0.55 + 0.45 * Math.sin(frames * 0.55) ** 2) : 1);
     ctx.fillStyle = f.color;
-    ctx.font = f.big ? "900 58px Bungee, 'Courier New', monospace" : '800 16px Grandstander, sans-serif';
+    ctx.font = f.big ? "900 58px Bungee, 'Courier New', monospace" : '900 18px Grandstander, sans-serif';
     ctx.textAlign = 'center';
-    ctx.strokeStyle = 'rgba(0,0,0,.6)';
-    ctx.lineWidth = f.big ? 7 : 3;
+    ctx.strokeStyle = 'rgba(0,0,0,.82)';
+    ctx.lineWidth = f.big ? 8 : 4;
     ctx.strokeText(f.text, f.x, f.y);
     ctx.fillText(f.text, f.x, f.y);
   });
@@ -6684,11 +6688,11 @@ function renderShop() {
     const isEq = isPet ? eq.includes(it.id) : eq === it.id;
     const cor = isEq ? '#ffd23f' : owned ? '#7ee08a' : '#2e6e3e';
     const acao = owned ? (isEq ? t('active') : (isPet ? t('call') : t('equip'))) : ('🥚 ' + it.preco);
-    return '<button class="shopItem" data-id="' + it.id + '" style="width:104px;padding:8px 4px;border-radius:10px;'
+    return '<button class="shopItem" data-id="' + it.id + '" style="width:112px;padding:9px 5px;border-radius:10px;'
       + 'background:#10281a;border:2px solid ' + cor + ';color:#e8f5ea;cursor:pointer;font-family:inherit">'
       + '<div style="font-size:26px">' + it.emoji + '</div>'
-      + '<div style="font-size:10px;font-weight:700;margin:2px 0">' + itemName(it) + '</div>'
-      + '<div style="font-size:11px;color:' + cor + '">' + acao + '</div></button>';
+      + '<div style="font-size:12px;font-weight:800;margin:3px 0;line-height:1.05">' + itemName(it) + '</div>'
+      + '<div style="font-size:13px;font-weight:800;color:' + cor + '">' + acao + '</div></button>';
   }).join('');
   list.querySelectorAll('.shopItem').forEach(b => b.addEventListener('click', () => {
     const id = b.dataset.id;
@@ -6820,7 +6824,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.31';
+const GAME_VERSION = '5.32';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
