@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.24` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.25` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -288,3 +288,5 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
 - **v5.24** — sistema de fases bônus oficializado com duas fases intercaladas entre biomas/ciclos:
   `JARDIM DOS GIRASSÓIS` primeiro, depois `OVER THE RAINBOW`, repetindo em rotação fixa a cada
   3 transições após a primeira aparição.
+- **v5.25** — mensagens numéricas de ganho de pontos em floaters/HUD de bônus passaram de `🥚` para
+  `PTS`, evitando que o emoji do ovo suba sobre o texto e prejudique a leitura.

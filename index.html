@@ -1255,7 +1255,7 @@ function finishBossArena() {
   const clearBonus = kind === 'cobra' ? 220 : 180;
   score += clearBonus; // bônus fixo de chefão: não passa pelos multiplicadores.
   scorePulse = 90;
-  floater('+' + clearBonus + ' 🥚', '#ffd23f', W / 2, H / 2 - 55);
+  floater('+' + clearBonus + ' PTS', '#ffd23f', W / 2, H / 2 - 55);
   if (kind === 'urubu') urubuBonusDist = 4200;
   unlockAchievement(kind === 'cobra' ? 'beatSnake' : 'beatUrubu');
   celebrate(['#ffd23f', '#ff2e93', '#ffffff'], 70);
@@ -1770,7 +1770,7 @@ function collectEgg(e, ey) {
   unlockAchievement('firstEgg');
   const scoreColor = e.foodScore ? FOODS[e.food].cor : e.urubuSuper ? '#8a3a2a' : e.jewel ? '#7dd3fc' : e.golden ? '#ffd23f' : '#ffffff';
   burst(e.x, ey, scoreColor, e.urubuSuper ? 24 : e.jewel ? 30 : e.golden ? 16 : e.foodScore ? 18 : 8);
-  if (e.foodScore) { floater('+' + gained + ' 🥚', scoreColor, e.x, ey - 32); sfx.comboUp(); }
+  if (e.foodScore) { floater('+' + gained + ' PTS', scoreColor, e.x, ey - 32); sfx.comboUp(); }
   else if (e.urubuSuper) { celebrateUrubuSuperEgg(e.x, ey); floater('OVO DO URUBU!', '#ffd23f', e.x, ey - 48); sfx.gold(); }
   else if (e.jewel) sfx.jewel(); else if (e.golden) sfx.gold(); else sfx.egg();
 }
@@ -1835,7 +1835,7 @@ function finishBonusPhase() {
   bonusTimer = 0;
   bonusItems = [];
   bannerTimer = 120; bannerText = 'BÔNUS CONCLUÍDO'; bannerSub = '+' + bonusScore + ' PONTOS';
-  floater('+' + bonusScore + ' 🥚', '#ffd23f', W / 2, H / 2 - 85);
+  floater('+' + bonusScore + ' PTS', '#ffd23f', W / 2, H / 2 - 85);
   floater(bonusTheme === 'garden' ? 'JARDIM DOS GIRASSÓIS!' : 'OVER THE RAINBOW!', bonusTheme === 'garden' ? '#f59e0b' : '#ff2e93', W / 2, H / 2 - 122);
   celebrate(bonusTheme === 'garden'
     ? ['#ffd23f', '#f59e0b', '#7ee08a', '#38bdf8', '#ffffff']
@@ -5804,7 +5804,7 @@ function drawBonusOverlay() {
   ctx.fillText(secs + 's', W / 2 - 52, 145);
   ctx.fillStyle = '#7ee08a';
   ctx.font = "800 15px Grandstander, sans-serif";
-  ctx.fillText('+' + bonusScore + ' 🥚', W / 2 + 38, 143);
+  ctx.fillText('+' + bonusScore + ' PTS', W / 2 + 38, 143);
   ctx.restore();
 }
 
@@ -6567,7 +6567,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.24';
+const GAME_VERSION = '5.25';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
