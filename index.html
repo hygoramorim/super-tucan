@@ -1064,7 +1064,7 @@ let score, totalDist, phaseIdx, phaseDist, bannerTimer, deathTimer, shake;
 let lakeDiveTimer = 0, lakeExitTimer = 0;
 let p3Level, p3Timer, bannerText, bannerSub;
 let celebrateTimer = 0, celebrateColors = ['#ffd23f'];
-let bonusActive = false, bonusTimer = 0, bonusItems = [], bonusScore = 0, bonusBiomeCount = 0, nextBonusAt = 0, bonusPopupsMuted = false, bonusTheme = 'rainbow';
+let bonusActive = false, bonusTimer = 0, bonusItems = [], bonusScore = 0, bonusBiomeCount = 0, nextBonusAt = 0, bonusPopupsMuted = false, bonusTheme = 'garden', bonusCycle = 0;
 let trainingScoreCarry = 0;
 let combo = 0; // ovos coletados em sequência sem deixar nenhum passar
 // ideia 10 do Francisco: combo mais acessível, com TETO ×4.
@@ -1347,7 +1347,8 @@ function resetGame() {
   bonusTimer = 0;
   bonusItems = [];
   bonusScore = 0;
-  bonusTheme = 'rainbow';
+  bonusTheme = 'garden';
+  bonusCycle = 0;
   bonusPopupsMuted = false;
   trainingScoreCarry = 0;
   bonusBiomeCount = 0;
@@ -1780,7 +1781,8 @@ function shouldStartBonusPhase() {
 }
 function startBonusPhase() {
   bonusActive = true;
-  bonusTheme = bonusBiomeCount <= 1 ? 'sunflower' : rng() < 0.65 ? 'sunflower' : 'rainbow';
+  bonusTheme = bonusCycle % 2 === 0 ? 'garden' : 'sky';
+  bonusCycle++;
   bonusTimer = 900; // 15s
   bonusItems = [];
   bonusScore = 0;
@@ -1789,25 +1791,25 @@ function startBonusPhase() {
   bird.y = Math.max(110, Math.min(H - GROUND_H - 150, bird.y));
   bird.vy = Math.min(bird.vy, 0);
   bannerTimer = 130;
-  bannerText = bonusTheme === 'sunflower' ? 'JARDIM DOS GIRASSÓIS' : 'OVER THE RAINBOW';
+  bannerText = bonusTheme === 'garden' ? 'JARDIM DOS GIRASSÓIS' : 'OVER THE RAINBOW';
   bannerSub = '15s DE BONUS';
-  floater((bonusTheme === 'sunflower' ? '🌻' : '🌈') + ' FASE BÔNUS!', '#ffd23f', W / 2, H / 2 - 110);
-  celebrate(bonusTheme === 'sunflower'
+  floater((bonusTheme === 'garden' ? '🌻' : '🌈') + ' FASE BÔNUS!', '#ffd23f', W / 2, H / 2 - 110);
+  celebrate(bonusTheme === 'garden'
     ? ['#ffd23f', '#f59e0b', '#7ee08a', '#38bdf8', '#ffffff']
     : ['#ff2e93', '#ffd23f', '#7dd3fc', '#7ee08a', '#c084fc'], 70);
   sfx.milestone(3);
-  nextBonusAt = bonusBiomeCount + 4;
+  nextBonusAt = bonusBiomeCount + 3;
   for (let i = 0; i < 34; i++) spawnBonusItem(true);
 }
 function spawnBonusItem(initial) {
-  const foodChance = bonusTheme === 'sunflower' ? 0.48 : 0.42;
+  const foodChance = bonusTheme === 'garden' ? 0.48 : 0.42;
   const isFood = rng() < foodChance;
   const item = isFood
     ? { type: 'food', food: randomFoodKind() }
     : { type: 'egg', golden: rng() < 0.16, jewel: rng() < 0.08 };
   item.x = initial ? 70 + rng() * Math.max(100, W - 140) : W + 35 + rng() * 90;
   item.y = 82 + rng() * Math.max(120, H - GROUND_H - 190);
-  item.vx = (bonusTheme === 'sunflower' ? 1.1 : 1.4) + rng() * (bonusTheme === 'sunflower' ? 1.5 : 1.9);
+  item.vx = (bonusTheme === 'garden' ? 1.1 : 1.4) + rng() * (bonusTheme === 'garden' ? 1.5 : 1.9);
   item.vy = (rng() - 0.5) * 0.38;
   item.bob = rng() * 6.28;
   item.age = Math.floor(rng() * 60);
@@ -1834,8 +1836,8 @@ function finishBonusPhase() {
   bonusItems = [];
   bannerTimer = 120; bannerText = 'BÔNUS CONCLUÍDO'; bannerSub = '+' + bonusScore + ' PONTOS';
   floater('+' + bonusScore + ' 🥚', '#ffd23f', W / 2, H / 2 - 85);
-  floater(bonusTheme === 'sunflower' ? 'JARDIM DOS GIRASSÓIS!' : 'OVER THE RAINBOW!', bonusTheme === 'sunflower' ? '#f59e0b' : '#ff2e93', W / 2, H / 2 - 122);
-  celebrate(bonusTheme === 'sunflower'
+  floater(bonusTheme === 'garden' ? 'JARDIM DOS GIRASSÓIS!' : 'OVER THE RAINBOW!', bonusTheme === 'garden' ? '#f59e0b' : '#ff2e93', W / 2, H / 2 - 122);
+  celebrate(bonusTheme === 'garden'
     ? ['#ffd23f', '#f59e0b', '#7ee08a', '#38bdf8', '#ffffff']
     : ['#ff2e93', '#ffd23f', '#7dd3fc', '#7ee08a', '#c084fc'], 90);
   scorePulse = 90;
@@ -5624,7 +5626,7 @@ function drawDiveLakeSign() {
 }
 
 function drawBonusBackground() {
-  if (bonusTheme === 'sunflower') return drawSunflowerBonusBackground();
+  if (bonusTheme === 'garden') return drawSunflowerBonusBackground();
   return drawRainbowBonusBackground();
 }
 
@@ -5793,10 +5795,10 @@ function drawBonusOverlay() {
   }
   ctx.textAlign = 'center';
   ctx.fillStyle = '#ffd23f';
-  ctx.font = bonusTheme === 'sunflower'
+  ctx.font = bonusTheme === 'garden'
     ? "12px Bungee, 'Courier New', monospace"
     : "15px Bungee, 'Courier New', monospace";
-  ctx.fillText(bonusTheme === 'sunflower' ? 'JARDIM DOS GIRASSÓIS' : 'OVER THE RAINBOW', W / 2, 119);
+  ctx.fillText(bonusTheme === 'garden' ? 'JARDIM DOS GIRASSÓIS' : 'OVER THE RAINBOW', W / 2, 119);
   ctx.fillStyle = '#fff';
   ctx.font = "900 22px Bungee, 'Courier New', monospace";
   ctx.fillText(secs + 's', W / 2 - 52, 145);
@@ -6565,7 +6567,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.23';
+const GAME_VERSION = '5.24';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
