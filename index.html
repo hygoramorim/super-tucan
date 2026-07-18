@@ -1312,25 +1312,72 @@ function isNight() { return event === 'NOITE' || magicNight > 0; }
 // Celebrações
 let floaters = []; // textos flutuantes {x, y, text, color, life}
 let nextMilestone = 100, nextBigMilestone = 1000, scorePulse = 0, scoreMegaPulse = 0;
-let tutIdx = 0;
+let tutIdx = 0, tutorialItemIdx = 0, tutorialBossCobraDone = false, tutorialBossUrubuDone = false;
 const TUT_TEXTS = {
   flap: { pt:'TOQUE PARA SUBIR', en:'TAP TO CLIMB', es:'TOCA PARA SUBIR', zh:'点击上升' },
   release: { pt:'SOLTE PARA DESCER', en:'RELEASE TO DESCEND', es:'SUELTA PARA BAJAR', zh:'松开下降' },
   eggs: { pt:'COLETE OS OVOS 🥚', en:'COLLECT THE EGGS 🥚', es:'COLECTA LOS HUEVOS 🥚', zh:'收集鸡蛋 🥚' },
+  scoreEggs: { pt:'PONTOS: ovo comum 1, dourado 5, joia azul 10.', en:'POINTS: egg 1, golden 5, blue jewel 10.', es:'PUNTOS: huevo 1, dorado 5, joya azul 10.', zh:'分数：普通蛋1，金蛋5，蓝宝石蛋10。' },
+  foods: { pt:'ALIMENTOS valem 3 pontos base, entram no combo e mudam o Tucano.', en:'FOODS are worth 3 base points, join combos and change the Toucan.', es:'ALIMENTOS valen 3 puntos base, entran en combo y cambian al tucán.', zh:'食物基础3分，会进入连击并改变巨嘴鸟。' },
+  foodNames: { pt:'Comidas: café, maracujá, brigadeiro, alface, cenoura e pimenta.', en:'Foods: coffee, passion fruit, brigadeiro, lettuce, carrot and pepper.', es:'Comidas: café, maracuyá, brigadeiro, lechuga, zanahoria y pimienta.', zh:'食物：咖啡、百香果、巧克力球、生菜、胡萝卜和辣椒。' },
+  powerups: { pt:'ITENS: pena ×2, escudo protege, relógio desacelera, água dá escudo, livro muda regras.', en:'ITEMS: feather ×2, shield protects, clock slows, water shields, book changes rules.', es:'ÍTEMS: pluma ×2, escudo protege, reloj ralentiza, agua da escudo, libro cambia reglas.', zh:'道具：羽毛×2，护盾保护，时钟减速，水给护盾，书会改变规则。' },
+  itemNames: { pt:'Itens especiais: Pena, Escudo, Relógio, Livro e Água.', en:'Special items: Feather, Shield, Clock, Book and Water.', es:'Ítems especiales: Pluma, Escudo, Reloj, Libro y Agua.', zh:'特殊道具：羽毛、护盾、时钟、书和水。' },
   branches: { pt:'DESVIE DOS GALHOS', en:'DODGE THE BRANCHES', es:'ESQUIVA LAS RAMAS', zh:'躲避树枝' },
   floor: { pt:'TETO E CHÃO MACHUCAM!', en:'CEILING AND GROUND HURT!', es:'TECHO Y SUELO HACEN DAÑO!', zh:'天花板和地面会受伤！' },
   dive: { pt:'AGORA TREINE O MERGULHO', en:'NOW PRACTICE DIVING', es:'AHORA PRACTICA EL BUCEO', zh:'现在练习潜水' },
   water: { pt:'NA ÁGUA O TUCANO FICA MAIS PESADO', en:'IN WATER THE TOUCAN FEELS HEAVIER', es:'EN EL AGUA EL TUCÁN PESA MÁS', zh:'在水中巨嘴鸟会更重' },
-  ready: { pt:'PRONTO! VOCÊ APRENDEU 🦜', en:'READY! YOU LEARNED 🦜', es:'LISTO! APRENDISTE 🦜', zh:'准备好了！你学会了 🦜' }
+  bonus: { pt:'FASES BÔNUS: Jardim e Céu aparecem entre biomas para juntar muitos pontos.', en:'BONUS PHASES: Garden and Sky appear between biomes for many points.', es:'FASES BONUS: Jardín y Cielo aparecen entre biomas para juntar puntos.', zh:'奖励关：花园和天空会在生态区之间出现，能拿很多分。' },
+  friends: { pt:'AMIGUINHOS aumentam a área de coleta. Até 2 podem ajudar juntos!', en:'BUDDIES increase collection reach. Up to 2 can help together!', es:'AMIGUITOS aumentan el alcance. ¡Hasta 2 ayudan juntos!', zh:'伙伴会扩大收集范围，最多2个一起帮忙！' },
+  bosses: { pt:'BOSSES: Cobra é obrigatória no Pampas; Urubu é opcional pelo portal.', en:'BOSSES: Snake is mandatory in Pampas; Vulture is optional through the portal.', es:'JEFES: Cobra obligatoria en Pampas; Buitre opcional por portal.', zh:'首领：潘帕斯必遇蛇；秃鹫通过传送门可选。' },
+  bossScore: { pt:'VENCER: Cobra +220 pontos. Urubu +180, super ovo 25 e bônus ×3.', en:'CLEAR: Snake +220. Vulture +180, super egg 25 and ×3 bonus.', es:'VENCER: Cobra +220. Buitre +180, super huevo 25 y bono ×3.', zh:'获胜：蛇+220；秃鹫+180，超级蛋25，还有×3奖励。' },
+  biomes: { pt:'BIOMAS: leia o nome da fase e observe os animais brasileiros no cenário.', en:'BIOMES: read each phase name and watch Brazilian animals in the scenery.', es:'BIOMAS: lee el nombre y observa animales brasileños.', zh:'生态区：阅读阶段名称，观察巴西动物。' },
+  ready: { pt:'PRONTO! VOCÊ CONHECEU O UNIVERSO DO SUPER TUCAN 🦜', en:'READY! YOU LEARNED THE SUPER TUCAN WORLD 🦜', es:'LISTO! CONOCISTE EL UNIVERSO DE SUPER TUCAN 🦜', zh:'准备好了！你认识了超级巨嘴鸟世界 🦜' }
 };
 function ttut(key) {
   const row = TUT_TEXTS[key] || {};
   return row[LANG] || row.pt || key;
 }
-const TUT_MSGS = [[30, 'flap'], [260, 'release'], [520, 'eggs'], [650, 'floor'], [720, 'branches'], [850, 'dive'], [1020, 'water'], [1200, 'ready']];
+const TUT_MSGS = [[30, 'flap'], [220, 'release'], [390, 'eggs'], [540, 'scoreEggs'], [700, 'foods'], [820, 'foodNames'], [960, 'powerups'], [1100, 'itemNames'], [1240, 'floor'], [1380, 'branches'], [1520, 'bonus'], [1680, 'friends'], [1850, 'dive'], [2030, 'water'], [2240, 'bosses'], [2440, 'bossScore'], [2640, 'biomes'], [3040, 'ready']];
 function tutorialPhaseDist() {
-  if (phaseIdx === LAGO_PHASE_IDX) return 1050;
-  return 850;
+  if (phaseIdx === LAGO_PHASE_IDX) return 980;
+  return phaseIdx === LAST ? 900 : 760;
+}
+function tutorialFaunaText(p) {
+  const names = (FAUNA[p.deco] || []).slice(0, 4).map(s => s.toUpperCase()).join(', ');
+  return names ? 'Animais do cenário: ' + names : 'Observe a vida do cenário';
+}
+function tutorialPhaseIntro(p) {
+  if (gameMode !== 'tutorial') return;
+  bannerTimer = 130;
+  bannerText = p.name;
+  bannerSub = tutorialFaunaText(p);
+  floater('BIOMA: ' + p.name, '#7ee08a', W / 2, H / 2 - 118);
+}
+function startTutorialBoss(kind) {
+  if (gameMode !== 'tutorial' || boss || bossArena || bossPortal || bonusActive) return;
+  startBossArena(kind, phaseIdx, phaseDist);
+  if (bossArena) bossArena.timer = 540;
+  if (boss) boss.life = 540;
+  bannerTimer = 130;
+  bannerText = kind === 'cobra' ? t('bossSnake') : t('bossUrubu');
+  bannerSub = kind === 'cobra' ? 'Treino seguro: língua, ovos e mordida.' : 'Treino seguro: ossos retos e super ovo de 25.';
+}
+function updateTutorialStations() {
+  if (gameMode !== 'tutorial') return;
+  if (phaseIdx === 1 && !bonusActive && !bossArena && bonusCycle === 0 && phaseDist > 120) {
+    startBonusPhase(); // Jardim dos Girassóis
+  }
+  if (phaseIdx === 3 && !bonusActive && !bossArena && bonusCycle === 1 && phaseDist > 120) {
+    startBonusPhase(); // Over the Rainbow
+  }
+  if (phaseIdx === PAMPAS_PHASE_IDX && !tutorialBossCobraDone && phaseDist > 180) {
+    tutorialBossCobraDone = true;
+    startTutorialBoss('cobra');
+  }
+  if (phaseIdx === LAST && !tutorialBossUrubuDone && phaseDist > 200) {
+    tutorialBossUrubuDone = true;
+    startTutorialBoss('urubu');
+  }
 }
 function floater(text, color, x, y) {
   if (bonusPopupsMuted) return;
@@ -1453,6 +1500,9 @@ function resetGame() {
   scorePulse = 0;
   scoreMegaPulse = 0;
   tutIdx = 0;
+  tutorialItemIdx = 0;
+  tutorialBossCobraDone = false;
+  tutorialBossUrubuDone = false;
   lastGapY = H / 2;
   deathTimer = 0;
   shake = 0;
@@ -1687,9 +1737,26 @@ function spawnObstacle() {
   // Power-up / comida ocasional — nunca no hardcore/tutorial.
   // A cada ITEM_MIN_GAP galhos, há 75% de chance de item além dos ovos.
   obsSinceItem++;
-  if (gameMode !== 'hardcore' && gameMode !== 'tutorial' && !jewelBetween
-      && obsSinceItem >= ITEM_MIN_GAP && rng() < ITEM_SPAWN_CHANCE) {
+  const itemReady = gameMode === 'tutorial'
+    ? obsSinceItem >= 1
+    : obsSinceItem >= ITEM_MIN_GAP && rng() < ITEM_SPAWN_CHANCE;
+  if (gameMode !== 'hardcore' && !jewelBetween && itemReady) {
     let powerupPlaced = false;
+    if (gameMode === 'tutorial') {
+      const tutorialItems = [
+        { type: 'food', food: 'cafe' }, { type: 'pena' },
+        { type: 'food', food: 'maracuja' }, { type: 'escudo' },
+        { type: 'food', food: 'brigadeiro' }, { type: 'relogio' },
+        { type: 'food', food: 'alface' }, { type: 'agua' },
+        { type: 'food', food: 'cenoura' }, { type: 'livro' },
+        { type: 'food', food: 'pimenta' }
+      ];
+      const item = tutorialItems[tutorialItemIdx++ % tutorialItems.length];
+      powerupPlaced = tryPlaceExtraItem(ob, d, item, placedItems);
+      if (powerupPlaced && item.type === 'food') lastFoodSpawned = item.food;
+      if (powerupPlaced) obsSinceItem = 0;
+      return;
+    }
     // 85% das vezes é uma COMIDA do Brasil; senão, power-up clássico.
     if (rng() < FOOD_SPAWN_SHARE) {
       const fk = randomFoodKind();
@@ -2176,6 +2243,7 @@ function update() {
       sfx.comboUp();
       tutIdx++;
     }
+    updateTutorialStations();
   }
 
   // eventos climáticos (da fase 3 em diante; nunca no tutorial)
@@ -2258,7 +2326,7 @@ function update() {
     bossArena.timer--;
     if (bossArena.timer <= 0) finishBossArena();
   }
-  if (boss && gameMode !== 'tutorial') {
+  if (boss) {
     boss.ph += 0.08;
     if (boss.kind === 'cobra') {
       const mobileSnake = isPortraitMobile();
@@ -2444,12 +2512,12 @@ function update() {
     sfx.phase();
   }
 
-  if (gameMode === 'tutorial' && phaseIdx === LAGO_PHASE_IDX && phaseDist >= tutorialPhaseDist()) {
+  if (gameMode === 'tutorial' && phaseIdx === LAST && phaseDist >= tutorialPhaseDist() && tutorialBossUrubuDone && !bossArena && !boss) {
     endTutorial();
     return;
   }
 
-  // transição de fase (a fase final é infinita; no tutorial avança só até o Lago)
+  // transição de fase (a fase final é infinita; no tutorial usa trechos curtos e passa por todos os biomas)
   if (gameMode === 'training' && phaseDist >= phaseGoal) {
     phaseDist = 0;
     combo = 0;
@@ -2458,7 +2526,7 @@ function update() {
     celebrate([PHASES[0].beak[0], PHASES[0].leaf, '#ffffff', '#ffd23f'], 28);
     sfx.phase();
   }
-  if (phaseIdx < LAST && phaseDist >= phaseGoal && !(gameMode === 'tutorial' && phaseIdx >= LAGO_PHASE_IDX)) {
+  if (phaseIdx < LAST && phaseDist >= phaseGoal) {
     if (p.deco !== 'lago') bonusBiomeCount++;
     phaseIdx++;
     phaseDist = 0;
@@ -2480,6 +2548,7 @@ function update() {
     bannerTimer = 130;
     bannerText = phaseIdx === LAGO_PHASE_IDX ? 'MERGULHE' : t('phase') + ' ' + (phaseIdx + 1);
     bannerSub = np.name;
+    if (gameMode === 'tutorial') tutorialPhaseIntro(np);
     sfx.phase();
     startMusic(phaseIdx);
     if (phaseIdx === LAGO_PHASE_IDX) celebrate(['#7dd3fc', '#22d3ee', '#ffffff', '#8ef0a1'], 24);
@@ -6180,7 +6249,7 @@ async function startGame(mode) {
     bannerSub = t('trainingSub');
   } else if (gameMode === 'tutorial') {
     bannerText = t('tutorial');
-    bannerSub = t('tutorialSub');
+    bannerSub = PHASES[0].name + ' · ' + tutorialFaunaText(PHASES[0]);
   }
   state = 'ready'; // física só começa no primeiro toque
   elMenu.classList.add('hidden');
@@ -6643,7 +6712,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.28';
+const GAME_VERSION = '5.29';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
