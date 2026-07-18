@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.27` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.28` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -295,3 +295,6 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
   100 em 100 pontos.
 - **v5.27** — amiguinhos/pets passam a voar realmente atrás do Tucano, com deslocamento horizontal
   próprio e hitbox/aura de coleta acompanhando a nova posição visual.
+- **v5.28** — sistema de amiguinhos permite até 2 pets ativos ao mesmo tempo: cada um voa em uma
+  posição própria atrás do Tucano, ambos têm hitbox/aura de coleta e a lojinha bloqueia o terceiro
+  ativo com mensagem clara.
