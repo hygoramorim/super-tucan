@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.26` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.27` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -293,3 +293,5 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
 - **v5.26** — adicionada festa especial a cada 1000 pontos conquistados: pulso maior no score,
   confete ampliado, som de conquista mais cheio e mensagem destacada, mantendo a festa menor de
   100 em 100 pontos.
+- **v5.27** — amiguinhos/pets passam a voar realmente atrás do Tucano, com deslocamento horizontal
+  próprio e hitbox/aura de coleta acompanhando a nova posição visual.

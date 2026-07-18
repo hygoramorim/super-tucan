@@ -984,11 +984,21 @@ function buyPet(id) { return buyStored('superTucan_pets', PET_ITEMS, id); }
 function equippedPet() { return localStorage.getItem('superTucan_pet') || ''; }
 function equipPet(id) { toggleStoredId('superTucan_pet', id); }
 let petTrail = []; // buffer de posições do tucano p/ a companheira seguir com defesagem
+function petPosition() {
+  if (!bird) return null;
+  const t = petTrail.length > 30 ? petTrail[petTrail.length - 30] : { x: bird.x, y: bird.y };
+  const behind = isPortraitMobile() ? 58 : 74;
+  return {
+    x: t.x - behind,
+    y: t.y - 24 + Math.sin(frames * 0.08) * 4
+  };
+}
 function petCollectPoint() {
   const id = equippedPet();
   if (!id || !bird) return null;
-  const t = petTrail.length > 30 ? petTrail[petTrail.length - 30] : { x: bird.x - 60, y: bird.y - 20 };
-  return { x: t.x - 6, y: t.y - 22, r: id === 'araraazul' ? 20 : id === 'beijaflor' ? 15 : 17 };
+  const p = petPosition();
+  if (!p) return null;
+  return { x: p.x, y: p.y, r: id === 'araraazul' ? 20 : id === 'beijaflor' ? 15 : 17 };
 }
 
 const ITEM_NAMES = {
@@ -5174,8 +5184,9 @@ function drawPet() {
   const pet = PET_ITEMS.find(p => p.id === id);
   if (!pet) return;
   // posição atrasada no trail (atrás e um pouco acima do tucano)
-  const t = petTrail.length > 30 ? petTrail[petTrail.length - 30] : { x: bird.x - 60, y: bird.y - 20 };
-  const px = t.x - 6, py = t.y - 22;
+  const pos = petPosition();
+  if (!pos) return;
+  const px = pos.x, py = pos.y;
   const flap = Math.sin(frames * 0.4) * 0.9;
   ctx.save();
   ctx.translate(px, py);
@@ -6588,7 +6599,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.26';
+const GAME_VERSION = '5.27';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
