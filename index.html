@@ -1312,7 +1312,7 @@ function isNight() { return event === 'NOITE' || magicNight > 0; }
 // Celebrações
 let floaters = []; // textos flutuantes {x, y, text, color, life}
 let nextMilestone = 100, nextBigMilestone = 1000, scorePulse = 0, scoreMegaPulse = 0;
-let tutIdx = 0, tutorialItemIdx = 0, tutorialBossCobraDone = false, tutorialBossUrubuDone = false;
+let tutIdx = 0, tutorialClock = 0, tutorialItemIdx = 0, tutorialBossCobraDone = false, tutorialBossUrubuDone = false;
 const TUT_TEXTS = {
   flap: { pt:'TOQUE PARA SUBIR', en:'TAP TO CLIMB', es:'TOCA PARA SUBIR', zh:'点击上升' },
   release: { pt:'SOLTE PARA DESCER', en:'RELEASE TO DESCEND', es:'SUELTA PARA BAJAR', zh:'松开下降' },
@@ -1337,13 +1337,13 @@ function ttut(key) {
   const row = TUT_TEXTS[key] || {};
   return row[LANG] || row.pt || key;
 }
-const TUT_MSGS = [[30, 'flap'], [220, 'release'], [390, 'eggs'], [540, 'scoreEggs'], [700, 'foods'], [820, 'foodNames'], [960, 'powerups'], [1100, 'itemNames'], [1240, 'floor'], [1380, 'branches'], [1520, 'bonus'], [1680, 'friends'], [1850, 'dive'], [2030, 'water'], [2240, 'bosses'], [2440, 'bossScore'], [2640, 'biomes'], [3040, 'ready']];
+const TUT_MSGS = [[30, 'flap'], [220, 'release'], [390, 'eggs'], [540, 'scoreEggs'], [700, 'foods'], [820, 'foodNames'], [960, 'powerups'], [1100, 'itemNames'], [1240, 'floor'], [1380, 'branches'], [1520, 'bonus'], [1680, 'friends'], [1850, 'dive'], [2030, 'water'], [2900, 'bosses'], [3180, 'bossScore'], [3600, 'biomes'], [4500, 'ready']];
 function tutorialPhaseDist() {
-  if (phaseIdx === LAGO_PHASE_IDX) return 980;
-  return phaseIdx === LAST ? 900 : 760;
+  if (phaseIdx === LAGO_PHASE_IDX) return 1450;
+  return phaseIdx === LAST ? 1750 : 1350;
 }
 function tutorialFaunaText(p) {
-  const names = (FAUNA[p.deco] || []).slice(0, 4).map(s => s.toUpperCase()).join(', ');
+  const names = (FAUNA[p.deco] || []).map(s => s.toUpperCase()).join(', ');
   return names ? 'Animais do cenário: ' + names : 'Observe a vida do cenário';
 }
 function tutorialPhaseIntro(p) {
@@ -1356,8 +1356,8 @@ function tutorialPhaseIntro(p) {
 function startTutorialBoss(kind) {
   if (gameMode !== 'tutorial' || boss || bossArena || bossPortal || bonusActive) return;
   startBossArena(kind, phaseIdx, phaseDist);
-  if (bossArena) bossArena.timer = 540;
-  if (boss) boss.life = 540;
+  if (bossArena) bossArena.timer = 720;
+  if (boss) boss.life = 720;
   bannerTimer = 130;
   bannerText = kind === 'cobra' ? t('bossSnake') : t('bossUrubu');
   bannerSub = kind === 'cobra' ? 'Treino seguro: língua, ovos e mordida.' : 'Treino seguro: ossos retos e super ovo de 25.';
@@ -1500,6 +1500,7 @@ function resetGame() {
   scorePulse = 0;
   scoreMegaPulse = 0;
   tutIdx = 0;
+  tutorialClock = 0;
   tutorialItemIdx = 0;
   tutorialBossCobraDone = false;
   tutorialBossUrubuDone = false;
@@ -1929,6 +1930,12 @@ function startBonusPhase() {
   bannerText = bonusTheme === 'garden' ? 'JARDIM DOS GIRASSÓIS' : 'OVER THE RAINBOW';
   bannerSub = '15s DE BONUS';
   floater((bonusTheme === 'garden' ? '🌻' : '🌈') + ' FASE BÔNUS!', '#ffd23f', W / 2, H / 2 - 110);
+  if (gameMode === 'tutorial') {
+    const explain = bonusTheme === 'garden'
+      ? 'Jardim: colete ovos e alimentos com calma. Sem galhos.'
+      : 'Céu: muitos itens no ar. Pegue o máximo antes do tempo acabar.';
+    floater(explain, '#7dd3fc', W / 2, H / 2 - 145);
+  }
   celebrate(bonusTheme === 'garden'
     ? ['#ffd23f', '#f59e0b', '#7ee08a', '#38bdf8', '#ffffff']
     : ['#ff2e93', '#ffd23f', '#7dd3fc', '#7ee08a', '#c084fc'], 70);
@@ -1971,6 +1978,7 @@ function finishBonusPhase() {
   bonusItems = [];
   bannerTimer = 120; bannerText = 'BÔNUS CONCLUÍDO'; bannerSub = '+' + bonusScore + ' PONTOS';
   floater('+' + bonusScore + ' PTS', '#ffd23f', W / 2, H / 2 - 85);
+  if (gameMode === 'tutorial') floater('Fase bônus soma pontos rápido e não tem inimigos.', '#7ee08a', W / 2, H / 2 - 52);
   floater(bonusTheme === 'garden' ? 'JARDIM DOS GIRASSÓIS!' : 'OVER THE RAINBOW!', bonusTheme === 'garden' ? '#f59e0b' : '#ff2e93', W / 2, H / 2 - 122);
   celebrate(bonusTheme === 'garden'
     ? ['#ffd23f', '#f59e0b', '#7ee08a', '#38bdf8', '#ffffff']
@@ -2238,7 +2246,8 @@ function update() {
 
   // tutorial: mensagens guiadas e fim
   if (gameMode === 'tutorial') {
-    if (tutIdx < TUT_MSGS.length && frames >= TUT_MSGS[tutIdx][0]) {
+    if (state === 'play' && !bossArena && !boss) tutorialClock++;
+    if (tutIdx < TUT_MSGS.length && tutorialClock >= TUT_MSGS[tutIdx][0]) {
       floater(ttut(TUT_MSGS[tutIdx][1]), '#7ee08a', W / 2, H / 2 - 120);
       sfx.comboUp();
       tutIdx++;
@@ -6250,6 +6259,9 @@ async function startGame(mode) {
   } else if (gameMode === 'tutorial') {
     bannerText = t('tutorial');
     bannerSub = PHASES[0].name + ' · ' + tutorialFaunaText(PHASES[0]);
+    setTimeout(() => {
+      if (gameMode === 'tutorial' && state !== 'menu') tutorialPhaseIntro(PHASES[0]);
+    }, 500);
   }
   state = 'ready'; // física só começa no primeiro toque
   elMenu.classList.add('hidden');
@@ -6712,7 +6724,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.29';
+const GAME_VERSION = '5.30';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)

@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.29` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.30` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -301,3 +301,6 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
 - **v5.29** — tutorial expandido para virar guia completo do universo: percorre todos os biomas em
   trechos curtos, explica pontuação de ovos/alimentos, apresenta itens em fila garantida, intercala
   fases bônus Jardim/Céu e inclui arenas seguras da Cobra e do Urubu com textos didáticos.
+- **v5.30** — correção do tutorial completo: roteiro agora usa relógio próprio, não perde explicações
+  durante ready/bônus/boss, biomas ficaram mais longos, bosses seguros duram mais e as fases bônus
+  ganharam explicações textuais próprias.
