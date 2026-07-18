@@ -1877,7 +1877,7 @@ function circleRect(cx, cy, r, rx, ry, rw, rh) {
   return dx * dx + dy * dy < r * r;
 }
 
-function collectPowerup(pu, py) {
+function collectPowerup(pu, py, opts = {}) {
   pu.taken = true;
   sfx.power();
   if (pu.type === 'pena') { pena = 600; floater('🪶 ' + t('featherFx'), '#ff9f1c'); }
@@ -1900,18 +1900,20 @@ function collectPowerup(pu, py) {
   }
   else if (pu.type === 'food') {
     applyFood(pu.food);
-    collectEgg({ x: pu.x, foodScore: true, food: pu.food }, py);
+    collectEgg({ x: pu.x, foodScore: true, food: pu.food }, py, opts);
     return; // collectEgg ja faz combo, score, som e burst das comidas pontuaveis.
   } // COMIDAS DO BRASIL (ideia 21)
   burst(pu.x, py, pu.type === 'food' ? (FOODS[pu.food].cor) : '#ffffff', 14);
 }
 
-function collectEgg(e, ey) {
+function collectEgg(e, ey, opts = {}) {
   e.taken = true;
-  combo++;
+  const byPet = !!opts.byPet;
+  if (byPet) combo = 0;
+  else combo++;
   // ideia 10 do Francisco: o combo sobe mais cedo (4/8/12), com teto ×4
   const newMult = comboMult(combo);
-  if (newMult > comboMult(combo - 1) && newMult > 1) {
+  if (!byPet && newMult > comboMult(combo - 1) && newMult > 1) {
     floater('🔥 COMBO ×' + newMult + '!', '#ff2e93'); sfx.comboUp();
   }
   // combo, power-ups e bônus temporários multiplicam ovos/alimentos sem virar recompensa permanente infinita.
@@ -1993,15 +1995,15 @@ function spawnBonusItem(initial) {
   item.taken = false;
   bonusItems.push(item);
 }
-function collectBonusItem(it, y) {
+function collectBonusItem(it, y, opts = {}) {
   it.taken = true;
   const before = score;
   bonusPopupsMuted = true;
   if (it.type === 'food') {
     applyFood(it.food);
-    collectEgg({ x: it.x, foodScore: true, food: it.food }, y);
+    collectEgg({ x: it.x, foodScore: true, food: it.food }, y, opts);
   } else {
-    collectEgg(it, y);
+    collectEgg(it, y, opts);
   }
   bonusPopupsMuted = false;
   bonusScore += score - before;
@@ -2066,7 +2068,7 @@ function updateBonusPhase() {
     const birdHit = dist2(bird.x, bird.y, it.x, iy) < (bird.r + bodyPad + r) * (bird.r + bodyPad + r);
     const beakHit = dist2(beakTip.x, beakTip.y, it.x, iy) < (beakR + r) * (beakR + r);
     const petHit = anyPetHit(petCollectors, it.x, iy, r);
-    if (birdHit || beakHit || petHit) collectBonusItem(it, iy);
+    if (birdHit || beakHit || petHit) collectBonusItem(it, iy, { byPet: petHit && !birdHit && !beakHit });
   }
   bonusItems = bonusItems.filter(it => it.x > -55 && !it.taken);
   triggerScoreMilestones(false);
@@ -2689,7 +2691,7 @@ function update() {
     const powerHitR = bird.r + 11 * birdScale();
     const birdHit = dist2(bird.x, bird.y, pu.x, py) < powerHitR * powerHitR;
     const petHit = anyPetHit(petCollectors, pu.x, py, 14);
-    if (birdHit || petHit) collectPowerup(pu, py);
+    if (birdHit || petHit) collectPowerup(pu, py, { byPet: petHit && !birdHit });
   }
 
   // "quase!" — passou raspando no galho
@@ -2745,7 +2747,7 @@ function update() {
     const birdHit = dist2(bird.x, bird.y, e.x, ey) < (bird.r + eggBodyPad) * (bird.r + eggBodyPad);
     const beakHit = dist2(beakTip.x, beakTip.y, e.x, ey) < beakHitR * beakHitR;
     const petHit = anyPetHit(petCollectors, e.x, ey, 11);
-    if (birdHit || beakHit || petHit) collectEgg(e, ey);
+    if (birdHit || beakHit || petHit) collectEgg(e, ey, { byPet: petHit && !birdHit && !beakHit });
   }
 }
 
@@ -6855,7 +6857,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.33';
+const GAME_VERSION = '5.34';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
