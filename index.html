@@ -1062,6 +1062,7 @@ let score, totalDist, phaseIdx, phaseDist, bannerTimer, deathTimer, shake;
 let lakeDiveTimer = 0, lakeExitTimer = 0;
 let p3Level, p3Timer, bannerText, bannerSub;
 let celebrateTimer = 0, celebrateColors = ['#ffd23f'];
+let bonusActive = false, bonusTimer = 0, bonusItems = [], bonusScore = 0, bonusBiomeCount = 0, nextBonusAt = 0;
 let combo = 0; // ovos coletados em sequência sem deixar nenhum passar
 // ideia 10 do Francisco: combo mais acessível, com TETO ×4.
 // (4 coletas = ×2, 8 = ×3, 12+ = ×4). Teto protege o ranking de inflar.
@@ -1338,6 +1339,12 @@ function resetGame() {
   phaseDist = 0;
   lakeDiveTimer = 0;
   lakeExitTimer = 0;
+  bonusActive = false;
+  bonusTimer = 0;
+  bonusItems = [];
+  bonusScore = 0;
+  bonusBiomeCount = 0;
+  nextBonusAt = 1 + Math.floor(rng() * 3);
   bannerTimer = 120; // banner da fase 1
   bannerText = t('phase') + ' 1';
   bannerSub = PHASES[0].name;
@@ -1753,6 +1760,122 @@ function collectEgg(e, ey) {
   else if (e.jewel) sfx.jewel(); else if (e.golden) sfx.gold(); else sfx.egg();
 }
 
+function shouldStartBonusPhase() {
+  return !bonusActive && gameMode !== 'tutorial' && gameMode !== 'hardcore' && state === 'play' && !boss && !bossPortal && !bossArena
+    && !bossRotatePrompt && phase().deco !== 'lago' && bonusBiomeCount >= nextBonusAt;
+}
+function startBonusPhase() {
+  bonusActive = true;
+  bonusTimer = 900; // 15s
+  bonusItems = [];
+  bonusScore = 0;
+  obstacles = []; eggs = []; powerups = []; enemies = []; fireballs = [];
+  event = null; alertTimer = 0;
+  bird.y = Math.max(110, Math.min(H - GROUND_H - 150, bird.y));
+  bird.vy = Math.min(bird.vy, 0);
+  bannerTimer = 130; bannerText = 'OVER THE RAINBOW'; bannerSub = '15s DE BONUS';
+  floater('🌈 FASE BÔNUS!', '#ffd23f', W / 2, H / 2 - 110);
+  celebrate(['#ff2e93', '#ffd23f', '#7dd3fc', '#7ee08a', '#c084fc'], 70);
+  sfx.milestone(3);
+  nextBonusAt = bonusBiomeCount + 4;
+  for (let i = 0; i < 34; i++) spawnBonusItem(true);
+}
+function spawnBonusItem(initial) {
+  const foodChance = 0.42;
+  const isFood = rng() < foodChance;
+  const item = isFood
+    ? { type: 'food', food: randomFoodKind() }
+    : { type: 'egg', golden: rng() < 0.16, jewel: rng() < 0.08 };
+  item.x = initial ? 70 + rng() * Math.max(100, W - 140) : W + 35 + rng() * 90;
+  item.y = 82 + rng() * Math.max(120, H - GROUND_H - 190);
+  item.vx = 1.4 + rng() * 1.9;
+  item.vy = (rng() - 0.5) * 0.38;
+  item.bob = rng() * 6.28;
+  item.age = Math.floor(rng() * 60);
+  item.taken = false;
+  bonusItems.push(item);
+}
+function collectBonusItem(it, y) {
+  it.taken = true;
+  const before = score;
+  if (it.type === 'food') {
+    applyFood(it.food);
+    collectEgg({ x: it.x, foodScore: true, food: it.food }, y);
+  } else {
+    collectEgg(it, y);
+  }
+  bonusScore += score - before;
+}
+function finishBonusPhase() {
+  bonusActive = false;
+  bonusTimer = 0;
+  bonusItems = [];
+  bannerTimer = 120; bannerText = 'BÔNUS CONCLUÍDO'; bannerSub = '+' + bonusScore + ' PONTOS';
+  floater('+' + bonusScore + ' 🥚', '#ffd23f', W / 2, H / 2 - 85);
+  floater('OVER THE RAINBOW!', '#ff2e93', W / 2, H / 2 - 122);
+  celebrate(['#ff2e93', '#ffd23f', '#7dd3fc', '#7ee08a', '#c084fc'], 90);
+  scorePulse = 90;
+  sfx.milestone(5);
+}
+function updateBonusPhase() {
+  const timerRatio = bonusTimer / 900;
+  const drift = 2.25;
+  if (pena > 0) pena--;
+  if (slowmo > 0) slowmo--;
+  if (invuln > 0) invuln--;
+  if (agua > 0) agua--;
+  if (aguaShield > 0) aguaShield--;
+  if (lowGravityTimer > 0) lowGravityTimer--;
+  if (bookTimer > 0) { bookTimer--; if (bookTimer === 0) { bookMod = 1; bookJump = 1; bookScore = 1; } }
+  if (foodTimer > 0) { foodTimer--; if (foodTimer === 0) clearFood(); }
+  if (magicNight > 0) magicNight--;
+  if (etCooldown > 0) etCooldown--;
+  if (etBonusTimer > 0) etBonusTimer--;
+  if (bossBonusTimer > 0) bossBonusTimer--;
+  bonusTimer--;
+  if (frames % 5 === 0 && bonusItems.length < 58) spawnBonusItem(false);
+  if (frames % 17 === 0 && timerRatio < 0.75 && bonusItems.length < 72) spawnBonusItem(false);
+  totalDist += drift;
+  bird.vy += 0.28;
+  if (bird.vy > 7.2) bird.vy = 7.2;
+  bird.y += bird.vy;
+  bird.rot = Math.max(-0.45, Math.min(1.0, bird.vy * 0.08));
+  if (bird.y < 70) { bird.y = 70; bird.vy = Math.max(1.5, bird.vy); }
+  const floorY = H - GROUND_H - 74;
+  if (bird.y > floorY) { bird.y = floorY; bird.vy = Math.min(-3.6, bird.vy * -0.35); }
+  if (equippedPet()) { petTrail.push({ x: bird.x, y: bird.y }); if (petTrail.length > 40) petTrail.shift(); }
+  if (bird.flapAnim > 0) bird.flapAnim--;
+  bird.wing = bird.flapAnim > 0 ? Math.sin(frames * 1.1) * 1.2 : Math.sin(frames * 0.25) * 0.4;
+  const petCollector = petCollectPoint();
+  const beakTip = birdBeakTip();
+  const bodyPad = 12 * birdScale();
+  const beakR = 19 * birdScale();
+  bonusItems.forEach(it => {
+    it.x -= it.vx;
+    it.y += Math.sin((frames + it.age) * 0.035) * 0.25 + it.vy;
+    it.age++;
+  });
+  for (const it of bonusItems) {
+    if (it.taken) continue;
+    const iy = it.y + Math.sin(frames * 0.08 + it.bob) * 4;
+    const r = it.type === 'food' ? 15 : it.jewel ? 14 : it.golden ? 12 : 10;
+    const birdHit = dist2(bird.x, bird.y, it.x, iy) < (bird.r + bodyPad + r) * (bird.r + bodyPad + r);
+    const beakHit = dist2(beakTip.x, beakTip.y, it.x, iy) < (beakR + r) * (beakR + r);
+    const petHit = petCollector && dist2(petCollector.x, petCollector.y, it.x, iy) < (petCollector.r + r) * (petCollector.r + r);
+    if (birdHit || beakHit || petHit) collectBonusItem(it, iy);
+  }
+  bonusItems = bonusItems.filter(it => it.x > -55 && !it.taken);
+  if (score >= nextMilestone) {
+    const milestoneLevel = Math.floor(nextMilestone / 100);
+    floater('🎉 ' + nextMilestone + ' ' + t('points'), '#ffd23f', W / 2, H / 2 - 100);
+    celebrate(['#ffd23f', '#ff2e93', '#7dd3fc', '#7ee08a'], 45 + Math.min(45, milestoneLevel * 5));
+    sfx.milestone(milestoneLevel);
+    scorePulse = 90;
+    nextMilestone += 100;
+  }
+  if (bonusTimer <= 0) finishBonusPhase();
+}
+
 // ---------- Lógica ----------
 function update() {
   if (state === 'paused') return;
@@ -1771,6 +1894,11 @@ function update() {
   // nuvens (sempre animadas, inclusive no menu)
   const cloudSpeed = state === 'play' ? p.speed * 0.25 : 0.3;
   clouds.forEach(c => { c.x -= cloudSpeed * c.s; if (c.x < -90) { c.x = W + 90; c.y = 30 + Math.random() * 160; } });
+  if (bonusActive) {
+    critters = []; bugs = []; flocks = []; cameo = null; ufo = null;
+    updateBonusPhase();
+    return;
+  }
 
   // fauna decorativa: fora d'água; no Lago só ficam Tucano e fauna aquática do fundo.
   const inLake = phase().deco === 'lago';
@@ -2235,6 +2363,7 @@ function update() {
 
   // transição de fase (a fase final é infinita; no tutorial avança só até o Lago)
   if (phaseIdx < LAST && phaseDist >= phaseGoal && !(gameMode === 'tutorial' && phaseIdx >= LAGO_PHASE_IDX)) {
+    if (p.deco !== 'lago') bonusBiomeCount++;
     phaseIdx++;
     phaseDist = 0;
     const np = PHASES[phaseIdx];
@@ -2263,6 +2392,7 @@ function update() {
       if (phaseIdx === PAMPAS_PHASE_IDX && !boss && !bossPortal && !bossArena) mandatorySnakeQueued = 140;
       else if (bossProgressPhaseIdx() % 3 === 0 && !boss && !bossPortal && !bossArena) bossQueued = 140;
     }
+    if (shouldStartBonusPhase()) startBonusPhase();
   }
 
   // Pantanal infinito: +1 nível a cada 15 s até o teto (nível 10 = tudo no máximo);
@@ -2270,6 +2400,7 @@ function update() {
   if (phaseIdx === LAST && p3Level < 10 && !bossArena && ++p3Timer >= P3_LEVEL_FRAMES) {
     p3Timer = 0;
     p3Level++;
+    bonusBiomeCount++;
     bannerTimer = 90;
     if (p3Level >= 10) {
       bannerText = t('maxLevel');
@@ -2280,6 +2411,7 @@ function update() {
     }
     sfx.phase();
     celebrate(['#06b6d4', '#ffd23f', '#ffffff'], 30);
+    if (shouldStartBonusPhase()) startBonusPhase();
   }
 
   // gera obstáculos a distância fixa do tucano
@@ -5463,31 +5595,108 @@ function drawDiveLakeSign() {
   ctx.restore();
 }
 
+function drawBonusBackground() {
+  const sky = ctx.createLinearGradient(0, 0, 0, H);
+  sky.addColorStop(0, '#79d8ff');
+  sky.addColorStop(0.62, '#dff8ff');
+  sky.addColorStop(1, '#f7fdff');
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, W, H);
+
+  // arcos coloridos largos, atras do tucano e dos itens
+  ctx.save();
+  ctx.lineCap = 'round';
+  const cx = W * 0.5, cy = H - GROUND_H + 92;
+  const colors = ['#ff2e93', '#ff7a1a', '#ffd23f', '#7ee08a', '#38bdf8', '#5b7cfa', '#c084fc'];
+  colors.forEach((color, i) => {
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 18;
+    ctx.globalAlpha = 0.72;
+    ctx.beginPath();
+    ctx.arc(cx, cy, Math.max(W, H) * 0.62 - i * 22, Math.PI + 0.12, Math.PI * 2 - 0.12);
+    ctx.stroke();
+  });
+  ctx.globalAlpha = 1;
+  ctx.restore();
+
+  // nuvens fofas em várias alturas
+  for (let i = 0; i < 9; i++) {
+    const x = ((i * 149 - frames * (0.45 + i * 0.03)) % (W + 180)) - 90;
+    const y = 70 + (i % 5) * 68 + Math.sin(frames * 0.012 + i) * 8;
+    const s = 0.75 + (i % 4) * 0.18;
+    ctx.fillStyle = i % 2 ? 'rgba(255,255,255,.72)' : 'rgba(255,255,255,.9)';
+    ctx.beginPath();
+    ctx.ellipse(x, y, 42 * s, 15 * s, 0, 0, 7);
+    ctx.ellipse(x + 28 * s, y - 10 * s, 28 * s, 14 * s, 0, 0, 7);
+    ctx.ellipse(x - 28 * s, y - 7 * s, 24 * s, 12 * s, 0, 0, 7);
+    ctx.fill();
+  }
+}
+function drawBonusItem(it) {
+  if (it.type === 'food') {
+    drawPowerup({ ...it, type: 'food', bob: it.bob || 0 });
+  } else {
+    drawEgg(it);
+  }
+}
+function drawBonusOverlay() {
+  if (!bonusActive) return;
+  const secs = Math.max(0, Math.ceil(bonusTimer / 60));
+  ctx.save();
+  ctx.fillStyle = 'rgba(0,0,0,.5)';
+  ctx.strokeStyle = 'rgba(255,255,255,.32)';
+  ctx.lineWidth = 1.5;
+  const w = W < 460 ? 184 : 240;
+  const x = W / 2 - w / 2;
+  if (ctx.roundRect) {
+    ctx.beginPath(); ctx.roundRect(x, 98, w, 54, 12); ctx.fill(); ctx.stroke();
+  } else {
+    ctx.fillRect(x, 98, w, 54); ctx.strokeRect(x, 98, w, 54);
+  }
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#ffd23f';
+  ctx.font = "15px Bungee, 'Courier New', monospace";
+  ctx.fillText('OVER THE RAINBOW', W / 2, 119);
+  ctx.fillStyle = '#fff';
+  ctx.font = "900 22px Bungee, 'Courier New', monospace";
+  ctx.fillText(secs + 's', W / 2 - 52, 145);
+  ctx.fillStyle = '#7ee08a';
+  ctx.font = "800 15px Grandstander, sans-serif";
+  ctx.fillText('+' + bonusScore + ' 🥚', W / 2 + 38, 143);
+  ctx.restore();
+}
+
 function draw() {
   const p = phase();
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0); // desenha na densidade nativa (nítido)
   ctx.save();
   if (shake > 0) ctx.translate((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake);
 
-  drawBackground(p);
-  drawBossArenaBackdrop();
-  if (ufo) drawUFO(ufo);         // nave do ET cruzando o céu (ideia 16), atrás dos obstáculos
-  fireballs.forEach(drawFireball); // vulcão no fundo: espetáculo visual, sem colisão
-  critters.forEach(drawCritter); // fauna do bioma, atrás dos obstáculos
-  bugs.forEach(drawBug);         // insetos decorativos voando baixo
-  eggs.forEach(e => { if (!e.taken && e.jewel) drawJewelGlow(e); });
-  obstacles.forEach(o => drawBranch(o, p));
-  if (bossPortal) drawBossPortal(bossPortal, p);
-  eggs.forEach(e => { if (!e.taken) drawEgg(e); });
-  powerups.forEach(pu => { if (!pu.taken) drawPowerup(pu); });
-  enemies.forEach(drawEnemy);
-  if (boss) drawBoss(boss);      // chefão urubu (ideia 13)
-  bones.forEach(drawBone);       // ossos que o chefão joga
-  venom.forEach(drawVenom);      // veneno da chefã cobra
-  snakeEggs.forEach(drawSnakeEggProjectile);
-  snakeWhips.forEach(drawSnakeWhip);
-  snakeBites.forEach(drawSnakeBite);
-  drawGround(p);
+  if (bonusActive) {
+    drawBonusBackground();
+    bonusItems.forEach(it => { if (!it.taken && it.jewel) drawJewelGlow(it); });
+    bonusItems.forEach(it => { if (!it.taken) drawBonusItem(it); });
+  } else {
+    drawBackground(p);
+    drawBossArenaBackdrop();
+    if (ufo) drawUFO(ufo);         // nave do ET cruzando o céu (ideia 16), atrás dos obstáculos
+    fireballs.forEach(drawFireball); // vulcão no fundo: espetáculo visual, sem colisão
+    critters.forEach(drawCritter); // fauna do bioma, atrás dos obstáculos
+    bugs.forEach(drawBug);         // insetos decorativos voando baixo
+    eggs.forEach(e => { if (!e.taken && e.jewel) drawJewelGlow(e); });
+    obstacles.forEach(o => drawBranch(o, p));
+    if (bossPortal) drawBossPortal(bossPortal, p);
+    eggs.forEach(e => { if (!e.taken) drawEgg(e); });
+    powerups.forEach(pu => { if (!pu.taken) drawPowerup(pu); });
+    enemies.forEach(drawEnemy);
+    if (boss) drawBoss(boss);      // chefão urubu (ideia 13)
+    bones.forEach(drawBone);       // ossos que o chefão joga
+    venom.forEach(drawVenom);      // veneno da chefã cobra
+    snakeEggs.forEach(drawSnakeEggProjectile);
+    snakeWhips.forEach(drawSnakeWhip);
+    snakeBites.forEach(drawSnakeBite);
+    drawGround(p);
+  }
 
   drawParticles();
 
@@ -5513,7 +5722,7 @@ function draw() {
     }
   }
 
-  drawDiveLakeSign();
+  if (!bonusActive) drawDiveLakeSign();
   drawComboAura();
 
   // overlays dos eventos climáticos
@@ -5585,6 +5794,7 @@ function draw() {
       ctx.fillRect(0, 0, W, H);
     }
   }
+  drawBonusOverlay();
 
   // faixa do evento (borda superior, piscando) — vermelha p/ perigo, azul p/ noite
   if (alertTimer > 0 && event) {
@@ -6202,7 +6412,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.18';
+const GAME_VERSION = '5.19';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
