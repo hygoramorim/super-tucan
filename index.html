@@ -1312,7 +1312,7 @@ function isNight() { return event === 'NOITE' || magicNight > 0; }
 // Celebrações
 let floaters = []; // textos flutuantes {x, y, text, color, life}
 let nextMilestone = 100, nextBigMilestone = 1000, scorePulse = 0, scoreMegaPulse = 0;
-let tutIdx = 0, tutorialClock = 0, tutorialItemIdx = 0, tutorialBossCobraDone = false, tutorialBossUrubuDone = false;
+let tutIdx = 0, tutorialClock = 0, tutorialPauseTimer = 0, tutorialCard = null, tutorialItemIdx = 0, tutorialBossCobraDone = false, tutorialBossUrubuDone = false;
 const TUT_TEXTS = {
   flap: { pt:'TOQUE PARA SUBIR', en:'TAP TO CLIMB', es:'TOCA PARA SUBIR', zh:'点击上升' },
   release: { pt:'SOLTE PARA DESCER', en:'RELEASE TO DESCEND', es:'SUELTA PARA BAJAR', zh:'松开下降' },
@@ -1337,10 +1337,38 @@ function ttut(key) {
   const row = TUT_TEXTS[key] || {};
   return row[LANG] || row.pt || key;
 }
-const TUT_MSGS = [[30, 'flap'], [220, 'release'], [390, 'eggs'], [540, 'scoreEggs'], [700, 'foods'], [820, 'foodNames'], [960, 'powerups'], [1100, 'itemNames'], [1240, 'floor'], [1380, 'branches'], [1520, 'bonus'], [1680, 'friends'], [1850, 'dive'], [2030, 'water'], [2900, 'bosses'], [3180, 'bossScore'], [3600, 'biomes'], [4500, 'ready']];
+const TUT_MSGS = [
+  { at: 30, key: 'flap' },
+  { at: 220, key: 'release' },
+  { at: 390, key: 'eggs' },
+  { at: 540, key: 'scoreEggs', pause: 170 },
+  { at: 760, key: 'foods', pause: 170 },
+  { at: 900, key: 'foodNames', pause: 150 },
+  { at: 1080, key: 'powerups', pause: 170 },
+  { at: 1240, key: 'itemNames', pause: 150 },
+  { at: 1400, key: 'floor' },
+  { at: 1540, key: 'branches' },
+  { at: 1740, key: 'bonus', pause: 170 },
+  { at: 1980, key: 'friends', pause: 150 },
+  { at: 2080, key: 'dive' },
+  { at: 2160, key: 'water', pause: 150 },
+  { at: 2280, key: 'bosses', pause: 180 },
+  { at: 2400, key: 'bossScore', pause: 180 },
+  { at: 2480, key: 'biomes', pause: 180 },
+  { at: 2520, key: 'ready', pause: 150 }
+];
+function showTutorialCard(key, framesToPause) {
+  const text = ttut(key);
+  tutorialCard = { title: t('tutorial'), text, timer: framesToPause || 180, total: framesToPause || 180 };
+  tutorialPauseTimer = tutorialCard.timer;
+  bannerTimer = Math.max(bannerTimer, 80);
+  bannerText = t('tutorial');
+  bannerSub = text;
+  sfx.comboUp();
+}
 function tutorialPhaseDist() {
-  if (phaseIdx === LAGO_PHASE_IDX) return 1450;
-  return phaseIdx === LAST ? 1750 : 1350;
+  if (phaseIdx === LAGO_PHASE_IDX) return 820;
+  return phaseIdx === LAST ? 980 : 760;
 }
 function tutorialFaunaText(p) {
   const names = (FAUNA[p.deco] || []).map(s => s.toUpperCase()).join(', ');
@@ -1356,8 +1384,8 @@ function tutorialPhaseIntro(p) {
 function startTutorialBoss(kind) {
   if (gameMode !== 'tutorial' || boss || bossArena || bossPortal || bonusActive) return;
   startBossArena(kind, phaseIdx, phaseDist);
-  if (bossArena) bossArena.timer = 720;
-  if (boss) boss.life = 720;
+  if (bossArena) bossArena.timer = 420;
+  if (boss) boss.life = 420;
   bannerTimer = 130;
   bannerText = kind === 'cobra' ? t('bossSnake') : t('bossUrubu');
   bannerSub = kind === 'cobra' ? 'Treino seguro: língua, ovos e mordida.' : 'Treino seguro: ossos retos e super ovo de 25.';
@@ -1501,6 +1529,8 @@ function resetGame() {
   scoreMegaPulse = 0;
   tutIdx = 0;
   tutorialClock = 0;
+  tutorialPauseTimer = 0;
+  tutorialCard = null;
   tutorialItemIdx = 0;
   tutorialBossCobraDone = false;
   tutorialBossUrubuDone = false;
@@ -1919,7 +1949,7 @@ function startBonusPhase() {
   bonusActive = true;
   bonusTheme = bonusCycle % 2 === 0 ? 'garden' : 'sky';
   bonusCycle++;
-  bonusTimer = 900; // 15s
+  bonusTimer = gameMode === 'tutorial' ? 420 : 900; // tutorial: ~7s; jogo normal: 15s
   bonusItems = [];
   bonusScore = 0;
   obstacles = []; eggs = []; powerups = []; enemies = []; fireballs = [];
@@ -1931,10 +1961,15 @@ function startBonusPhase() {
   bannerSub = '15s DE BONUS';
   floater((bonusTheme === 'garden' ? '🌻' : '🌈') + ' FASE BÔNUS!', '#ffd23f', W / 2, H / 2 - 110);
   if (gameMode === 'tutorial') {
-    const explain = bonusTheme === 'garden'
-      ? 'Jardim: colete ovos e alimentos com calma. Sem galhos.'
-      : 'Céu: muitos itens no ar. Pegue o máximo antes do tempo acabar.';
-    floater(explain, '#7dd3fc', W / 2, H / 2 - 145);
+    tutorialCard = {
+      title: bonusTheme === 'garden' ? 'JARDIM DOS GIRASSÓIS' : 'OVER THE RAINBOW',
+      text: bonusTheme === 'garden'
+        ? 'Jardim: colete ovos e alimentos com calma. Sem galhos, sem inimigos.'
+        : 'Céu: muitos itens no ar. Pegue o máximo antes do tempo acabar.',
+      timer: 180,
+      total: 180
+    };
+    tutorialPauseTimer = 180;
   }
   celebrate(bonusTheme === 'garden'
     ? ['#ffd23f', '#f59e0b', '#7ee08a', '#38bdf8', '#ffffff']
@@ -2047,6 +2082,13 @@ function update() {
   if (celebrateTimer > 0) celebrateTimer--;
   if (scorePulse > 0) scorePulse--;
   if (scoreMegaPulse > 0) scoreMegaPulse--;
+  if (gameMode === 'tutorial' && tutorialPauseTimer > 0) {
+    tutorialPauseTimer--;
+    if (tutorialCard) tutorialCard.timer = tutorialPauseTimer;
+    floaters = floaters.filter(f => { f.life--; return f.life > 0; });
+    if (tutorialPauseTimer <= 0) tutorialCard = null;
+    return;
+  }
 
   // pios de pássaros ambiente
   if (--chirpTimer <= 0) {
@@ -2247,9 +2289,10 @@ function update() {
   // tutorial: mensagens guiadas e fim
   if (gameMode === 'tutorial') {
     if (state === 'play' && !bossArena && !boss) tutorialClock++;
-    if (tutIdx < TUT_MSGS.length && tutorialClock >= TUT_MSGS[tutIdx][0]) {
-      floater(ttut(TUT_MSGS[tutIdx][1]), '#7ee08a', W / 2, H / 2 - 120);
-      sfx.comboUp();
+    if (tutIdx < TUT_MSGS.length && tutorialClock >= TUT_MSGS[tutIdx].at) {
+      const msg = TUT_MSGS[tutIdx];
+      if (msg.pause) showTutorialCard(msg.key, msg.pause);
+      else { floater(ttut(msg.key), '#7ee08a', W / 2, H / 2 - 120); sfx.comboUp(); }
       tutIdx++;
     }
     updateTutorialStations();
@@ -2521,7 +2564,7 @@ function update() {
     sfx.phase();
   }
 
-  if (gameMode === 'tutorial' && phaseIdx === LAST && phaseDist >= tutorialPhaseDist() && tutorialBossUrubuDone && !bossArena && !boss) {
+  if (gameMode === 'tutorial' && phaseIdx === LAST && phaseDist >= tutorialPhaseDist() && tutorialBossUrubuDone && tutIdx >= TUT_MSGS.length && !tutorialCard && !bossArena && !boss) {
     endTutorial();
     return;
   }
@@ -5953,6 +5996,58 @@ function drawBonusOverlay() {
   ctx.restore();
 }
 
+function wrapTextLines(text, maxWidth, font) {
+  ctx.font = font;
+  const words = String(text).split(' ');
+  const lines = [];
+  let line = '';
+  words.forEach(word => {
+    const test = line ? line + ' ' + word : word;
+    if (ctx.measureText(test).width > maxWidth && line) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = test;
+    }
+  });
+  if (line) lines.push(line);
+  return lines;
+}
+function drawTutorialCard() {
+  if (!tutorialCard || gameMode !== 'tutorial') return;
+  ctx.save();
+  ctx.fillStyle = 'rgba(0,0,0,.5)';
+  ctx.fillRect(0, 0, W, H);
+  const w = Math.min(W - 34, 520);
+  const x = W / 2 - w / 2;
+  const y = Math.max(112, H * 0.24);
+  const titleFont = "16px Bungee, 'Courier New', monospace";
+  const bodyFont = "800 17px Grandstander, sans-serif";
+  const lines = wrapTextLines(tutorialCard.text, w - 42, bodyFont).slice(0, 4);
+  const h = 92 + lines.length * 25;
+  ctx.fillStyle = 'rgba(16,40,26,.96)';
+  ctx.strokeStyle = '#ffd23f';
+  ctx.lineWidth = 3;
+  if (ctx.roundRect) {
+    ctx.beginPath(); ctx.roundRect(x, y, w, h, 12); ctx.fill(); ctx.stroke();
+  } else {
+    ctx.fillRect(x, y, w, h); ctx.strokeRect(x, y, w, h);
+  }
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#ffd23f';
+  ctx.font = titleFont;
+  ctx.fillText(tutorialCard.title, W / 2, y + 32);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = bodyFont;
+  lines.forEach((line, i) => ctx.fillText(line, W / 2, y + 65 + i * 24));
+  const pct = tutorialCard.timer / Math.max(1, tutorialCard.total || tutorialCard.timer);
+  ctx.fillStyle = 'rgba(255,255,255,.18)';
+  ctx.fillRect(x + 22, y + h - 21, w - 44, 6);
+  ctx.fillStyle = '#7ee08a';
+  ctx.fillRect(x + 22, y + h - 21, (w - 44) * Math.max(0, Math.min(1, pct)), 6);
+  ctx.restore();
+}
+
 function draw() {
   const p = phase();
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0); // desenha na densidade nativa (nítido)
@@ -6168,6 +6263,7 @@ function draw() {
     ctx.globalAlpha = 1;
   }
   drawBossRotatePrompt();
+  drawTutorialCard();
   ctx.restore();
 }
 
@@ -6724,7 +6820,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.30';
+const GAME_VERSION = '5.31';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
