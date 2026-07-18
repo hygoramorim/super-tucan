@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.22` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.23` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -282,3 +282,6 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
 - **v5.22** — adicionada a variação bônus `JARDIM DOS GIRASSÓIS`, inspirada pela Juju: 15s em um
   campo ensolarado com parallax leve, girassóis, abelhas decorativas, mais alimentos e coleta calma
   alternando com `OVER THE RAINBOW` sem alongar a rota principal.
+- **v5.23** — Jardim dos Girassóis reposicionado para aparecer mais cedo: a primeira fase bônus agora
+  entra logo após a Amazônia e é sempre o Jardim; nas próximas aparições, o Jardim também tem maior
+  chance que o arco-íris.

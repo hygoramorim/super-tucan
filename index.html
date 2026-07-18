@@ -1351,7 +1351,7 @@ function resetGame() {
   bonusPopupsMuted = false;
   trainingScoreCarry = 0;
   bonusBiomeCount = 0;
-  nextBonusAt = 1 + Math.floor(rng() * 3);
+  nextBonusAt = 1;
   bannerTimer = 120; // banner da fase 1
   bannerText = t('phase') + ' 1';
   bannerSub = PHASES[0].name;
@@ -1780,7 +1780,7 @@ function shouldStartBonusPhase() {
 }
 function startBonusPhase() {
   bonusActive = true;
-  bonusTheme = rng() < 0.5 ? 'rainbow' : 'sunflower';
+  bonusTheme = bonusBiomeCount <= 1 ? 'sunflower' : rng() < 0.65 ? 'sunflower' : 'rainbow';
   bonusTimer = 900; // 15s
   bonusItems = [];
   bonusScore = 0;
@@ -6565,7 +6565,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.22';
+const GAME_VERSION = '5.23';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
