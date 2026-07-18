@@ -4503,6 +4503,35 @@ function drawPowerup(pu) {
   ctx.arc(0, 0, 14, 0, 7);
   ctx.fill();
   ctx.stroke();
+  if (pu.type === 'food' && pu.food === 'pimenta') {
+    ctx.save();
+    ctx.translate(-1, 1);
+    ctx.rotate(-0.55);
+    ctx.fillStyle = '#e01e1e';
+    ctx.strokeStyle = '#8a1111';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(-4, -8);
+    ctx.quadraticCurveTo(9, -9, 9, 2);
+    ctx.quadraticCurveTo(8, 13, -2, 12);
+    ctx.quadraticCurveTo(4, 5, 0, -3);
+    ctx.quadraticCurveTo(-3, -6, -4, -8);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(255,160,120,.45)';
+    ctx.beginPath(); ctx.ellipse(-1, -4, 2.4, 5.5, -0.25, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#2f8f46';
+    ctx.lineWidth = 2.4;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(-4, -8);
+    ctx.quadraticCurveTo(-8, -12, -3, -14);
+    ctx.stroke();
+    ctx.restore();
+    ctx.restore();
+    return;
+  }
   if (pu.type === 'food' && pu.food === 'brigadeiro') {
     const shine = ctx.createRadialGradient(-5, -6, 1, 0, 0, 13);
     shine.addColorStop(0, '#7a4a3a');
@@ -6875,7 +6904,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.35';
+const GAME_VERSION = '5.36';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
