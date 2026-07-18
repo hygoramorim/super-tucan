@@ -488,9 +488,13 @@ function t(key) { return (I18N[LANG] && I18N[LANG][key]) || I18N.pt[key] || key;
 
 const GROUND_H = 70;
 let W = 480, H = 640; // dimensões lógicas: acompanham a proporção da tela
-// Renderiza com densidade controlada: 1.5 segura boa nitidez sem pesar demais
-// em celulares retina durante fases com muitos elementos animados, como o Lago.
-const DPR = Math.max(1, Math.min(1.5, window.devicePixelRatio || 1));
+const DEVICE_MEMORY = navigator.deviceMemory || 4;
+const TOUCH_DEVICE = navigator.maxTouchPoints > 0;
+const PERF_LOW = TOUCH_DEVICE && (DEVICE_MEMORY <= 4 || Math.min(window.innerWidth, window.innerHeight) < 540 || (window.devicePixelRatio || 1) > 2);
+// Renderiza com densidade adaptativa: celulares em modo leve sacrificam um pouco
+// de nitidez para manter FPS estável quando há muitos efeitos na tela.
+const DPR = Math.max(1, Math.min(PERF_LOW ? 1.15 : 1.5, window.devicePixelRatio || 1));
+const PARTICLE_CAP = PERF_LOW ? 130 : 260;
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 
@@ -1803,7 +1807,8 @@ function spawnObstacle() {
 }
 
 function burst(x, y, color, n) {
-  for (let i = 0; i < n; i++) {
+  const count = PERF_LOW ? Math.ceil(n * 0.55) : n;
+  for (let i = 0; i < count; i++) {
     const a = Math.random() * Math.PI * 2, sp = 1 + Math.random() * 3;
     particles.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 1, life: 30 + Math.random() * 20, color });
   }
@@ -1813,7 +1818,8 @@ function burst(x, y, color, n) {
 function celebrate(colors, n) {
   celebrateTimer = 80;
   celebrateColors = colors;
-  for (let i = 0; i < (n || 70); i++) {
+  const count = PERF_LOW ? Math.ceil((n || 70) * 0.55) : (n || 70);
+  for (let i = 0; i < count; i++) {
     const left = Math.random() < 0.5;
     particles.push({
       x: left ? -8 : W + 8,
@@ -1834,7 +1840,8 @@ function celebrateUrubuSuperEgg(x, y) {
   celebrateColors = ['#ffd23f', '#8a3a2a', '#ffffff', '#ff2e93'];
   shake = Math.max(shake, 5);
   floaters.push({ x, y: y - 26, text: '+25', color: '#ffd23f', life: 100, big: true, blink: true });
-  for (let i = 0; i < 90; i++) {
+  const confettiCount = PERF_LOW ? 44 : 90;
+  for (let i = 0; i < confettiCount; i++) {
     particles.push({
       x: Math.random() * W,
       y: -20 - Math.random() * 120,
@@ -1847,7 +1854,8 @@ function celebrateUrubuSuperEgg(x, y) {
       vr: (Math.random() - 0.5) * 0.5
     });
   }
-  for (let i = 0; i < 34; i++) {
+  const sparkCount = PERF_LOW ? 16 : 34;
+  for (let i = 0; i < sparkCount; i++) {
     const a = Math.random() * Math.PI * 2;
     const sp = 2.5 + Math.random() * 5;
     particles.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 38 + Math.random() * 24, color: i % 2 ? '#ffd23f' : '#ffffff' });
@@ -1856,7 +1864,8 @@ function celebrateUrubuSuperEgg(x, y) {
 
 function explodeFirework(x, y) {
   const colors = ['#ffd23f', '#ff9f1c', '#ff2e93', '#ffffff'];
-  for (let i = 0; i < 28; i++) {
+  const count = PERF_LOW ? 14 : 28;
+  for (let i = 0; i < count; i++) {
     const a = Math.random() * Math.PI * 2;
     const sp = 1.2 + Math.random() * 4.4;
     particles.push({
@@ -2039,8 +2048,10 @@ function updateBonusPhase() {
   if (etBonusTimer > 0) etBonusTimer--;
   if (bossBonusTimer > 0) bossBonusTimer--;
   bonusTimer--;
-  if (frames % 5 === 0 && bonusItems.length < 58) spawnBonusItem(false);
-  if (frames % 17 === 0 && timerRatio < 0.75 && bonusItems.length < 72) spawnBonusItem(false);
+  const bonusSoftCap = PERF_LOW ? 46 : 58;
+  const bonusHardCap = PERF_LOW ? 56 : 72;
+  if (frames % 5 === 0 && bonusItems.length < bonusSoftCap) spawnBonusItem(false);
+  if (frames % 17 === 0 && timerRatio < 0.75 && bonusItems.length < bonusHardCap) spawnBonusItem(false);
   totalDist += drift;
   bird.vy += 0.28;
   if (bird.vy > 7.2) bird.vy = 7.2;
@@ -2117,7 +2128,7 @@ function update() {
   }
   if (!inLake && --critterTimer <= 0) {
     critterTimer = 320 + Math.random() * 430; // fauna mais espaçada (−40%)
-    if (critters.length < 4) {
+    if (critters.length < (PERF_LOW ? 2 : 4)) {
       // à noite, a fauna noturna substitui a diurna
       const kinds = isNight() ? NIGHT_FAUNA[phase().deco] : FAUNA[phase().deco];
       const kind = kinds[Math.floor(Math.random() * kinds.length)];
@@ -2134,8 +2145,8 @@ function update() {
   critters = critters.filter(c => c.x > -130);
   // insetos decorativos: voam baixo, perto do chão/vegetação (à noite viram vaga-lumes)
   if (!inLake && --bugTimer <= 0) {
-    bugTimer = 45 + Math.random() * 70;
-    if (bugs.length < 8) {
+    bugTimer = (PERF_LOW ? 70 : 45) + Math.random() * (PERF_LOW ? 100 : 70);
+    if (bugs.length < (PERF_LOW ? 4 : 8)) {
       const kinds = ['borboleta', 'abelha', 'joaninha'];
       bugs.push({
         kind: kinds[Math.floor(Math.random() * kinds.length)],
@@ -2166,7 +2177,7 @@ function update() {
       y: 60 + Math.random() * 170,
       vx: 0.5 + Math.random() * 0.35,
       colors: sets[Math.floor(Math.random() * sets.length)],
-      n: 5 + Math.floor(Math.random() * 5),
+      n: (PERF_LOW ? 3 : 5) + Math.floor(Math.random() * (PERF_LOW ? 3 : 5)),
       ph: Math.random() * 6.28,
       bat: night
     });
@@ -2232,6 +2243,7 @@ function update() {
     pt.life--;
     return pt.life > 0 && pt.y < H + 40;
   });
+  if (particles.length > PARTICLE_CAP) particles.splice(0, particles.length - PARTICLE_CAP);
 
   if (state === 'menu') {
     // tucano de demonstração flutuando atrás do menu
@@ -2886,7 +2898,8 @@ function drawLakeBackground() {
   ctx.beginPath(); ctx.arc(px + 6, py - 4, 2, 0, 7); ctx.fill();
 
   ctx.strokeStyle = 'rgba(255,255,255,.38)';
-  for (let i = 0; i < 6; i++) {
+  const bubbleCount = PERF_LOW ? 3 : 6;
+  for (let i = 0; i < bubbleCount; i++) {
     const bx = (i * 78 + frames * 0.42) % W;
     const by = H - GROUND_H - ((frames * 0.55 + i * 63) % (H - GROUND_H));
     ctx.beginPath(); ctx.arc(bx, by, 2 + (i % 2), 0, 7); ctx.stroke();
@@ -5708,8 +5721,9 @@ function drawComboAura() {
   ctx.rotate(frames * 0.004); // deslocamento circular lento
   ctx.lineCap = 'round';
   const R = Math.max(W, H);
-  for (let i = 0; i < 28; i++) {
-    const a = (i / 28) * Math.PI * 2 + Math.sin(frames * 0.02 + i) * 0.02;
+  const rayCount = PERF_LOW ? 14 : 28;
+  for (let i = 0; i < rayCount; i++) {
+    const a = (i / rayCount) * Math.PI * 2 + Math.sin(frames * 0.02 + i) * 0.02;
     const inner = 150 + Math.sin(frames * 0.18 + i * 3.7) * 28 + (i % 3) * 24;
     ctx.strokeStyle = i % 4 === 0 ? 'rgba(255,46,147,.30)' : 'rgba(255,255,255,.28)';
     ctx.lineWidth = 1.2 + (i % 3);
@@ -6119,7 +6133,8 @@ function draw() {
     ctx.fillRect(0, 0, W, H);
     ctx.strokeStyle = 'rgba(200,220,255,.5)';
     ctx.lineWidth = 1.5;
-    for (let i = 0; i < 40; i++) {
+    const rainCount = PERF_LOW ? 22 : 40;
+    for (let i = 0; i < rainCount; i++) {
       const rx = ((i * 97 + frames * 11) % (W + 40)) - 20;
       const ry = (i * 53 + frames * 13) % H;
       ctx.beginPath(); ctx.moveTo(rx, ry); ctx.lineTo(rx - 4, ry + 14); ctx.stroke();
@@ -6129,7 +6144,8 @@ function draw() {
     ctx.fillStyle = 'rgba(200,60,20,.13)';
     ctx.fillRect(0, 0, W, H);
     ctx.fillStyle = 'rgba(255,120,40,.85)';
-    for (let i = 0; i < 14; i++) {
+    const emberCount = PERF_LOW ? 8 : 14;
+    for (let i = 0; i < emberCount; i++) {
       const rx = (i * 137 + frames * 2.5) % W;
       const ry = (i * 211 + frames * (2 + i % 3)) % H;
       ctx.fillRect(rx, ry, 3, 3);
@@ -6139,7 +6155,8 @@ function draw() {
     ctx.fillRect(0, 0, W, H);
     ctx.strokeStyle = 'rgba(255,210,63,.26)';
     ctx.lineWidth = 2;
-    for (let i = 0; i < 5; i++) {
+    const quakeLines = PERF_LOW ? 3 : 5;
+    for (let i = 0; i < quakeLines; i++) {
       const y = H - GROUND_H - 25 - i * 36 + Math.sin(frames * 0.2 + i) * 3;
       ctx.beginPath();
       ctx.moveTo(0, y);
@@ -6150,7 +6167,8 @@ function draw() {
     ctx.fillStyle = 'rgba(240,248,255,.34)';
     ctx.fillRect(0, 0, W, H);
     ctx.fillStyle = 'rgba(255,255,255,.82)';
-    for (let i = 0; i < 46; i++) {
+    const snowCount = PERF_LOW ? 24 : 46;
+    for (let i = 0; i < snowCount; i++) {
       const sx = (i * 83 + Math.sin(frames * 0.018 + i) * 26) % W;
       const sy = (i * 47 + frames * (0.55 + (i % 5) * 0.08)) % (H - GROUND_H + 40);
       ctx.beginPath();
@@ -6857,7 +6875,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.34';
+const GAME_VERSION = '5.35';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)

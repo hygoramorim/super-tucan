@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.34` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.35` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -315,3 +315,5 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
   colisão e a tela mostra mensagem clara quando amigos online estão indisponíveis.
 - **v5.34** — coleta por amiguinhos ajustada: pets continuam alcançando ovos/alimentos, mas quando pegam
   sozinhos zeram o combo e pontuam sem multiplicador de combo, impedindo que mantenham a sequência do Tucano.
+- **v5.35** — pacote leve para celulares: modo de performance automático reduz DPR, partículas, fauna
+  decorativa, revoadas, clima, bolhas do lago, aura de combo e lotação das fases bônus sem mudar regras.
