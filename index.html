@@ -1152,6 +1152,14 @@ function foodLabel(kind) {
   return labels[LANG] || labels.pt || (FOODS[kind] && FOODS[kind].label) || kind;
 }
 const BIRD_R = 15; // raio base do tucano (hitbox)
+function birdScale() { return bird && bird.r ? bird.r / BIRD_R : 1; }
+function birdBeakTip() {
+  const s = birdScale();
+  return {
+    x: bird.x + (32 * s) * Math.cos(bird.rot) + (7 * s) * Math.sin(bird.rot),
+    y: bird.y + (32 * s) * Math.sin(bird.rot) - (7 * s) * Math.cos(bird.rot)
+  };
+}
 // aplica uma comida: zera os efeitos anteriores e liga os desta (por 15s)
 function applyFood(kind) {
   const f = FOODS[kind];
@@ -2329,7 +2337,8 @@ function update() {
   powerups = powerups.filter(pu => pu.x > -40 && !pu.taken);
   for (const pu of powerups) {
     const py = pu.y + Math.sin(frames * 0.07 + pu.bob) * 5;
-    const birdHit = dist2(bird.x, bird.y, pu.x, py) < 26 * 26;
+    const powerHitR = bird.r + 11 * birdScale();
+    const birdHit = dist2(bird.x, bird.y, pu.x, py) < powerHitR * powerHitR;
     const petHit = petCollector && dist2(petCollector.x, petCollector.y, pu.x, py) < (petCollector.r + 14) * (petCollector.r + 14);
     if (birdHit || petHit) collectPowerup(pu, py);
   }
@@ -2367,7 +2376,7 @@ function update() {
   }
 
   // colisão com galhos: círculo do corpo vs retângulo do tronco (justa e previsível)
-  const hitR = bird.r - 4;
+  const hitR = bird.r - 4 * birdScale();
   if (invuln <= 0) {
     for (const o of obstacles) {
       const rx = o.x - o.w / 2;
@@ -2386,12 +2395,13 @@ function update() {
   }
 
   // coleta de ovos: considera a oscilação do ovo e também a ponta do bico
-  const tipX = bird.x + 32 * Math.cos(bird.rot) + 7 * Math.sin(bird.rot);
-  const tipY = bird.y + 32 * Math.sin(bird.rot) - 7 * Math.cos(bird.rot);
+  const beakTip = birdBeakTip();
+  const eggBodyPad = 11 * birdScale();
+  const beakHitR = 18 * birdScale();
   for (const e of eggs) {
     const ey = e.y + Math.sin(frames * 0.08 + e.bob) * 4; // mesma posição do desenho
-    const birdHit = dist2(bird.x, bird.y, e.x, ey) < (bird.r + 11) * (bird.r + 11);
-    const beakHit = dist2(tipX, tipY, e.x, ey) < 18 * 18;
+    const birdHit = dist2(bird.x, bird.y, e.x, ey) < (bird.r + eggBodyPad) * (bird.r + eggBodyPad);
+    const beakHit = dist2(beakTip.x, beakTip.y, e.x, ey) < beakHitR * beakHitR;
     const petHit = petCollector && dist2(petCollector.x, petCollector.y, e.x, ey) < (petCollector.r + 11) * (petCollector.r + 11);
     if (birdHit || beakHit || petHit) collectEgg(e, ey);
   }
@@ -6192,7 +6202,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.17';
+const GAME_VERSION = '5.18';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)

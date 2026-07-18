@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.17` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.18` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -270,3 +270,5 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
 - **v5.17** — Pantanal infinito ficou mais desfrutável: crescimento total de velocidade limitado a
   ~15%, galhos apertam muito menos, teto final de velocidade menor e ovos/alimentos ganham bônus
   progressivo por ciclo (`×1.0` até `×2.0`) para recompensar permanência.
+- **v5.18** — hitbox do Tucano passa a acompanhar integralmente o tamanho visual das comidas:
+  brigadeiro aumenta corpo/bico/coleta proporcionalmente e alface reduz esses alcances na mesma escala.
