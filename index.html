@@ -1269,7 +1269,7 @@ function finishBossArena() {
 function isNight() { return event === 'NOITE' || magicNight > 0; }
 // Celebrações
 let floaters = []; // textos flutuantes {x, y, text, color, life}
-let nextMilestone = 100, scorePulse = 0;
+let nextMilestone = 100, nextBigMilestone = 1000, scorePulse = 0, scoreMegaPulse = 0;
 let tutIdx = 0;
 const TUT_TEXTS = {
   flap: { pt:'TOQUE PARA SUBIR', en:'TAP TO CLIMB', es:'TOCA PARA SUBIR', zh:'点击上升' },
@@ -1293,6 +1293,30 @@ function tutorialPhaseDist() {
 function floater(text, color, x, y) {
   if (bonusPopupsMuted) return;
   floaters.push({ x: x === undefined ? bird.x : x, y: y === undefined ? bird.y - 40 : y, text, color: color || '#ffd23f', life: 90 });
+}
+function triggerScoreMilestones(showSmall) {
+  let bigTriggered = false;
+  while (score >= nextBigMilestone) {
+    const mark = nextBigMilestone;
+    nextBigMilestone += 1000;
+    bigTriggered = true;
+    floater('🏆 ' + mark + ' PONTOS!', '#ffd23f', W / 2, H / 2 - 118);
+    celebrate(['#ffd23f', '#ffffff', '#ff2e93', '#7dd3fc', '#7ee08a', '#f59e0b'], 130);
+    sfx.milestone(12 + Math.min(8, Math.floor(mark / 1000)));
+    scorePulse = Math.max(scorePulse, 130);
+    scoreMegaPulse = 150;
+    shake = Math.max(shake, 4);
+  }
+  while (score >= nextMilestone) {
+    const mark = nextMilestone;
+    nextMilestone += 100;
+    if (!showSmall || bigTriggered || mark % 1000 === 0) continue;
+    const milestoneLevel = Math.floor(mark / 100);
+    floater('🎉 ' + mark + ' ' + t('points'), '#ffd23f', W / 2, H / 2 - 100);
+    celebrate(['#ffd23f', '#ff2e93', '#7dd3fc', '#7ee08a'], 45 + Math.min(45, milestoneLevel * 5));
+    sfx.milestone(milestoneLevel);
+    scorePulse = Math.max(scorePulse, 90);
+  }
 }
 let chirpTimer = 0;
 
@@ -1383,7 +1407,9 @@ function resetGame() {
   petTrail = [];
   floaters = [];
   nextMilestone = 100;
+  nextBigMilestone = 1000;
   scorePulse = 0;
+  scoreMegaPulse = 0;
   tutIdx = 0;
   lastGapY = H / 2;
   deathTimer = 0;
@@ -1891,10 +1917,7 @@ function updateBonusPhase() {
     if (birdHit || beakHit || petHit) collectBonusItem(it, iy);
   }
   bonusItems = bonusItems.filter(it => it.x > -55 && !it.taken);
-  if (score >= nextMilestone) {
-    scorePulse = 90;
-    while (score >= nextMilestone) nextMilestone += 100;
-  }
+  triggerScoreMilestones(false);
   if (bonusTimer <= 0) finishBonusPhase();
 }
 
@@ -1906,6 +1929,7 @@ function update() {
   const p = phase();
   if (celebrateTimer > 0) celebrateTimer--;
   if (scorePulse > 0) scorePulse--;
+  if (scoreMegaPulse > 0) scoreMegaPulse--;
 
   // pios de pássaros ambiente
   if (--chirpTimer <= 0) {
@@ -2518,15 +2542,8 @@ function update() {
     }
   });
 
-  // marco de pontos: a cada 100, festa com score em destaque e som mais intenso.
-  if (score >= nextMilestone) {
-    const milestoneLevel = Math.floor(nextMilestone / 100);
-    floater('🎉 ' + nextMilestone + ' ' + t('points'), '#ffd23f', W / 2, H / 2 - 100);
-    celebrate(['#ffd23f', '#ff2e93', '#7dd3fc', '#7ee08a'], 45 + Math.min(45, milestoneLevel * 5));
-    sfx.milestone(milestoneLevel);
-    scorePulse = 90;
-    nextMilestone += 100;
-  }
+  // marco de pontos: a cada 100 há festa; a cada 1000, festa maior no placar.
+  triggerScoreMilestones(true);
   obstacles = obstacles.filter(o => o.x > -80);
   eggs = eggs.filter(e => e.x > -30 && !e.taken);
 
@@ -5374,8 +5391,9 @@ function drawHUD(p) {
   // placar de ovos
   ctx.save();
   const pulse = scorePulse > 0 ? Math.sin(scorePulse * 0.32) * (scorePulse / 90) : 0;
-  const pulseAmt = Math.max(0, pulse);
-  hudPanel(12, 12, 118 + pulseAmt * 18, 40, 10);
+  const megaPulse = scoreMegaPulse > 0 ? (0.45 + 0.55 * Math.sin(scoreMegaPulse * 0.28) ** 2) * (scoreMegaPulse / 150) : 0;
+  const pulseAmt = Math.max(0, pulse, megaPulse * 1.25);
+  hudPanel(12, 12, 118 + pulseAmt * 24, 40 + megaPulse * 6, 10);
   // mini ovo
   ctx.fillStyle = '#fdf6e3';
   ctx.strokeStyle = '#d9cbb0';
@@ -5385,13 +5403,16 @@ function drawHUD(p) {
   ctx.textAlign = 'left';
   ctx.strokeStyle = 'rgba(0,0,0,.65)';
   ctx.lineWidth = 3;
-  if (scorePulse > 0) {
+  if (scorePulse > 0 || scoreMegaPulse > 0) {
     ctx.save();
     ctx.translate(52, 33);
-    ctx.scale(1 + pulseAmt * 0.22, 1 + pulseAmt * 0.22);
-    ctx.strokeStyle = 'rgba(255,46,147,.85)';
-    ctx.lineWidth = 5;
+    ctx.scale(1 + pulseAmt * (scoreMegaPulse > 0 ? 0.34 : 0.22), 1 + pulseAmt * (scoreMegaPulse > 0 ? 0.34 : 0.22));
+    ctx.strokeStyle = scoreMegaPulse > 0 ? 'rgba(255,210,63,.95)' : 'rgba(255,46,147,.85)';
+    ctx.shadowColor = scoreMegaPulse > 0 ? '#ffd23f' : 'transparent';
+    ctx.shadowBlur = scoreMegaPulse > 0 ? 18 : 0;
+    ctx.lineWidth = scoreMegaPulse > 0 ? 7 : 5;
     ctx.strokeText(String(score), 0, 8);
+    ctx.fillStyle = scoreMegaPulse > 0 ? '#ffffff' : '#ffd23f';
     ctx.fillText(String(score), 0, 8);
     ctx.restore();
   } else {
@@ -6567,7 +6588,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.25';
+const GAME_VERSION = '5.26';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
