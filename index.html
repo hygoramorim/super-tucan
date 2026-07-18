@@ -1064,7 +1064,7 @@ let score, totalDist, phaseIdx, phaseDist, bannerTimer, deathTimer, shake;
 let lakeDiveTimer = 0, lakeExitTimer = 0;
 let p3Level, p3Timer, bannerText, bannerSub;
 let celebrateTimer = 0, celebrateColors = ['#ffd23f'];
-let bonusActive = false, bonusTimer = 0, bonusItems = [], bonusScore = 0, bonusBiomeCount = 0, nextBonusAt = 0, bonusPopupsMuted = false;
+let bonusActive = false, bonusTimer = 0, bonusItems = [], bonusScore = 0, bonusBiomeCount = 0, nextBonusAt = 0, bonusPopupsMuted = false, bonusTheme = 'rainbow';
 let trainingScoreCarry = 0;
 let combo = 0; // ovos coletados em sequência sem deixar nenhum passar
 // ideia 10 do Francisco: combo mais acessível, com TETO ×4.
@@ -1347,6 +1347,7 @@ function resetGame() {
   bonusTimer = 0;
   bonusItems = [];
   bonusScore = 0;
+  bonusTheme = 'rainbow';
   bonusPopupsMuted = false;
   trainingScoreCarry = 0;
   bonusBiomeCount = 0;
@@ -1779,6 +1780,7 @@ function shouldStartBonusPhase() {
 }
 function startBonusPhase() {
   bonusActive = true;
+  bonusTheme = rng() < 0.5 ? 'rainbow' : 'sunflower';
   bonusTimer = 900; // 15s
   bonusItems = [];
   bonusScore = 0;
@@ -1786,22 +1788,26 @@ function startBonusPhase() {
   event = null; alertTimer = 0;
   bird.y = Math.max(110, Math.min(H - GROUND_H - 150, bird.y));
   bird.vy = Math.min(bird.vy, 0);
-  bannerTimer = 130; bannerText = 'OVER THE RAINBOW'; bannerSub = '15s DE BONUS';
-  floater('🌈 FASE BÔNUS!', '#ffd23f', W / 2, H / 2 - 110);
-  celebrate(['#ff2e93', '#ffd23f', '#7dd3fc', '#7ee08a', '#c084fc'], 70);
+  bannerTimer = 130;
+  bannerText = bonusTheme === 'sunflower' ? 'JARDIM DOS GIRASSÓIS' : 'OVER THE RAINBOW';
+  bannerSub = '15s DE BONUS';
+  floater((bonusTheme === 'sunflower' ? '🌻' : '🌈') + ' FASE BÔNUS!', '#ffd23f', W / 2, H / 2 - 110);
+  celebrate(bonusTheme === 'sunflower'
+    ? ['#ffd23f', '#f59e0b', '#7ee08a', '#38bdf8', '#ffffff']
+    : ['#ff2e93', '#ffd23f', '#7dd3fc', '#7ee08a', '#c084fc'], 70);
   sfx.milestone(3);
   nextBonusAt = bonusBiomeCount + 4;
   for (let i = 0; i < 34; i++) spawnBonusItem(true);
 }
 function spawnBonusItem(initial) {
-  const foodChance = 0.42;
+  const foodChance = bonusTheme === 'sunflower' ? 0.48 : 0.42;
   const isFood = rng() < foodChance;
   const item = isFood
     ? { type: 'food', food: randomFoodKind() }
     : { type: 'egg', golden: rng() < 0.16, jewel: rng() < 0.08 };
   item.x = initial ? 70 + rng() * Math.max(100, W - 140) : W + 35 + rng() * 90;
   item.y = 82 + rng() * Math.max(120, H - GROUND_H - 190);
-  item.vx = 1.4 + rng() * 1.9;
+  item.vx = (bonusTheme === 'sunflower' ? 1.1 : 1.4) + rng() * (bonusTheme === 'sunflower' ? 1.5 : 1.9);
   item.vy = (rng() - 0.5) * 0.38;
   item.bob = rng() * 6.28;
   item.age = Math.floor(rng() * 60);
@@ -1828,8 +1834,10 @@ function finishBonusPhase() {
   bonusItems = [];
   bannerTimer = 120; bannerText = 'BÔNUS CONCLUÍDO'; bannerSub = '+' + bonusScore + ' PONTOS';
   floater('+' + bonusScore + ' 🥚', '#ffd23f', W / 2, H / 2 - 85);
-  floater('OVER THE RAINBOW!', '#ff2e93', W / 2, H / 2 - 122);
-  celebrate(['#ff2e93', '#ffd23f', '#7dd3fc', '#7ee08a', '#c084fc'], 90);
+  floater(bonusTheme === 'sunflower' ? 'JARDIM DOS GIRASSÓIS!' : 'OVER THE RAINBOW!', bonusTheme === 'sunflower' ? '#f59e0b' : '#ff2e93', W / 2, H / 2 - 122);
+  celebrate(bonusTheme === 'sunflower'
+    ? ['#ffd23f', '#f59e0b', '#7ee08a', '#38bdf8', '#ffffff']
+    : ['#ff2e93', '#ffd23f', '#7dd3fc', '#7ee08a', '#c084fc'], 90);
   scorePulse = 90;
   sfx.milestone(5);
 }
@@ -5616,6 +5624,11 @@ function drawDiveLakeSign() {
 }
 
 function drawBonusBackground() {
+  if (bonusTheme === 'sunflower') return drawSunflowerBonusBackground();
+  return drawRainbowBonusBackground();
+}
+
+function drawRainbowBonusBackground() {
   const sky = ctx.createLinearGradient(0, 0, 0, H);
   sky.addColorStop(0, '#79d8ff');
   sky.addColorStop(0.62, '#dff8ff');
@@ -5652,6 +5665,111 @@ function drawBonusBackground() {
     ctx.fill();
   }
 }
+
+function drawSunflower(x, y, s, sway) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(Math.sin(frames * 0.025 + sway) * 0.035);
+  ctx.strokeStyle = '#3b7a38';
+  ctx.lineWidth = Math.max(2, 5 * s);
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.quadraticCurveTo(-10 * s, -42 * s, 0, -88 * s);
+  ctx.stroke();
+  ctx.fillStyle = '#4caf50';
+  ctx.beginPath();
+  ctx.ellipse(-14 * s, -42 * s, 18 * s, 8 * s, -0.45, 0, 7);
+  ctx.ellipse(13 * s, -58 * s, 16 * s, 7 * s, 0.55, 0, 7);
+  ctx.fill();
+  ctx.translate(0, -94 * s);
+  for (let i = 0; i < 14; i++) {
+    const a = i * Math.PI * 2 / 14;
+    ctx.save();
+    ctx.rotate(a);
+    ctx.fillStyle = i % 2 ? '#ffd23f' : '#ffb703';
+    ctx.beginPath();
+    ctx.ellipse(0, -16 * s, 7 * s, 18 * s, 0, 0, 7);
+    ctx.fill();
+    ctx.restore();
+  }
+  ctx.fillStyle = '#6b3f12';
+  ctx.beginPath();
+  ctx.arc(0, 0, 14 * s, 0, 7);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,.32)';
+  ctx.beginPath();
+  ctx.arc(-5 * s, -5 * s, 3 * s, 0, 7);
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawSunflowerBonusBackground() {
+  const sky = ctx.createLinearGradient(0, 0, 0, H);
+  sky.addColorStop(0, '#82d8ff');
+  sky.addColorStop(0.55, '#d9f7ff');
+  sky.addColorStop(1, '#fff4b8');
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.save();
+  ctx.globalAlpha = 0.82;
+  ctx.fillStyle = '#ffe066';
+  ctx.beginPath();
+  ctx.arc(W - 86, 82, 46, 0, 7);
+  ctx.fill();
+  ctx.globalAlpha = 0.28;
+  ctx.strokeStyle = '#ffe066';
+  ctx.lineWidth = 10;
+  for (let i = 0; i < 12; i++) {
+    const a = i * Math.PI * 2 / 12 + frames * 0.003;
+    ctx.beginPath();
+    ctx.moveTo(W - 86 + Math.cos(a) * 58, 82 + Math.sin(a) * 58);
+    ctx.lineTo(W - 86 + Math.cos(a) * 90, 82 + Math.sin(a) * 90);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  for (let i = 0; i < 7; i++) {
+    const x = ((i * 177 - frames * (0.22 + i * 0.015)) % (W + 260)) - 120;
+    const y = 72 + (i % 3) * 58 + Math.sin(frames * 0.012 + i) * 6;
+    ctx.fillStyle = 'rgba(255,255,255,.74)';
+    ctx.beginPath();
+    ctx.ellipse(x, y, 38, 13, 0, 0, 7);
+    ctx.ellipse(x + 25, y - 8, 25, 12, 0, 0, 7);
+    ctx.ellipse(x - 23, y - 5, 22, 10, 0, 0, 7);
+    ctx.fill();
+  }
+
+  ctx.fillStyle = '#7bbf45';
+  ctx.beginPath();
+  ctx.moveTo(0, H - GROUND_H + 12);
+  for (let x = 0; x <= W + 24; x += 24) {
+    ctx.lineTo(x, H - GROUND_H + 8 + Math.sin(x * 0.035 + frames * 0.025) * 7);
+  }
+  ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath(); ctx.fill();
+
+  for (let i = 0; i < 18; i++) {
+    const s = 0.42 + (i % 5) * 0.08;
+    const x = ((i * 83 - frames * (0.5 + s * 0.25)) % (W + 150)) - 60;
+    const y = H - GROUND_H + 30 + (i % 4) * 22;
+    drawSunflower(x, y, s, i);
+  }
+  for (let i = 0; i < 9; i++) {
+    const x = ((i * 131 - frames * (0.85 + i * 0.02)) % (W + 140)) - 60;
+    const y = 130 + (i % 4) * 58 + Math.sin(frames * 0.04 + i) * 12;
+    ctx.fillStyle = i % 2 ? '#111827' : '#ffcf33';
+    ctx.beginPath();
+    ctx.ellipse(x, y, 7, 4, 0, 0, 7);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,.65)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.ellipse(x - 4, y - 5, 5, 3, -0.4, 0, 7);
+    ctx.ellipse(x + 4, y - 5, 5, 3, 0.4, 0, 7);
+    ctx.stroke();
+  }
+}
+
 function drawBonusItem(it) {
   if (it.type === 'food') {
     drawPowerup({ ...it, type: 'food', bob: it.bob || 0 });
@@ -5675,8 +5793,10 @@ function drawBonusOverlay() {
   }
   ctx.textAlign = 'center';
   ctx.fillStyle = '#ffd23f';
-  ctx.font = "15px Bungee, 'Courier New', monospace";
-  ctx.fillText('OVER THE RAINBOW', W / 2, 119);
+  ctx.font = bonusTheme === 'sunflower'
+    ? "12px Bungee, 'Courier New', monospace"
+    : "15px Bungee, 'Courier New', monospace";
+  ctx.fillText(bonusTheme === 'sunflower' ? 'JARDIM DOS GIRASSÓIS' : 'OVER THE RAINBOW', W / 2, 119);
   ctx.fillStyle = '#fff';
   ctx.font = "900 22px Bungee, 'Courier New', monospace";
   ctx.fillText(secs + 's', W / 2 - 52, 145);
@@ -6445,7 +6565,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.21';
+const GAME_VERSION = '5.22';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)

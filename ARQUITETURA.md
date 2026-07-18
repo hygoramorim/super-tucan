@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.21` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.22` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -279,3 +279,6 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
   de 100 são silenciados durante os 15s, mantendo contador fixo e festa final.
 - **v5.21** — criado Modo Treino: fica somente na Amazônia em ciclo infinito, usa dificuldade mais
   aberta, pontuação vale metade do normal e não envia resultado ao ranking global.
+- **v5.22** — adicionada a variação bônus `JARDIM DOS GIRASSÓIS`, inspirada pela Juju: 15s em um
+  campo ensolarado com parallax leve, girassóis, abelhas decorativas, mais alimentos e coleta calma
+  alternando com `OVER THE RAINBOW` sem alongar a rota principal.
