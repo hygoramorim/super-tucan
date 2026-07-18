@@ -1062,9 +1062,9 @@ let lakeDiveTimer = 0, lakeExitTimer = 0;
 let p3Level, p3Timer, bannerText, bannerSub;
 let celebrateTimer = 0, celebrateColors = ['#ffd23f'];
 let combo = 0; // ovos coletados em sequência sem deixar nenhum passar
-// ideia 10 do Francisco: multiplicador do combo sobe +1× a cada 5 ovos, com TETO ×4
-// (5 ovos = ×2, 10 = ×3, 15+ = ×4). Teto protege o ranking de inflar.
-function comboMult(c) { return Math.min(4, 1 + Math.floor(c / 5)); }
+// ideia 10 do Francisco: combo mais acessível, com TETO ×4.
+// (4 coletas = ×2, 8 = ×3, 12+ = ×4). Teto protege o ranking de inflar.
+function comboMult(c) { return Math.min(4, 1 + Math.floor(c / 4)); }
 function dist2(ax, ay, bx, by) { const dx = ax - bx, dy = ay - by; return dx * dx + dy * dy; }
 // Pássaros inimigos da fase final: voam em sentido contrário com velocidade
 // própria FIXA (igual à velocidade do jogador no começo do jogo), sem escalar.
@@ -1184,8 +1184,7 @@ let bossRotatePrompt = null; // pausa antes da bossfight em celular vertical
 let nextBossKind = 'urubu';  // portal opcional é sempre do Urubu; Cobra é obrigatória no Pampas
 let bossBonusTimer = 0; // celebração temporária no HUD após vencer boss
 let bossBadgeText = '';
-let urubuBonusBiomes = 0; // recompensa do Urubu: ×3 pelos próximos 2 biomas
-let urubuBonusStartPhase = -1;
+let urubuBonusDist = 0; // recompensa do Urubu: ×3 por distância, inclusive no Pantanal infinito
 // pedido do Cisco: boss a cada 3 biomas completos; a dificuldade sobe 10% (acumulativo)
 // a cada aparição do boss (permanente naquela partida). bossAppearances = quantas vezes
 // o urubu já apareceu; o multiplicador é 1.1^appearances aplicado à velocidade do jogo.
@@ -1240,7 +1239,11 @@ function finishBossArena() {
   floater(t('bossReward'), '#ffd23f', W / 2, H / 2 - 90);
   bossBonusTimer = 1200;
   bossBadgeText = kind === 'cobra' ? t('bossBadgeSnake') : t('bossBadgeUrubu');
-  if (kind === 'urubu') { urubuBonusBiomes = 2; urubuBonusStartPhase = phaseIdx; }
+  const clearBonus = kind === 'cobra' ? 220 : 180;
+  score += clearBonus; // bônus fixo de chefão: não passa pelos multiplicadores.
+  scorePulse = 90;
+  floater('+' + clearBonus + ' 🥚', '#ffd23f', W / 2, H / 2 - 55);
+  if (kind === 'urubu') urubuBonusDist = 4200;
   unlockAchievement(kind === 'cobra' ? 'beatSnake' : 'beatUrubu');
   celebrate(['#ffd23f', '#ff2e93', '#ffffff'], 70);
   sfx.milestone();
@@ -1351,7 +1354,7 @@ function resetGame() {
   boss = null; bossTimer = 1500; bones = []; venom = []; snakeEggs = []; snakeWhips = []; snakeBites = [];
   bossPortal = null; bossArena = null; bossRotatePrompt = null;
   nextBossKind = 'urubu';
-  bossBonusTimer = 0; bossBadgeText = ''; urubuBonusBiomes = 0; urubuBonusStartPhase = -1;
+  bossBonusTimer = 0; bossBadgeText = ''; urubuBonusDist = 0;
   bossAppearances = 0; bossQueued = 0; mandatorySnakeQueued = 0;
   petTrail = [];
   floaters = [];
@@ -1585,7 +1588,7 @@ function spawnObstacle() {
     jewelBetween = jewelBetween && placed;
   }
   // Ovo bônus entre obstáculos, sempre perto da linha de voo plausível
-  if (rng() < 0.35 && !jewelBetween) {
+  if (rng() < 0.5 && !jewelBetween) {
     const by = Math.max(120, Math.min(H - GROUND_H - 60, gapY + (rng() * 140 - 70)));
     placeEggItem({ x: ob.x + d.spacing / 2, y: by, golden: false, taken: false, bob: rng() * 6.28, age: 0 }, placedItems);
   }
@@ -1726,10 +1729,10 @@ function collectEgg(e, ey) {
     * (pena > 0 ? 2 : 1)
     * (agua > 0 ? 2 : 1)
     * (etBonusTimer > 0 ? 2 : 1)
-    * (urubuBonusBiomes > 0 && phaseIdx > urubuBonusStartPhase ? 3 : 1)
+    * (urubuBonusDist > 0 ? 3 : 1)
     * (gameMode === 'hardcore' ? 3 : 1)
     * bookScore;
-  const baseValue = e.foodScore ? 2 : e.urubuSuper ? 25 : e.jewel ? 10 : e.golden ? 5 : 1;
+  const baseValue = e.foodScore ? 3 : e.urubuSuper ? 25 : e.jewel ? 10 : e.golden ? 5 : 1;
   const gained = baseValue * mult;
   score += gained;
   unlockAchievement('firstEgg');
@@ -2203,6 +2206,7 @@ function update() {
   const d = currentDiff();
   totalDist += d.speed;
   if (!bossArena) phaseDist += d.speed;
+  if (urubuBonusDist > 0 && !bossArena) urubuBonusDist = Math.max(0, urubuBonusDist - d.speed);
   if (lakeDiveTimer > 0) lakeDiveTimer--;
   if (lakeExitTimer > 0) lakeExitTimer--;
   const phaseGoal = gameMode === 'tutorial' ? tutorialPhaseDist() : phase().dist;
@@ -2221,7 +2225,6 @@ function update() {
 
   // transição de fase (a fase final é infinita; no tutorial avança só até o Lago)
   if (phaseIdx < LAST && phaseDist >= phaseGoal && !(gameMode === 'tutorial' && phaseIdx >= LAGO_PHASE_IDX)) {
-    if (urubuBonusBiomes > 0 && phaseIdx > urubuBonusStartPhase) urubuBonusBiomes--;
     phaseIdx++;
     phaseDist = 0;
     const np = PHASES[phaseIdx];
@@ -5251,7 +5254,7 @@ function drawHUD(p) {
     fxY += 15;
   }
   if (etBonusTimer > 0 && fxY < 142) { ctx.fillStyle = '#c9a0ff'; ctx.fillText('🛸 ' + t('etBonus') + ' · ' + Math.ceil(etBonusTimer / 60) + 's', 14, fxY); fxY += 15; }
-  if (urubuBonusBiomes > 0 && fxY < 142) { ctx.fillStyle = '#ffd23f'; ctx.fillText('💀 ' + t('urubuBlessing') + ' · ' + urubuBonusBiomes + ' biomas', 14, fxY); fxY += 15; }
+  if (urubuBonusDist > 0 && fxY < 142) { ctx.fillStyle = '#ffd23f'; ctx.fillText('💀 ' + t('urubuBlessing') + ' · ' + Math.ceil(urubuBonusDist) + 'm', 14, fxY); fxY += 15; }
   if (bossBonusTimer > 0) { ctx.fillStyle = '#ffd23f'; ctx.fillText('🏆 ' + (bossBadgeText || t('bossClear')) + ' · ' + Math.ceil(bossBonusTimer / 60) + 's', 14, fxY); fxY += 15; }
   if (bossArena && fxY < 142) { ctx.fillStyle = '#ffb020'; ctx.fillText('⚔ ' + t('noEggsBoss'), 14, fxY); fxY += 15; }
   if (event && alertTimer <= 0 && fxY < 142) {
@@ -6182,7 +6185,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.15';
+const GAME_VERSION = '5.16';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)

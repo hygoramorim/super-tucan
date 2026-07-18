@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.15` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.16` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -80,8 +80,9 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
 - **Bossfights Urubu/Cobra** (ideias do Cisco/Tucano/Guilherme): depois do 3º bioma e no Pantanal,
   o jogo agenda um **portal em tronco oco**. Galhos/ovos/power-ups param durante a leitura do portal;
   entrar pelo buraco teleporta para uma arena curta: Cemitério Cartoon para o Urubu, Toca da Cobra para
-  a Cobra. Não há ovos dentro da bossfight. O Urubu concede `×5` por 15s ao ser vencido, mas sem
-  multiplicador permanente de score para manter o ranking honesto.
+  a Cobra. Não há ovos normais dentro da bossfight. Ao vencer, o jogador recebe bônus fixo não
+  multiplicável (`+180` no Urubu, `+220` na Cobra). O Urubu também concede `×3` por `4200` de distância,
+  sem multiplicador permanente de score para manter o ranking honesto.
   - Cada boss aumenta a dificuldade **+10% permanente e acumulativa** naquela partida via
     `bossDiffMult() = 1.10 ^ min(bossAppearances, 5)` (aplicado à velocidade em `currentDiff()`).
   - **Tetos (importantes — não remover):** o multiplicador do boss trava em 5 aparições e há
@@ -169,7 +170,7 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
 - **v5.9.1** — hitbox do tucano reforçada como proporcional ao tamanho das comidas; amiguinhos equipados
   agora coletam ovos e power-ups com hitbox própria.
 - **v5.10** — rodada Cisco: vulcão com bolas de fogo centralizadas/letais, noite de 30s, ET com bônus
-  `×2` por 15s, combo zerando ao perder ovo comum/dourado, Urubu com `×5` temporário pós-boss e Cobra
+  `×2` por 15s, combo zerando ao perder ovo comum/dourado, Urubu com bônus pós-boss e Cobra
   com ciclo de ataques por veneno, rabada, ovo e mordida.
 - **v5.10.1** — galhos ajustados visualmente: copas de folhas cobrem as pontas da madeira para não
   deixar tocos aparentes na abertura segura.
@@ -263,3 +264,6 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
   (`5.14`, `5.15`... `5.99`, depois `6.01`), sem usar terceiro número de patch.
 - **v5.15** — créditos das ideias atualizados para incluir a Juju como autora da ideia da fase do
   Lago Cristalino.
+- **v5.16** — rebalanceamento de pontuação para tornar ~3000 pontos mais acessível após dois bosses:
+  combo sobe em 4/8/12 coletas, alimentos valem 3 pontos base, ovo bônus entre galhos sobe para 50%,
+  bosses dão bônus fixo não multiplicável e o bônus `×3` do Urubu passa a durar 4200 de distância.
