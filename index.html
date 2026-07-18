@@ -576,9 +576,10 @@ const LAST = PHASES.length - 1;
 const LAGO_PHASE_IDX = 2;
 const PAMPAS_PHASE_IDX = 5;
 function bossProgressPhaseIdx() { return phaseIdx > LAGO_PHASE_IDX ? phaseIdx - 1 : phaseIdx; }
-// Fase final infinita: +1 nível a cada 15 s, com teto calibrado para ser
-// difícil porém vencível por um jogador de alto nível (nunca impossível)
+// Fase final infinita: +1 nível a cada 15 s. O Pantanal é uma fase de permanência:
+// sobe no máximo ~15% de velocidade, pontua melhor a cada ciclo e evita virar hardcore.
 const P3_LEVEL_FRAMES = 900;
+function pantanalScoreMult() { return phaseIdx === LAST ? 1 + Math.min(p3Level, 10) * 0.1 : 1; }
 function currentDiff() {
   // tutorial: bem lento e escancarado, para aprender o voo
   if (gameMode === 'tutorial') return { speed: 2.2, gap: 340, spacing: 310 };
@@ -586,9 +587,9 @@ function currentDiff() {
   let d;
   if (phaseIdx < LAST) d = { speed: p.speed, gap: p.gap, spacing: p.spacing };
   else d = {
-    speed: Math.min(5.6, p.speed + p3Level * 0.15),
-    gap: Math.max(122, p.gap - p3Level * 2.2),
-    spacing: Math.max(196, p.spacing - p3Level * 2.2)
+    speed: p.speed * (1 + Math.min(p3Level, 10) * 0.015),
+    gap: Math.max(132, p.gap - p3Level * 0.6),
+    spacing: Math.max(206, p.spacing - p3Level * 0.8)
   };
   // modificadores ativos: relógio (câmera lenta), água turbinada, pena (mais rápido), vulcão
   let k = 1;
@@ -605,7 +606,7 @@ function currentDiff() {
   // TETO de velocidade FINAL (aplicado DEPOIS de k): o Math.min lá em cima só limitava
   // p3Level; sem este teto, o bossDiffMult acumulado tornaria sessões longas de Pantanal
   // injogáveis. Mantém difícil, mas sempre jogável mesmo com pena+vulcão+boss juntos.
-  d.speed = Math.min(d.speed, 7.0);
+  d.speed = Math.min(d.speed, phaseIdx === LAST ? 5.8 : 7.0);
   return d;
 }
 
@@ -1719,7 +1720,7 @@ function collectPowerup(pu, py) {
 function collectEgg(e, ey) {
   e.taken = true;
   combo++;
-  // ideia 10 do Francisco: o combo sobe +1× a cada 5 ovos, com teto ×4
+  // ideia 10 do Francisco: o combo sobe mais cedo (4/8/12), com teto ×4
   const newMult = comboMult(combo);
   if (newMult > comboMult(combo - 1) && newMult > 1) {
     floater('🔥 COMBO ×' + newMult + '!', '#ff2e93'); sfx.comboUp();
@@ -1731,9 +1732,10 @@ function collectEgg(e, ey) {
     * (etBonusTimer > 0 ? 2 : 1)
     * (urubuBonusDist > 0 ? 3 : 1)
     * (gameMode === 'hardcore' ? 3 : 1)
+    * pantanalScoreMult()
     * bookScore;
   const baseValue = e.foodScore ? 3 : e.urubuSuper ? 25 : e.jewel ? 10 : e.golden ? 5 : 1;
-  const gained = baseValue * mult;
+  const gained = Math.ceil(baseValue * mult);
   score += gained;
   unlockAchievement('firstEgg');
   const scoreColor = e.foodScore ? FOODS[e.food].cor : e.urubuSuper ? '#8a3a2a' : e.jewel ? '#7dd3fc' : e.golden ? '#ffd23f' : '#ffffff';
@@ -5268,11 +5270,11 @@ function drawHUD(p) {
   const narrow = W < 460;
   const boxW = narrow ? Math.max(120, W - 152) : 180;
   const bx = W - boxW - 12;
-  hudPanel(bx, 22, boxW, 40, 10);
+  const infinite = phaseIdx === LAST;
+  hudPanel(bx, 22, boxW, infinite && !narrow ? 54 : 40, 10);
   ctx.fillStyle = '#fff';
   ctx.font = '700 ' + (narrow ? 9 : 11) + 'px Grandstander, sans-serif';
   ctx.textAlign = 'left';
-  const infinite = phaseIdx === LAST;
   const maxed = infinite && p3Level >= 10;
   const label = infinite
     ? (maxed
@@ -5284,6 +5286,11 @@ function drawHUD(p) {
   ctx.fillRect(bx + 10, 45, boxW - 20, 9);
   ctx.fillStyle = p.beak[0];
   ctx.fillRect(bx + 10, 45, (boxW - 20) * Math.min(1, maxed ? 1 : infinite ? p3Timer / P3_LEVEL_FRAMES : phaseDist / p.dist), 9);
+  if (infinite && !narrow) {
+    ctx.fillStyle = '#ffd23f';
+    ctx.font = '700 9px Grandstander, sans-serif';
+    ctx.fillText('OVOS ×' + pantanalScoreMult().toFixed(1), bx + 10, 67);
+  }
   ctx.restore();
 }
 
@@ -6185,7 +6192,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.16';
+const GAME_VERSION = '5.17';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)

@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.16` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.17` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -267,3 +267,6 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
 - **v5.16** — rebalanceamento de pontuação para tornar ~3000 pontos mais acessível após dois bosses:
   combo sobe em 4/8/12 coletas, alimentos valem 3 pontos base, ovo bônus entre galhos sobe para 50%,
   bosses dão bônus fixo não multiplicável e o bônus `×3` do Urubu passa a durar 4200 de distância.
+- **v5.17** — Pantanal infinito ficou mais desfrutável: crescimento total de velocidade limitado a
+  ~15%, galhos apertam muito menos, teto final de velocidade menor e ovos/alimentos ganham bônus
+  progressivo por ciclo (`×1.0` até `×2.0`) para recompensar permanência.
