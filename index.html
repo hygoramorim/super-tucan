@@ -5598,6 +5598,16 @@ function hudPanel(x, y, w, h, r) {
   ctx.fill(); ctx.stroke();
 }
 
+function outlinedText(text, x, y) {
+  ctx.save();
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+  ctx.miterLimit = 2;
+  ctx.strokeText(text, x, y);
+  ctx.restore();
+  ctx.fillText(text, x, y);
+}
+
 function drawHUD(p) {
   // placar de ovos
   ctx.save();
@@ -5622,13 +5632,12 @@ function drawHUD(p) {
     ctx.shadowColor = scoreMegaPulse > 0 ? '#ffd23f' : 'transparent';
     ctx.shadowBlur = scoreMegaPulse > 0 ? 18 : 0;
     ctx.lineWidth = scoreMegaPulse > 0 ? 7 : 5;
-    ctx.strokeText(String(score), 0, 8);
+    outlinedText(String(score), 0, 8);
     ctx.fillStyle = scoreMegaPulse > 0 ? '#ffffff' : '#ffd23f';
     ctx.fillText(String(score), 0, 8);
     ctx.restore();
   } else {
-    ctx.strokeText(String(score), 52, 41);
-    ctx.fillText(String(score), 52, 41);
+    outlinedText(String(score), 52, 41);
   }
   if (combo >= 5) {
     ctx.fillStyle = '#ff2e93';
@@ -6269,8 +6278,7 @@ function draw() {
     ctx.textAlign = 'center';
     ctx.strokeStyle = 'rgba(0,0,0,.82)';
     ctx.lineWidth = f.big ? 8 : 4;
-    ctx.strokeText(f.text, f.x, f.y);
-    ctx.fillText(f.text, f.x, f.y);
+    outlinedText(f.text, f.x, f.y);
   });
   ctx.globalAlpha = 1;
 
@@ -6904,7 +6912,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.36';
+const GAME_VERSION = '5.37';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)

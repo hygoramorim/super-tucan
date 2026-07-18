@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.36` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.37` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -319,3 +319,5 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
   decorativa, revoadas, clima, bolhas do lago, aura de combo e lotação das fases bônus sem mudar regras.
 - **v5.36** — item Pimenta redesenhado dentro do medalhão com arte vetorial própria, evitando que o emoji
   fique descentralizado ou escape do círculo em alguns celulares/fontes.
+- **v5.37** — contornos dos textos do placar e floaters ajustados com junções arredondadas e miter baixo,
+  removendo pontas agudas que apareciam fora da margem das letras em algumas fontes/renderizações.
