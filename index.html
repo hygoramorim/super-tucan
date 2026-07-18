@@ -1062,7 +1062,7 @@ let score, totalDist, phaseIdx, phaseDist, bannerTimer, deathTimer, shake;
 let lakeDiveTimer = 0, lakeExitTimer = 0;
 let p3Level, p3Timer, bannerText, bannerSub;
 let celebrateTimer = 0, celebrateColors = ['#ffd23f'];
-let bonusActive = false, bonusTimer = 0, bonusItems = [], bonusScore = 0, bonusBiomeCount = 0, nextBonusAt = 0;
+let bonusActive = false, bonusTimer = 0, bonusItems = [], bonusScore = 0, bonusBiomeCount = 0, nextBonusAt = 0, bonusPopupsMuted = false;
 let combo = 0; // ovos coletados em sequência sem deixar nenhum passar
 // ideia 10 do Francisco: combo mais acessível, com TETO ×4.
 // (4 coletas = ×2, 8 = ×3, 12+ = ×4). Teto protege o ranking de inflar.
@@ -1288,6 +1288,7 @@ function tutorialPhaseDist() {
   return 850;
 }
 function floater(text, color, x, y) {
+  if (bonusPopupsMuted) return;
   floaters.push({ x: x === undefined ? bird.x : x, y: y === undefined ? bird.y - 40 : y, text, color: color || '#ffd23f', life: 90 });
 }
 let chirpTimer = 0;
@@ -1343,6 +1344,7 @@ function resetGame() {
   bonusTimer = 0;
   bonusItems = [];
   bonusScore = 0;
+  bonusPopupsMuted = false;
   bonusBiomeCount = 0;
   nextBonusAt = 1 + Math.floor(rng() * 3);
   bannerTimer = 120; // banner da fase 1
@@ -1798,16 +1800,19 @@ function spawnBonusItem(initial) {
 function collectBonusItem(it, y) {
   it.taken = true;
   const before = score;
+  bonusPopupsMuted = true;
   if (it.type === 'food') {
     applyFood(it.food);
     collectEgg({ x: it.x, foodScore: true, food: it.food }, y);
   } else {
     collectEgg(it, y);
   }
+  bonusPopupsMuted = false;
   bonusScore += score - before;
 }
 function finishBonusPhase() {
   bonusActive = false;
+  bonusPopupsMuted = false;
   bonusTimer = 0;
   bonusItems = [];
   bannerTimer = 120; bannerText = 'BÔNUS CONCLUÍDO'; bannerSub = '+' + bonusScore + ' PONTOS';
@@ -1866,12 +1871,8 @@ function updateBonusPhase() {
   }
   bonusItems = bonusItems.filter(it => it.x > -55 && !it.taken);
   if (score >= nextMilestone) {
-    const milestoneLevel = Math.floor(nextMilestone / 100);
-    floater('🎉 ' + nextMilestone + ' ' + t('points'), '#ffd23f', W / 2, H / 2 - 100);
-    celebrate(['#ffd23f', '#ff2e93', '#7dd3fc', '#7ee08a'], 45 + Math.min(45, milestoneLevel * 5));
-    sfx.milestone(milestoneLevel);
     scorePulse = 90;
-    nextMilestone += 100;
+    while (score >= nextMilestone) nextMilestone += 100;
   }
   if (bonusTimer <= 0) finishBonusPhase();
 }
@@ -6412,7 +6413,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.19';
+const GAME_VERSION = '5.20';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)

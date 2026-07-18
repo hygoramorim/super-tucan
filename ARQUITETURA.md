@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.19` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.20` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -275,3 +275,5 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
 - **v5.19** — adicionada fase bônus aleatória `OVER THE RAINBOW`: 15s de céu aberto com nuvens,
   arco-íris, timer regressivo e tela cheia de ovos/alimentos para farmar pontos; surge entre os
   primeiros biomas e reaparece a cada 4 ciclos, com placar festivo ao final.
+- **v5.20** — fase bônus ficou mais limpa visualmente: pop-ups de pontos, combo, comidas e marcos
+  de 100 são silenciados durante os 15s, mantendo contador fixo e festa final.
