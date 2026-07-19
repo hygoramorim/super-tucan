@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.45` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.46` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -98,7 +98,9 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
 - **Economia de ovos:** carteira persistente (`superTucan_eggBank`) → loja de acessórios e pets.
 - **Amiguinhos:** aves equipadas seguem o tucano e têm hitbox apenas de coleta (ovos/power-ups);
   não colidem com galhos, inimigos ou projéteis.
-- **Ranking:** duas leituras do nó `players/` — recordistas (ovos) e veteranos (XP).
+- **Ranking:** duas leituras do nó `players/` — recordistas (ovos) e veteranos (XP). A publicação
+  confirma a gravação no Firebase, preserva o maior `best`, usa chave própria para nomes genéricos
+  por aparelho e guarda fila local de reenvio em `superTucan_rankPending` quando a rede falha.
 
 ## 6. ⚠️ CONSTRAINTS que NÃO podem ser quebrados
 
@@ -342,3 +344,6 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
   até 3 aparições por fase bônus, cada clique soma +250 pontos ao placar e ao total do bônus.
 - **v5.45** — clique no disco voador do ET de Varginha também dispara o pulo do tucano, mantendo
   o controle de voo natural enquanto concede os +250 pontos da fase bônus.
+- **v5.46** — ranking global passa a publicar recordes com confirmação: nomes genéricos ganham chave
+  única por aparelho, `best` nunca é reduzido, falhas ficam em fila local de reenvio e a tela informa
+  quando o envio será tentado novamente.
