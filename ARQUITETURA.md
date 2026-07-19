@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.38` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.39` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -115,6 +115,9 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
    preview dependem de ser um arquivo só e `<script>` clássico.
 3. **`const ctx` no jogo.** O preview troca por `let ctx` só na cópia. Não mudar no jogo publicado.
 4. **Mobile-first:** toque = voar. Não introduzir controles que dependam de teclado/mouse.
+5. **Margem segura do canvas:** `fitCanvas()` deve calcular tamanho a partir da área disponível do
+   `#wrap`, respeitando padding/safe-area. Não voltar a escalar pelo `innerHeight` inteiro, senão o
+   topo pode ficar sob notch, barra dinâmica do navegador ou webview.
 
 ## 7. Firebase (ranking + sugestões)
 
@@ -323,3 +326,5 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
   removendo pontas agudas que apareciam fora da margem das letras em algumas fontes/renderizações.
 - **v5.38** — Lago Cristalino ganhou mais flores aquáticas coloridas: além das flores sincronizadas
   com os obstáculos, agora há pequenos grupos decorativos espalhados pela base arenosa da fase.
+- **v5.39** — ajuste de responsividade: canvas passa a respeitar margem segura e `safe-area-inset-*`
+  em celular, tablet e desktop, evitando que o topo do jogo fique oculto por notch/barras do navegador.

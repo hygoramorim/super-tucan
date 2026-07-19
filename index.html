@@ -9,6 +9,13 @@
 <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Grandstander:wght@400;500;600;700;800&family=Shrikhand&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --game-margin: 8px;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-left: env(safe-area-inset-left, 0px);
+  }
   html, body {
     height: 100%;
     background: #0b1a12;
@@ -25,6 +32,10 @@
     width: 100vw;
     height: 100vh;
     height: 100dvh;
+    padding-top: max(var(--game-margin), var(--safe-top));
+    padding-right: max(var(--game-margin), var(--safe-right));
+    padding-bottom: max(var(--game-margin), var(--safe-bottom));
+    padding-left: max(var(--game-margin), var(--safe-left));
     display: flex;
     align-items: center;
     justify-content: center;
@@ -502,18 +513,30 @@ const ctx = canvas.getContext('2d');
 // A altura lógica é SEMPRE 640: o mundo tem o mesmo tamanho visual (e a mesma
 // velocidade percebida) em qualquer aparelho; só a largura visível muda.
 function fitCanvas() {
-  const vw = window.innerWidth, vh = window.innerHeight;
+  const wrap = document.getElementById('wrap');
+  const vv = window.visualViewport;
+  const vw = vv ? vv.width : window.innerWidth;
+  const vh = vv ? vv.height : window.innerHeight;
+  const cs = getComputedStyle(wrap);
+  const padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
+  const padY = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+  const availW = Math.max(240, vw - padX);
+  const availH = Math.max(320, vh - padY);
   H = 640;
-  W = Math.round(Math.min(1280, Math.max(270, 640 * vw / vh)));
+  W = Math.round(Math.min(1280, Math.max(270, 640 * availW / availH)));
   canvas.width = W * DPR;
   canvas.height = H * DPR;
-  const s = Math.min(vw / W, vh / H);
+  const s = Math.min(availW / W, availH / H);
   canvas.style.width = (W * s) + 'px';
   canvas.style.height = (H * s) + 'px';
-  canvas.style.borderRadius = s * W > vw - 8 ? '0' : '12px';
+  canvas.style.borderRadius = s * W > availW - 8 ? '0' : '12px';
 }
 window.addEventListener('resize', fitCanvas);
 window.addEventListener('orientationchange', () => setTimeout(fitCanvas, 250));
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', fitCanvas);
+  window.visualViewport.addEventListener('scroll', fitCanvas);
+}
 fitCanvas();
 function isPortraitMobile() {
   return window.innerHeight > window.innerWidth && W < 520;
@@ -6947,7 +6970,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.38';
+const GAME_VERSION = '5.39';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
