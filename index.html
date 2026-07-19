@@ -1134,6 +1134,7 @@ let lakeDiveTimer = 0, lakeExitTimer = 0;
 let p3Level, p3Timer, bannerText, bannerSub;
 let celebrateTimer = 0, celebrateColors = ['#ffd23f'];
 let bonusActive = false, bonusTimer = 0, bonusItems = [], bonusScore = 0, bonusBiomeCount = 0, nextBonusAt = 0, bonusPopupsMuted = false, bonusTheme = 'garden', bonusCycle = 0;
+let bonusUfo = null, bonusUfoCount = 0, bonusUfoTimer = 0;
 let trainingScoreCarry = 0;
 let combo = 0; // ovos coletados em sequência sem deixar nenhum passar
 // ideia 10 do Francisco: combo mais acessível, com TETO ×4.
@@ -1526,6 +1527,7 @@ function resetGame() {
   bonusTheme = 'garden';
   bonusCycle = 0;
   bonusPopupsMuted = false;
+  bonusUfo = null; bonusUfoCount = 0; bonusUfoTimer = 0;
   trainingScoreCarry = 0;
   bonusBiomeCount = 0;
   nextBonusAt = 1;
@@ -1652,6 +1654,7 @@ canvas.addEventListener('pointerdown', (e) => {
     flap(); // tocar no ET também mantém o controle normal de subida
     return;
   }
+  if (tryClickBonusUfo(e.clientX, e.clientY)) return;
   flap();
 });
 
@@ -1994,6 +1997,9 @@ function startBonusPhase() {
   bonusTimer = gameMode === 'tutorial' ? 420 : 900; // tutorial: ~7s; jogo normal: 15s
   bonusItems = [];
   bonusScore = 0;
+  bonusUfo = null;
+  bonusUfoCount = 0;
+  bonusUfoTimer = bonusTheme === 'sky' ? 55 : 0;
   obstacles = []; eggs = []; powerups = []; enemies = []; fireballs = [];
   event = null; alertTimer = 0;
   bird.y = Math.max(110, Math.min(H - GROUND_H - 150, bird.y));
@@ -2007,7 +2013,7 @@ function startBonusPhase() {
       title: bonusTheme === 'garden' ? 'JARDIM DOS GIRASSÓIS' : 'OVER THE RAINBOW',
       text: bonusTheme === 'garden'
         ? 'Jardim: colete ovos e alimentos com calma. Sem galhos, sem inimigos.'
-        : 'Céu: muitos itens no ar. Pegue o máximo antes do tempo acabar.',
+        : 'Céu: muitos itens no ar. Clique no disco do ET para ganhar +250.',
       timer: 180,
       total: 180
     };
@@ -2019,6 +2025,19 @@ function startBonusPhase() {
   sfx.milestone(3);
   nextBonusAt = bonusBiomeCount + 3;
   for (let i = 0; i < 34; i++) spawnBonusItem(true);
+}
+function spawnBonusUfo() {
+  if (bonusTheme !== 'sky' || bonusUfo || bonusUfoCount >= 3) return;
+  bonusUfoCount++;
+  bonusUfo = {
+    x: W + 70,
+    y: 92 + rng() * Math.max(80, H - GROUND_H - 250),
+    vx: 2.6 + rng() * 0.8,
+    ph: rng() * 6.28,
+    taken: false,
+    age: 0
+  };
+  floater('🛸 ET +250!', '#c9a0ff', W / 2, 98);
 }
 function spawnBonusItem(initial) {
   const foodChance = bonusTheme === 'garden' ? 0.48 : 0.42;
@@ -2048,11 +2067,36 @@ function collectBonusItem(it, y, opts = {}) {
   bonusPopupsMuted = false;
   bonusScore += score - before;
 }
+function collectBonusUfo() {
+  if (!bonusUfo || bonusUfo.taken) return false;
+  bonusUfo.taken = true;
+  score += 250;
+  bonusScore += 250;
+  scorePulse = Math.max(scorePulse, 90);
+  floater('+250 PTS', '#c9a0ff', bonusUfo.x, bonusUfo.y - 42);
+  floater('👽 ET DE VARGINHA!', '#8fb89a', bonusUfo.x, bonusUfo.y - 70);
+  celebrate(['#c9a0ff', '#8fb89a', '#ffd23f', '#7dd3fc'], 44);
+  sfx.jewel();
+  bonusUfo = null;
+  bonusUfoTimer = bonusUfoCount < 3 ? 90 : 0;
+  triggerScoreMilestones(false);
+  return true;
+}
+function tryClickBonusUfo(clientX, clientY) {
+  if (!bonusActive || bonusTheme !== 'sky' || !bonusUfo || bonusUfo.taken) return false;
+  const rect = canvas.getBoundingClientRect();
+  const lx = (clientX - rect.left) / rect.width * W;
+  const ly = (clientY - rect.top) / rect.height * H;
+  const dx = lx - bonusUfo.x, dy = ly - bonusUfo.y;
+  if ((dx * dx) / (54 * 54) + (dy * dy) / (36 * 36) <= 1) return collectBonusUfo();
+  return false;
+}
 function finishBonusPhase() {
   bonusActive = false;
   bonusPopupsMuted = false;
   bonusTimer = 0;
   bonusItems = [];
+  bonusUfo = null;
   bannerTimer = 120; bannerText = 'BÔNUS CONCLUÍDO'; bannerSub = '+' + bonusScore + ' PONTOS';
   floater('+' + bonusScore + ' PTS', '#ffd23f', W / 2, H / 2 - 85);
   if (gameMode === 'tutorial') floater('Fase bônus soma pontos rápido e não tem inimigos.', '#7ee08a', W / 2, H / 2 - 52);
@@ -2078,6 +2122,20 @@ function updateBonusPhase() {
   if (etCooldown > 0) etCooldown--;
   if (etBonusTimer > 0) etBonusTimer--;
   if (bossBonusTimer > 0) bossBonusTimer--;
+  if (bonusTheme === 'sky') {
+    if (bonusUfo) {
+      bonusUfo.x -= bonusUfo.vx;
+      bonusUfo.y += Math.sin(frames * 0.04 + bonusUfo.ph) * 0.55;
+      bonusUfo.ph += 0.05;
+      bonusUfo.age++;
+      if (bonusUfo.x < -90) {
+        bonusUfo = null;
+        bonusUfoTimer = bonusUfoCount < 3 ? 70 : 0;
+      }
+    } else if (bonusUfoCount < 3 && --bonusUfoTimer <= 0) {
+      spawnBonusUfo();
+    }
+  }
   bonusTimer--;
   const bonusSoftCap = PERF_LOW ? 46 : 58;
   const bonusHardCap = PERF_LOW ? 56 : 72;
@@ -4984,6 +5042,38 @@ function drawUFO(u) {
   }
   ctx.restore();
 }
+
+function drawBonusUfo(u) {
+  ctx.save();
+  drawUFO(u);
+  ctx.translate(u.x, u.y);
+  ctx.globalAlpha = 0.92;
+  ctx.fillStyle = '#8fb89a';
+  ctx.strokeStyle = 'rgba(10,30,20,.75)';
+  ctx.lineWidth = 1.8;
+  ctx.beginPath();
+  ctx.ellipse(0, -32, 13, 17, 0, 0, 7);
+  ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#0a0a0a';
+  ctx.beginPath();
+  ctx.ellipse(-5, -34, 3.2, 5.5, 0.45, 0, 7);
+  ctx.ellipse(5, -34, 3.2, 5.5, -0.45, 0, 7);
+  ctx.fill();
+  ctx.fillStyle = '#ffd23f';
+  ctx.strokeStyle = 'rgba(0,0,0,.75)';
+  ctx.lineWidth = 3;
+  ctx.font = "900 12px Bungee, 'Courier New', monospace";
+  ctx.textAlign = 'center';
+  outlinedText('+250', 0, -54);
+  ctx.strokeStyle = 'rgba(255,255,255,.55)';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([4, 5]);
+  ctx.beginPath();
+  ctx.ellipse(0, 0, 54, 36, 0, 0, 7);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.restore();
+}
 // Bola de fogo do vulcão (ideia 3 do Francisco): cai do céu com rastro e brilho
 function drawFireball(fb) {
   ctx.save();
@@ -6201,6 +6291,7 @@ function draw() {
     drawBonusBackground();
     bonusItems.forEach(it => { if (!it.taken && it.jewel) drawJewelGlow(it); });
     bonusItems.forEach(it => { if (!it.taken) drawBonusItem(it); });
+    if (bonusUfo) drawBonusUfo(bonusUfo);
   } else {
     drawBackground(p);
     drawBossArenaBackdrop();
@@ -7021,7 +7112,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.43';
+const GAME_VERSION = '5.44';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
