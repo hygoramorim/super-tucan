@@ -2025,7 +2025,7 @@ function spawnBonusItem(initial) {
   const isFood = rng() < foodChance;
   const item = isFood
     ? { type: 'food', food: randomFoodKind() }
-    : { type: 'egg', golden: rng() < 0.16, jewel: rng() < 0.08 };
+    : { type: 'egg', golden: rng() < 0.16, jewel: rng() < 0.24 };
   item.x = initial ? 70 + rng() * Math.max(100, W - 140) : W + 35 + rng() * 90;
   item.y = 82 + rng() * Math.max(120, H - GROUND_H - 190);
   item.vx = (bonusTheme === 'garden' ? 1.1 : 1.4) + rng() * (bonusTheme === 'garden' ? 1.5 : 1.9);
@@ -7020,7 +7020,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.41';
+const GAME_VERSION = '5.42';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
