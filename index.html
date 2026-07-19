@@ -1356,7 +1356,7 @@ const TUT_TEXTS = {
   bonus: { pt:'FASES BÔNUS: Jardim e Céu aparecem entre biomas para juntar muitos pontos.', en:'BONUS PHASES: Garden and Sky appear between biomes for many points.', es:'FASES BONUS: Jardín y Cielo aparecen entre biomas para juntar puntos.', zh:'奖励关：花园和天空会在生态区之间出现，能拿很多分。' },
   friends: { pt:'AMIGUINHOS aumentam a área de coleta. Até 2 podem ajudar juntos!', en:'BUDDIES increase collection reach. Up to 2 can help together!', es:'AMIGUITOS aumentan el alcance. ¡Hasta 2 ayudan juntos!', zh:'伙伴会扩大收集范围，最多2个一起帮忙！' },
   bosses: { pt:'BOSSES: Cobra é obrigatória no Pampas; Urubu é opcional pelo portal.', en:'BOSSES: Snake is mandatory in Pampas; Vulture is optional through the portal.', es:'JEFES: Cobra obligatoria en Pampas; Buitre opcional por portal.', zh:'首领：潘帕斯必遇蛇；秃鹫通过传送门可选。' },
-  bossScore: { pt:'VENCER: Cobra +220 pontos. Urubu +180, super ovo 25 e bônus ×3.', en:'CLEAR: Snake +220. Vulture +180, super egg 25 and ×3 bonus.', es:'VENCER: Cobra +220. Buitre +180, super huevo 25 y bono ×3.', zh:'获胜：蛇+220；秃鹫+180，超级蛋25，还有×3奖励。' },
+  bossScore: { pt:'VENCER: Cobra +220 pontos. Urubu +180, super ovos 25 e bônus ×3.', en:'CLEAR: Snake +220. Vulture +180, super eggs 25 and ×3 bonus.', es:'VENCER: Cobra +220. Buitre +180, super huevos 25 y bono ×3.', zh:'获胜：蛇+220；秃鹫+180，超级蛋25，还有×3奖励。' },
   biomes: { pt:'BIOMAS: leia o nome da fase e observe os animais brasileiros no cenário.', en:'BIOMES: read each phase name and watch Brazilian animals in the scenery.', es:'BIOMAS: lee el nombre y observa animales brasileños.', zh:'生态区：阅读阶段名称，观察巴西动物。' },
   ready: { pt:'PRONTO! VOCÊ CONHECEU O UNIVERSO DO SUPER TUCAN 🦜', en:'READY! YOU LEARNED THE SUPER TUCAN WORLD 🦜', es:'LISTO! CONOCISTE EL UNIVERSO DE SUPER TUCAN 🦜', zh:'准备好了！你认识了超级巨嘴鸟世界 🦜' }
 };
@@ -1436,7 +1436,15 @@ function updateTutorialStations() {
 }
 function floater(text, color, x, y) {
   if (bonusPopupsMuted) return;
-  floaters.push({ x: x === undefined ? bird.x : x, y: y === undefined ? bird.y - 40 : y, text, color: color || '#ffd23f', life: 90 });
+  let fx = x === undefined ? bird.x : x;
+  let fy = y === undefined ? bird.y - 40 : y;
+  for (let i = 0; i < 8; i++) {
+    const crowded = floaters.some(f => Math.abs(f.x - fx) < 140 && Math.abs(f.y - fy) < 24);
+    if (!crowded) break;
+    fy -= 24;
+  }
+  fy = Math.max(54, Math.min(H - GROUND_H - 32, fy));
+  floaters.push({ x: fx, y: fy, text, color: color || '#ffd23f', life: 90 });
 }
 function triggerScoreMilestones(showSmall) {
   let bigTriggered = false;
@@ -2452,7 +2460,7 @@ function update() {
               vx: Math.cos(ang) * 7.4, vy: Math.sin(ang) * 7.4, delay: i * 11,
               curve: (i - 1) * 0.055 + (rng() - 0.5) * 0.035,
               r: i === 1 ? 10 : 9, rot: 0, ph: 0, age: 0,
-              good: i === 1, snake: i !== 1, taken: false, golden: i === 1
+              good: true, snake: false, taken: false, golden: true
             });
           });
         } else if (boss.attackKind === 'bite') {
@@ -2473,7 +2481,7 @@ function update() {
         boss.boneTimer = Math.round(URUBU_THROW_INTERVAL * (portraitMobile ? 1.3 : 1));
         const tx = boss.warnX == null ? bird.x : boss.warnX, ty = boss.warnY == null ? bird.y : boss.warnY;
         const ang = Math.atan2(ty - boss.y, tx - boss.x);
-        const superEgg = rng() < 0.22;
+        const superEgg = rng() < 0.66;
         const speed = (superEgg ? URUBU_SUPER_EGG_SPEED : URUBU_BONE_SPEED) * (portraitMobile ? 0.7 : 1);
         bones.push({ x: boss.x - 20, y: boss.y, vx: Math.cos(ang) * speed, vy: Math.sin(ang) * speed, rot: 0, ph: 0, superEgg, golden: superEgg, urubuSuper: superEgg });
         boss.warnX = boss.warnY = null;
@@ -5663,6 +5671,27 @@ function outlinedText(text, x, y) {
   ctx.fillText(text, x, y);
 }
 
+function colorLuminance(color) {
+  if (!color) return 1;
+  let r, g, b;
+  if (color[0] === '#') {
+    let hex = color.slice(1);
+    if (hex.length === 3) hex = hex.split('').map(ch => ch + ch).join('');
+    r = parseInt(hex.slice(0, 2), 16);
+    g = parseInt(hex.slice(2, 4), 16);
+    b = parseInt(hex.slice(4, 6), 16);
+  } else {
+    const m = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+    if (!m) return 1;
+    r = +m[1]; g = +m[2]; b = +m[3];
+  }
+  return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+}
+
+function readableFloaterColor(color) {
+  return colorLuminance(color) < 0.42 ? '#fff7d6' : color;
+}
+
 function drawHUD(p) {
   // placar de ovos
   ctx.save();
@@ -6328,12 +6357,36 @@ function draw() {
   // textos flutuantes de celebração
   floaters.forEach(f => {
     ctx.globalAlpha = Math.min(1, f.life / 30) * (f.blink ? (0.55 + 0.45 * Math.sin(frames * 0.55) ** 2) : 1);
-    ctx.fillStyle = f.color;
-    ctx.font = f.big ? "900 58px Bungee, 'Courier New', monospace" : '900 18px Grandstander, sans-serif';
     ctx.textAlign = 'center';
+    const baseSize = f.big ? 58 : 18;
+    const family = f.big ? "Bungee, 'Courier New', monospace" : 'Grandstander, sans-serif';
+    let fontSize = baseSize;
+    ctx.font = (f.big ? '900 ' : '900 ') + fontSize + 'px ' + family;
+    const maxTextW = W - 28;
+    const measured = ctx.measureText(f.text).width;
+    if (measured > maxTextW) {
+      fontSize = Math.max(f.big ? 34 : 13, Math.floor(fontSize * maxTextW / measured));
+      ctx.font = '900 ' + fontSize + 'px ' + family;
+    }
+    const tw = ctx.measureText(f.text).width;
+    const padX = f.big ? 16 : 10;
+    const padY = f.big ? 10 : 5;
+    const boxW = Math.min(W - 16, tw + padX * 2);
+    const boxH = fontSize + padY * 2;
+    const boxX = Math.max(8, Math.min(W - 8 - boxW, f.x - boxW / 2));
+    const boxY = f.y - fontSize * 0.82 - padY;
+    const textX = boxX + boxW / 2;
+    ctx.fillStyle = 'rgba(4,14,10,.72)';
+    ctx.strokeStyle = f.color || 'rgba(255,255,255,.5)';
+    ctx.lineWidth = f.big ? 2.5 : 1.6;
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(boxX, boxY, boxW, boxH, f.big ? 10 : 7);
+    else ctx.rect(boxX, boxY, boxW, boxH);
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = readableFloaterColor(f.color);
     ctx.strokeStyle = 'rgba(0,0,0,.82)';
-    ctx.lineWidth = f.big ? 8 : 4;
-    outlinedText(f.text, f.x, f.y);
+    ctx.lineWidth = f.big ? 8 : 4.5;
+    outlinedText(f.text, textX, f.y);
   });
   ctx.globalAlpha = 1;
 
@@ -6967,7 +7020,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.40';
+const GAME_VERSION = '5.41';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)

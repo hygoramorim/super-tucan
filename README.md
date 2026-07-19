@@ -17,6 +17,7 @@ Um Flappy Bird brasileiro, cartoon e cheio de vida — voe com o tucano por biom
 - HUD e arte com leitura mobile-first: contornos cartoon, telegráficos de boss e recompensas cosméticas
 - Margens seguras para celular, tablet e desktop, respeitando notch/status bar e evitando corte do topo do jogo
 - Modo mais amigo: voo do tucano consistente, velocidade mais suave e itens especiais em locais mais acessíveis
+- Textos de pontuação com fundo/contraste reforçado e bosses liberando mais recompensas premiadas
 - Amiguinhos equipados ajudam a coletar ovos e power-ups com hitbox própria; a lojinha tem novas aves brasileiras e acessórios
 - 4 idiomas: 🇧🇷 🇺🇸 🇪🇸 🇨🇳
 

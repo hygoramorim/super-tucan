@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.40` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.41` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -331,3 +331,6 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
 - **v5.40** — Modo mais amigo: física do voo fica consistente entre biomas/itens, curva de velocidade
   base e bônus aceleradores têm cerca de metade do aumento anterior, boss passa a +5%, Livro das
   Maldições vira Livro Mágico sem punições e itens especiais nascem num corredor central mais acessível.
+- **v5.41** — textos flutuantes de pontuação ganharam faixas anti-sobreposição, fundo translúcido,
+  ajuste de tamanho e cor mais legível; bosses liberam 3× mais itens premiados (super ovos do Urubu
+  e ovos bons da Anaconda).
