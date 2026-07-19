@@ -1654,7 +1654,10 @@ canvas.addEventListener('pointerdown', (e) => {
     flap(); // tocar no ET também mantém o controle normal de subida
     return;
   }
-  if (tryClickBonusUfo(e.clientX, e.clientY)) return;
+  if (tryClickBonusUfo(e.clientX, e.clientY)) {
+    flap(); // tocar no UFO bônus também mantém o tucano voando
+    return;
+  }
   flap();
 });
 
@@ -7112,7 +7115,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.44';
+const GAME_VERSION = '5.45';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
