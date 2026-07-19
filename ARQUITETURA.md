@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.46` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.47` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -347,3 +347,5 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
 - **v5.46** — ranking global passa a publicar recordes com confirmação: nomes genéricos ganham chave
   única por aparelho, `best` nunca é reduzido, falhas ficam em fila local de reenvio e a tela informa
   quando o envio será tentado novamente.
+- **v5.47** — ao abrir o jogo, o recorde local do último jogador é republicado automaticamente no
+  ranking global, recuperando PBs que ficaram só no aparelho após falha de envio anterior.

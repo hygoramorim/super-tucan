@@ -1141,6 +1141,13 @@ async function publishPlayer(name, st) {
   await flushPendingRank().catch(() => {});
   return saved;
 }
+function syncLocalRankFromDevice() {
+  const name = (localStorage.getItem(LS_NAME) || '').trim();
+  if (!name) return;
+  const st = getStats(name);
+  if (!st.pb && !st.xp) return;
+  publishPlayer(name, st).catch(() => queueRankPublication(name, st));
+}
 
 // ---------- Status do jogador (por nome, no aparelho) ----------
 // { pb: recorde de ovos, phase: maior bioma alcançado (índice), level: maior nível no Pantanal }
@@ -7171,11 +7178,12 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.46';
+const GAME_VERSION = '5.47';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
 resetGame();
+syncLocalRankFromDevice();
 renderRanking();
 updateMenuPB();
 requestAnimationFrame(loop);
