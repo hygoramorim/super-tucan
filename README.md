@@ -19,6 +19,7 @@ Um Flappy Bird brasileiro, cartoon e cheio de vida — voe com o tucano por biom
 - Modo mais amigo: voo do tucano consistente, velocidade mais suave e itens especiais em locais mais acessíveis
 - Textos de pontuação com fundo/contraste reforçado e bosses liberando mais recompensas premiadas
 - Fases bônus com mais ovos azuis brilhantes de alto valor
+- Teto do jogo não mata mais: ele repele o tucano para baixo, como nas fases bônus
 - Amiguinhos equipados ajudam a coletar ovos e power-ups com hitbox própria; a lojinha tem novas aves brasileiras e acessórios
 - 4 idiomas: 🇧🇷 🇺🇸 🇪🇸 🇨🇳
 

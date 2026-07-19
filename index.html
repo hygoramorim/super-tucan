@@ -1776,7 +1776,7 @@ function spawnObstacle() {
     : gapY + (rng() * 40 - 20);
   placeEggItem({ x: ob.x + ob.w / 2, y: eggY, golden, taken: false, bob: rng() * 6.28, age: 0 }, placedItems);
   // OVO-JOIA azul (15%): vale 10 pontos e SEMPRE nasce em lugar muito
-  // desafiador — borda apertadíssima da abertura, colado no teto (que mata)
+  // desafiador — borda apertadíssima da abertura, colado no teto (que repele)
   // ou rente ao chão. Brilha com um halo enorme para ser visto de longe.
   let jewelBetween = false;
   if (rng() < 0.15) {
@@ -1786,7 +1786,7 @@ function spawnObstacle() {
       jx = ob.x + ob.w / 2;
       jy = gapY + (rng() < 0.5 ? -1 : 1) * (d.gap / 2 - 16);
     } else if (slot === 1) {
-      jx = ob.x + d.spacing / 2; jy = 44; jewelBetween = true;      // rente ao teto letal
+      jx = ob.x + d.spacing / 2; jy = 44; jewelBetween = true;      // rente ao teto que repele
     } else {
       jx = ob.x + d.spacing / 2; jy = H - GROUND_H - 42; jewelBetween = true; // rente ao chão
     }
@@ -2583,11 +2583,12 @@ function update() {
   if (equippedPets().length) { petTrail.push({ x: bird.x, y: bird.y }); if (petTrail.length > 46) petTrail.shift(); }
   if (bird.flapAnim > 0) bird.flapAnim--;
   bird.wing = bird.flapAnim > 0 ? Math.sin(frames * 1.1) * 1.2 : Math.sin(frames * 0.25) * 0.4;
-  // tocar o teto agora é fatal (como o chão) — salvo pelo escudo (ideia 8)
+  // Teto child friendly: não mata; só repele o Tucano rapidamente para baixo.
   if (bird.y < bird.r) {
     bird.y = bird.r;
-    if (hasShield() && invuln <= 0) { useShield(4); } // repique pra baixo
-    else { die(); return; }
+    bird.vy = Math.max(4, bird.vy);
+    shake = Math.max(shake, 2);
+    if (frames % 18 === 0) floater(t('careful'), '#ffcf33', bird.x, bird.y + 40);
   }
 
   // deslocamento horizontal (velocidade cresce nos níveis do Pantanal)
@@ -2800,7 +2801,7 @@ const DEATH_QUOTES = [
   'O GALHO VEIO ATÉ MIM!', 'AVISA QUE EU TÔ BEM', 'ISSO VAI DEIXAR MARCA',
   'A CULPA FOI DO VENTO!', 'ATÉ TUCANO ERRA, TÁ?'
 ];
-// ideia 8 do Francisco: o ESCUDO protege de TUDO (galhos, pássaros, teto e chão).
+// ideia 8 do Francisco: o ESCUDO protege dos perigos letais (galhos, pássaros, chão e ataques).
 // Consome o escudo, dá invencibilidade breve, e opcionalmente aplica um repique
 // salvador (para teto/chão, empurrando o tucano de volta pra dentro da tela).
 function hasShield() { return shield > 0 || aguaShield > 0; }
@@ -7020,7 +7021,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.42';
+const GAME_VERSION = '5.43';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)

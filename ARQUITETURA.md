@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.42` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.43` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -336,3 +336,5 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
   e ovos bons da Anaconda).
 - **v5.42** — fases bônus passam a ter 3× mais ovos-joia azuis brilhantes: chance nos itens de ovo
   sobe de 8% para 24%, aumentando as oportunidades de pontuação alta no Jardim e no Arco-Íris.
+- **v5.43** — teto do jogo normal deixa de ser letal: tocar no topo agora prende o tucano na borda,
+  aplica repique rápido para baixo e mostra aviso leve, preservando o chão como perigo.
