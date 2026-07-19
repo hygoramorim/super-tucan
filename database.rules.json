@@ -1,0 +1,47 @@
+{
+  "rules": {
+    ".read": true,
+    "players": {
+      "$name": {
+        ".write": true,
+        ".validate": "newData.hasChildren(['best', 'xp']) && newData.child('best').isNumber() && newData.child('xp').isNumber() && newData.child('best').val() >= 0 && newData.child('best').val() <= 999999 && newData.child('xp').val() >= 0 && newData.child('xp').val() <= 9999999"
+      }
+    },
+    "names": {
+      "$name": {
+        ".write": "!data.exists() || data.child('dev').val() === newData.child('dev').val()",
+        ".validate": "newData.hasChildren(['dev']) && newData.child('dev').isString()"
+      }
+    },
+    "ideas": {
+      "$id": {
+        ".write": "!data.exists()",
+        ".validate": "newData.hasChildren(['who', 'text', 'at'])"
+      }
+    },
+    "friends": {
+      "$name": {
+        ".read": true,
+        ".write": true
+      }
+    },
+    "friendRequests": {
+      "$name": {
+        ".read": true,
+        ".write": true
+      }
+    },
+    "requests": {
+      "$name": {
+        ".read": true,
+        ".write": true
+      }
+    },
+    "inviteCodes": {
+      "$code": {
+        ".read": true,
+        ".write": true
+      }
+    }
+  }
+}

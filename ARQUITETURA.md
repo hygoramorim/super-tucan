@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.48` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.49` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -127,6 +127,8 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
 - **Nós e regras** (publicadas no console do Firebase):
   - `players/<nome>`: 1 registro por nome (`{best, xp}`). Posse do nome é **por device** (não por IP;
     corrige o bug de CGNAT em que usuários do mesmo IP público roubavam nomes).
+    As regras versionadas ficam em `database.rules.json`; `best` aceita até `999999`, para não bloquear
+    recordes acima de 10 mil.
   - `ideas/<id>`: sugestões. Regra permite **criar+validar**, mas **nega sobrescrever/apagar**
     (`!data.exists()`), protegendo as sugestões. Por isso testes deixados no nó só o Hygor apaga no console.
 - **Sugestões → dev:** jogador manda ideia pela tela 💡 IDEIAS → grava em `/ideas` → `node ler-sugestoes.js`
@@ -351,3 +353,6 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
   ranking global, recuperando PBs que ficaram só no aparelho após falha de envio anterior.
 - **v5.48** — publicação do ranking volta ao schema estrito aceito pelas regras do Firebase
   (`{best, xp}`), mantendo confirmação, reenvio e recuperação de PB local sem campos extras.
+- **v5.49** — regras do Firebase passam a ser versionadas no repo (`database.rules.json` +
+  `firebase.json`) e aumentam o limite de `players/<nome>/best` para `999999`, corrigindo o bloqueio
+  que impedia FRANCISCO `10858` de entrar no ranking global.

@@ -22,6 +22,7 @@ Um Flappy Bird brasileiro, cartoon e cheio de vida — voe com o tucano por biom
 - Teto do jogo não mata mais: ele repele o tucano para baixo, como nas fases bônus
 - Over the Rainbow tem disco voador com ET de Varginha clicável, valendo +250 pontos até 3 vezes e mantendo o pulo do tucano
 - Ranking global mais confiável: recordes altos são confirmados no Firebase, ficam em fila de reenvio se a conexão falhar e o recorde local é republicado ao abrir o jogo usando o schema aceito pelo banco
+- Regras do Firebase versionadas no repo para aceitar recordes acima de 10 mil no ranking global
 - Amiguinhos equipados ajudam a coletar ovos e power-ups com hitbox própria; a lojinha tem novas aves brasileiras e acessórios
 - 4 idiomas: 🇧🇷 🇺🇸 🇪🇸 🇨🇳
 
