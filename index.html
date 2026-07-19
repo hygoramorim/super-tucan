@@ -1099,11 +1099,8 @@ async function putPlayerCard(name, st) {
   const key = rankKeyForName(name);
   const current = await fbJson(['players', key]).catch(() => null);
   const card = {
-    name: rankDisplayName(name),
     best: Math.max(Number(st.pb) || 0, Number(current && current.best) || 0),
-    xp: Math.max(Number(st.xp) || 0, Number(current && current.xp) || 0),
-    updatedAt: Date.now(),
-    ver: GAME_VERSION
+    xp: Math.max(Number(st.xp) || 0, Number(current && current.xp) || 0)
   };
   await fbJson(['players', key], { method: 'PUT', body: JSON.stringify(card) });
   const saved = await fbJson(['players', key]);
@@ -7178,7 +7175,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.47';
+const GAME_VERSION = '5.48';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
