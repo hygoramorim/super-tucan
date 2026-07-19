@@ -10,7 +10,7 @@ Um Flappy Bird brasileiro, cartoon e cheio de vida — voe com o tucano por biom
 
 ## ✨ O que tem no jogo
 
-- Biomas brasileiros, fase subaquática no Lago Cristalino, fauna nativa animada, o ET de Varginha escondido e sua nave
+- Biomas brasileiros, fase subaquática no Lago Cristalino com flores aquáticas coloridas, fauna nativa animada, o ET de Varginha escondido e sua nave
 - Itens: pena, escudo, relógio, água turbinada, o Livro das Maldições e 6 Comidas do Brasil (café, brigadeiro, pimenta…)
 - Eventos: tempestade, neve nos Pampas, terremoto, vulcão com tremor e bolas de fogo cenográficas, noite de 30s e bônus do ET
 - Bossfights com Urubu opcional por portal, Cobra/Anaconda obrigatória nos Pampas, ranking global (ovos e XP), lojinha, conquistas e aves companheiras
