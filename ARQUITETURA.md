@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.39` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.40` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -83,16 +83,16 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
   a Cobra. Não há ovos normais dentro da bossfight. Ao vencer, o jogador recebe bônus fixo não
   multiplicável (`+180` no Urubu, `+220` na Cobra). O Urubu também concede `×3` por `4200` de distância,
   sem multiplicador permanente de score para manter o ranking honesto.
-  - Cada boss aumenta a dificuldade **+10% permanente e acumulativa** naquela partida via
-    `bossDiffMult() = 1.10 ^ min(bossAppearances, 5)` (aplicado à velocidade em `currentDiff()`).
+  - Cada boss aumenta a dificuldade **+5% permanente e acumulativa** naquela partida via
+    `bossDiffMult() = 1.05 ^ min(bossAppearances, 5)` (aplicado à velocidade em `currentDiff()`).
   - **Tetos (importantes — não remover):** o multiplicador do boss trava em 5 aparições e há
-    um teto de velocidade **final** `d.speed = Math.min(d.speed, 7.0)` em `currentDiff()`. Sem eles, o
-    `Math.min(5.6, ...)` do Pantanal (que roda ANTES de aplicar `k`) não segura o multiplicador do boss
+    um teto de velocidade **final** `d.speed = Math.min(d.speed, 5.0)` em `currentDiff()`. Sem eles, o
+    crescimento do Pantanal (que roda ANTES de aplicar `k`) não segura o multiplicador do boss
     e sessões longas ficam injogáveis. (achado do code review da v5.2).
   - Ao nascer numa **transição de fase**, o portal é ENFILEIRADO (`bossQueued`, ~140 frames) em vez de
     entrar já, para o jogador ver primeiro o banner do novo bioma.
-- **Power-ups:** pena (veloc.+pontos), escudo, relógio (câmera lenta), água (pulo alto), livro das
-  maldições (4 efeitos aleatórios), 6 comidas.
+- **Power-ups:** pena (leve veloc.+pontos), escudo, relógio (câmera lenta), água (leve desaceleração,
+  escudo e pontos `×2`), Livro Mágico (4 bônus positivos), 6 comidas.
 - **Eventos:** tempestade, vulcão, noite de 30s, terremoto e eventos do ET. +
   nave do ET e clique no ET (noite mágica 15s + ovos `×2` por 15s).
 - **Economia de ovos:** carteira persistente (`superTucan_eggBank`) → loja de acessórios e pets.
@@ -328,3 +328,6 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
   com os obstáculos, agora há pequenos grupos decorativos espalhados pela base arenosa da fase.
 - **v5.39** — ajuste de responsividade: canvas passa a respeitar margem segura e `safe-area-inset-*`
   em celular, tablet e desktop, evitando que o topo do jogo fique oculto por notch/barras do navegador.
+- **v5.40** — Modo mais amigo: física do voo fica consistente entre biomas/itens, curva de velocidade
+  base e bônus aceleradores têm cerca de metade do aumento anterior, boss passa a +5%, Livro das
+  Maldições vira Livro Mágico sem punições e itens especiais nascem num corredor central mais acessível.
