@@ -31,6 +31,8 @@ O jogo precisa parecer vivo, alegre e brasileiro, mas sem perder a leitura imedi
   - inclui treino de voo, ovos, galhos e Lago Cristalino.
 - Loja:
   - acessorios e amigos animais comprados com ovos.
+  - ate 2 amiguinhos podem estar ativos por partida.
+  - amiguinhos coletam itens proximo ao tucano e contribuem para o COMBO (v5.50+).
 - Comunidade:
   - jogadores enviam ideias pela tela de sugestoes.
 

@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.49` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.50` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -97,7 +97,8 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
   nave do ET e clique no ET (noite mágica 15s + ovos `×2` por 15s).
 - **Economia de ovos:** carteira persistente (`superTucan_eggBank`) → loja de acessórios e pets.
 - **Amiguinhos:** aves equipadas seguem o tucano e têm hitbox apenas de coleta (ovos/power-ups);
-  não colidem com galhos, inimigos ou projéteis.
+  não colidem com galhos, inimigos ou projéteis. Desde v5.50, contribuem para o COMBO ao coletarem
+  itens, tornando a mecânica mais colaborativa e recompensando o uso de pets na pontuação.
 - **Ranking:** duas leituras do nó `players/` — recordistas (ovos) e veteranos (XP). A publicação
   confirma a gravação no Firebase, preserva o maior `best`, usa chave própria para nomes genéricos
   por aparelho e guarda fila local de reenvio em `superTucan_rankPending` quando a rede falha.
@@ -356,3 +357,6 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
 - **v5.49** — regras do Firebase passam a ser versionadas no repo (`database.rules.json` +
   `firebase.json`) e aumentam o limite de `players/<nome>/best` para `999999`, corrigindo o bloqueio
   que impedia FRANCISCO `10858` de entrar no ranking global.
+- **v5.50** — amiguinhos (pets equipados) agora contribuem para o COMBO ao coletarem itens, ao invés
+  de zerar o contador. Melhora a mecânica com pets sendo aliados de verdade na pontuação e torna o
+  multiplicador de combo mais acessível em partidas com amigos ajudando.
