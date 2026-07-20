@@ -2011,11 +2011,10 @@ function collectPowerup(pu, py, opts = {}) {
 function collectEgg(e, ey, opts = {}) {
   e.taken = true;
   const byPet = !!opts.byPet;
-  if (byPet) combo = 0;
-  else combo++;
+  combo++;
   // ideia 10 do Francisco: o combo sobe mais cedo (4/8/12), com teto ×4
   const newMult = comboMult(combo);
-  if (!byPet && newMult > comboMult(combo - 1) && newMult > 1) {
+  if (newMult > comboMult(combo - 1) && newMult > 1) {
     floater('🔥 COMBO ×' + newMult + '!', '#ff2e93'); sfx.comboUp();
   }
   // combo, power-ups e bônus temporários multiplicam ovos/alimentos sem virar recompensa permanente infinita.
@@ -7175,7 +7174,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.49';
+const GAME_VERSION = '5.50';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
