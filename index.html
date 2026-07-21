@@ -1380,12 +1380,16 @@ function finishBossArena() {
   bossBadgeText = kind === 'cobra' ? t('bossBadgeSnake') : t('bossBadgeUrubu');
   const clearBonus = kind === 'cobra' ? 220 : 180;
   score += clearBonus; // bônus fixo de chefão: não passa pelos multiplicadores.
-  scorePulse = 90;
-  floater('+' + clearBonus + ' PTS', '#ffd23f', W / 2, H / 2 - 55);
+  triggerScoreMilestones(false); // boss ainda ativo: avança marcos em silêncio, sem caixa perdida
+  // fecho brilhante do boss: o valor final estoura no placar (mega-pulso dourado)
+  scorePulse = 130;
+  scoreMegaPulse = 150;
+  shake = Math.max(shake, 6);
+  floater('✨ +' + clearBonus + ' PTS ✨', '#fff7dd', W / 2, H / 2 - 55);
   if (kind === 'urubu') urubuBonusDist = 4200;
   unlockAchievement(kind === 'cobra' ? 'beatSnake' : 'beatUrubu');
-  celebrate(['#ffd23f', '#ff2e93', '#ffffff'], 70);
-  sfx.milestone();
+  celebrate(['#ffd23f', '#ff2e93', '#ffffff', '#7ee08a', '#fff7dd'], 150);
+  sfx.milestone(8);
   boss = null; bossArena = null; bones = []; venom = []; snakeEggs = []; snakeWhips = []; snakeBites = [];
   bossTimer = 2200;
   nextBossKind = 'urubu';
@@ -1504,10 +1508,11 @@ function floater(text, color, x, y) {
   floaters.push({ x: fx, y: fy, text, color: color || '#ffd23f', life: 90 });
 }
 function triggerScoreMilestones(showSmall) {
-  // Nas fases bônus o placar dispara rápido demais: em vez de encher a área de
-  // jogo com caixas de marco (que atrapalham o controle do tucano), só avança os
-  // marcadores em silêncio. O brilho fica no HUD e no fecho da fase bônus.
-  if (bonusActive) {
+  // Nas fases bônus e nas lutas de boss o placar dispara rápido e o jogador
+  // precisa de foco total: em vez de encher a área de jogo com caixas de marco
+  // (que atrapalham o controle do tucano), só avança os marcadores em silêncio.
+  // O brilho fica no HUD e no fecho da fase (bônus concluído / boss vencido).
+  if (bonusActive || boss || bossArena) {
     while (score >= nextBigMilestone) nextBigMilestone += 1000;
     while (score >= nextMilestone) nextMilestone += 100;
     return;
@@ -5857,9 +5862,9 @@ function drawHUD(p) {
   ctx.save();
   const pulse = scorePulse > 0 ? Math.sin(scorePulse * 0.32) * (scorePulse / 90) : 0;
   const megaPulse = scoreMegaPulse > 0 ? (0.45 + 0.55 * Math.sin(scoreMegaPulse * 0.28) ** 2) * (scoreMegaPulse / 150) : 0;
-  // fase bônus: o painel do placar "respira" de leve para dar vida sem poluir a tela
-  const bonusBreath = bonusActive ? 0.1 + Math.abs(Math.sin(frames * 0.09)) * 0.14 : 0;
-  const pulseAmt = Math.max(0, pulse, megaPulse * 1.25, bonusBreath);
+  // fases bônus e de boss: o painel do placar "respira" de leve para dar vida sem poluir a tela
+  const liveBreath = (bonusActive || boss || bossArena) ? 0.1 + Math.abs(Math.sin(frames * 0.09)) * 0.14 : 0;
+  const pulseAmt = Math.max(0, pulse, megaPulse * 1.25, liveBreath);
   hudPanel(12, 12, 118 + pulseAmt * 24, 40 + megaPulse * 6, 10);
   // mini ovo
   ctx.fillStyle = '#fdf6e3';
@@ -5882,10 +5887,13 @@ function drawHUD(p) {
     ctx.fillStyle = scoreMegaPulse > 0 ? '#ffffff' : '#ffd23f';
     ctx.fillText(String(score), 0, 8);
     ctx.restore();
-  } else if (bonusActive) {
-    // fase bônus: placar total brilha e "respira" — feedback vivo dos pontos
-    // acumulando, mantendo a área de jogo livre de caixas flutuantes.
-    const themeCol = bonusTheme === 'garden' ? '#ffd23f' : '#ff2e93';
+  } else if (bonusActive || boss || bossArena) {
+    // fases bônus e de boss: placar total brilha e "respira" — feedback vivo dos
+    // pontos, mantendo a área de jogo livre de caixas flutuantes. A cor segue o
+    // tema: dourado/magenta no bônus; veneno (cobra) ou brasa (urubu) no boss.
+    const themeCol = bonusActive
+      ? (bonusTheme === 'garden' ? '#ffd23f' : '#ff2e93')
+      : ((bossArena ? bossArena.kind : boss && boss.kind) === 'cobra' ? '#a7f432' : '#ff8a3c');
     const breathe = 1 + Math.sin(frames * 0.14) * 0.05;
     ctx.save();
     ctx.translate(52, 33);
@@ -7203,7 +7211,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.51';
+const GAME_VERSION = '5.52';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
