@@ -1504,6 +1504,14 @@ function floater(text, color, x, y) {
   floaters.push({ x: fx, y: fy, text, color: color || '#ffd23f', life: 90 });
 }
 function triggerScoreMilestones(showSmall) {
+  // Nas fases bônus o placar dispara rápido demais: em vez de encher a área de
+  // jogo com caixas de marco (que atrapalham o controle do tucano), só avança os
+  // marcadores em silêncio. O brilho fica no HUD e no fecho da fase bônus.
+  if (bonusActive) {
+    while (score >= nextBigMilestone) nextBigMilestone += 1000;
+    while (score >= nextMilestone) nextMilestone += 100;
+    return;
+  }
   let bigTriggered = false;
   while (score >= nextBigMilestone) {
     const mark = nextBigMilestone;
@@ -2155,15 +2163,18 @@ function finishBonusPhase() {
   bonusTimer = 0;
   bonusItems = [];
   bonusUfo = null;
-  bannerTimer = 120; bannerText = 'BÔNUS CONCLUÍDO'; bannerSub = '+' + bonusScore + ' PONTOS';
-  floater('+' + bonusScore + ' PTS', '#ffd23f', W / 2, H / 2 - 85);
-  if (gameMode === 'tutorial') floater('Fase bônus soma pontos rápido e não tem inimigos.', '#7ee08a', W / 2, H / 2 - 52);
+  bannerTimer = 140; bannerText = 'BÔNUS CONCLUÍDO'; bannerSub = '+' + bonusScore + ' PONTOS';
   floater(bonusTheme === 'garden' ? 'JARDIM DOS GIRASSÓIS!' : 'OVER THE RAINBOW!', bonusTheme === 'garden' ? '#f59e0b' : '#ff2e93', W / 2, H / 2 - 122);
+  floater('✨ +' + bonusScore + ' PTS ✨', '#fff7dd', W / 2, H / 2 - 85);
+  if (gameMode === 'tutorial') floater('Fase bônus soma pontos rápido e não tem inimigos.', '#7ee08a', W / 2, H / 2 - 52);
+  // fecho brilhante: o valor final estoura no placar (mega-pulso dourado no HUD)
   celebrate(bonusTheme === 'garden'
-    ? ['#ffd23f', '#f59e0b', '#7ee08a', '#38bdf8', '#ffffff']
-    : ['#ff2e93', '#ffd23f', '#7dd3fc', '#7ee08a', '#c084fc'], 90);
-  scorePulse = 90;
-  sfx.milestone(5);
+    ? ['#ffd23f', '#f59e0b', '#7ee08a', '#38bdf8', '#ffffff', '#fff7dd']
+    : ['#ff2e93', '#ffd23f', '#7dd3fc', '#7ee08a', '#c084fc', '#ffffff'], 150);
+  scorePulse = 130;
+  scoreMegaPulse = 150;
+  shake = Math.max(shake, 5);
+  sfx.milestone(8);
 }
 function updateBonusPhase() {
   const timerRatio = bonusTimer / 900;
@@ -5846,7 +5857,9 @@ function drawHUD(p) {
   ctx.save();
   const pulse = scorePulse > 0 ? Math.sin(scorePulse * 0.32) * (scorePulse / 90) : 0;
   const megaPulse = scoreMegaPulse > 0 ? (0.45 + 0.55 * Math.sin(scoreMegaPulse * 0.28) ** 2) * (scoreMegaPulse / 150) : 0;
-  const pulseAmt = Math.max(0, pulse, megaPulse * 1.25);
+  // fase bônus: o painel do placar "respira" de leve para dar vida sem poluir a tela
+  const bonusBreath = bonusActive ? 0.1 + Math.abs(Math.sin(frames * 0.09)) * 0.14 : 0;
+  const pulseAmt = Math.max(0, pulse, megaPulse * 1.25, bonusBreath);
   hudPanel(12, 12, 118 + pulseAmt * 24, 40 + megaPulse * 6, 10);
   // mini ovo
   ctx.fillStyle = '#fdf6e3';
@@ -5867,6 +5880,22 @@ function drawHUD(p) {
     ctx.lineWidth = scoreMegaPulse > 0 ? 7 : 5;
     outlinedText(String(score), 0, 8);
     ctx.fillStyle = scoreMegaPulse > 0 ? '#ffffff' : '#ffd23f';
+    ctx.fillText(String(score), 0, 8);
+    ctx.restore();
+  } else if (bonusActive) {
+    // fase bônus: placar total brilha e "respira" — feedback vivo dos pontos
+    // acumulando, mantendo a área de jogo livre de caixas flutuantes.
+    const themeCol = bonusTheme === 'garden' ? '#ffd23f' : '#ff2e93';
+    const breathe = 1 + Math.sin(frames * 0.14) * 0.05;
+    ctx.save();
+    ctx.translate(52, 33);
+    ctx.scale(breathe, breathe);
+    ctx.strokeStyle = 'rgba(0,0,0,.7)';
+    ctx.lineWidth = 4;
+    ctx.shadowColor = themeCol;
+    ctx.shadowBlur = 12 + Math.abs(Math.sin(frames * 0.14)) * 8;
+    outlinedText(String(score), 0, 8);
+    ctx.fillStyle = '#fff7dd';
     ctx.fillText(String(score), 0, 8);
     ctx.restore();
   } else {
@@ -7174,7 +7203,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.50';
+const GAME_VERSION = '5.51';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
