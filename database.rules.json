@@ -1,46 +1,115 @@
 {
   "rules": {
-    ".read": true,
+    ".read": false,
+    ".write": false,
     "players": {
+      ".read": true,
       "$name": {
-        ".write": true,
-        ".validate": "newData.hasChildren(['best', 'xp']) && newData.child('best').isNumber() && newData.child('xp').isNumber() && newData.child('best').val() >= 0 && newData.child('best').val() <= 999999 && newData.child('xp').val() >= 0 && newData.child('xp').val() <= 9999999"
+        ".write": "$name.matches(/^[A-Z0-9]{1,9}(_[A-Z0-9]{6})?$/) && newData.exists() && (!data.exists() || (newData.child('best').val() >= data.child('best').val() && newData.child('xp').val() >= data.child('xp').val()))",
+        ".validate": "newData.hasChildren(['best', 'xp'])",
+        "best": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 999999 && newData.val() % 1 === 0"
+        },
+        "xp": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9999999 && newData.val() % 1 === 0"
+        },
+        "$other": {
+          ".validate": false
+        }
       }
     },
     "names": {
       "$name": {
-        ".write": "!data.exists() || data.child('dev').val() === newData.child('dev').val()",
-        ".validate": "newData.hasChildren(['dev']) && newData.child('dev').isString()"
+        ".read": "$name.matches(/^[A-Z0-9]{1,9}$/)",
+        ".write": "$name.matches(/^[A-Z0-9]{1,9}$/) && newData.exists() && (!data.exists() || data.child('dev').val() === newData.child('dev').val())",
+        ".validate": "newData.hasChildren(['dev', 'ip'])",
+        "dev": {
+          ".validate": "newData.isString() && newData.val().length >= 10 && newData.val().length <= 32"
+        },
+        "ip": {
+          ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 16"
+        },
+        "$other": {
+          ".validate": false
+        }
       }
     },
     "ideas": {
       "$id": {
         ".write": "!data.exists()",
-        ".validate": "newData.hasChildren(['who', 'text', 'at'])"
+        ".validate": "newData.hasChildren(['who', 'text', 'date'])",
+        "who": {
+          ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 16"
+        },
+        "text": {
+          ".validate": "newData.isString() && newData.val().length >= 4 && newData.val().length <= 720"
+        },
+        "date": {
+          ".validate": "newData.isString() && newData.val().matches(/^20[0-9]{2}-[0-9]{2}-[0-9]{2}$/)"
+        },
+        "$other": {
+          ".validate": false
+        }
       }
     },
     "friends": {
       "$name": {
-        ".read": true,
-        ".write": true
+        ".read": "$name.matches(/^[A-Z0-9]{1,9}$/)",
+        "$friend": {
+          ".write": "$name.matches(/^[A-Z0-9]{1,9}$/) && $friend.matches(/^[A-Z0-9]{1,9}$/) && $name !== $friend && (newData.val() === true || !newData.exists())",
+          ".validate": "newData.val() === true"
+        }
       }
     },
     "friendRequests": {
       "$name": {
-        ".read": true,
-        ".write": true
+        ".read": "$name.matches(/^[A-Z0-9]{1,9}$/)",
+        "$from": {
+          ".write": "$name.matches(/^[A-Z0-9]{1,9}$/) && $from.matches(/^[A-Z0-9]{1,9}$/) && $name !== $from && (!data.exists() || !newData.exists())",
+          ".validate": "newData.hasChildren(['from', 'code', 'at']) && newData.child('from').val() === $from",
+          "from": {
+            ".validate": "newData.isString() && newData.val() === $from"
+          },
+          "code": {
+            ".validate": "newData.isString() && newData.val().matches(/^[A-Z0-9]+-[0-9]{4}$/) && newData.val().length <= 12"
+          },
+          "at": {
+            ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() % 1 === 0"
+          },
+          "$other": {
+            ".validate": false
+          }
+        }
       }
     },
     "requests": {
       "$name": {
-        ".read": true,
-        ".write": true
+        ".read": "$name.matches(/^[A-Z0-9]{1,9}$/)",
+        "$from": {
+          ".write": "!newData.exists()"
+        }
       }
     },
     "inviteCodes": {
       "$code": {
-        ".read": true,
-        ".write": true
+        ".read": "$code.matches(/^[A-Z0-9]+-[0-9]{4}$/) && $code.length <= 12",
+        ".write": "$code.matches(/^[A-Z0-9]+-[0-9]{4}$/) && $code.length <= 12 && ((!data.exists() && newData.exists()) || (data.exists() && !newData.exists()) || (data.exists() && newData.exists() && newData.child('owner').val() === data.child('owner').val() && newData.child('createdAt').val() === data.child('createdAt').val() && newData.child('expiresAt').val() === data.child('expiresAt').val() && newData.child('usesLeft').val() <= data.child('usesLeft').val()))",
+        ".validate": "newData.hasChildren(['owner', 'createdAt', 'expiresAt', 'usesLeft'])",
+        "owner": {
+          ".validate": "newData.isString() && newData.val().matches(/^[A-Z0-9]{1,9}$/)"
+        },
+        "createdAt": {
+          ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() % 1 === 0"
+        },
+        "expiresAt": {
+          ".validate": "newData.isNumber() && newData.val() > newData.parent().child('createdAt').val() && newData.val() <= newData.parent().child('createdAt').val() + 604800000 && newData.val() % 1 === 0"
+        },
+        "usesLeft": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 5 && newData.val() % 1 === 0"
+        },
+        "$other": {
+          ".validate": false
+        }
       }
     }
   }

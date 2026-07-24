@@ -163,12 +163,18 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
 
 - **DB:** `https://super-tucan-ranking-2026-default-rtdb.firebaseio.com` (REST, sem SDK).
 - **Nós e regras** (publicadas no console do Firebase):
+  - A raiz do banco nega leitura e escrita. Cada funcionalidade recebe somente o acesso público
+    indispensável ao jogo; assim, conhecer a URL não permite baixar o banco inteiro.
   - `players/<nome>`: 1 registro por nome (`{best, xp}`). Posse do nome é **por device** (não por IP;
     corrige o bug de CGNAT em que usuários do mesmo IP público roubavam nomes).
-    As regras versionadas ficam em `database.rules.json`; `best` aceita até `999999`, para não bloquear
-    recordes acima de 10 mil.
+    O ranking é público para leitura. As regras versionadas ficam em `database.rules.json`; elas
+    aceitam somente chaves e números no formato esperado, impedem apagar/reduzir recordes e mantêm
+    `best` até `999999`, para não bloquear recordes acima de 10 mil.
   - `ideas/<id>`: sugestões. Regra permite **criar+validar**, mas **nega sobrescrever/apagar**
     (`!data.exists()`), protegendo as sugestões. Por isso testes deixados no nó só o Hygor apaga no console.
+  - Como o jogo ainda não autentica jogadores no Firebase, as regras públicas reduzem a superfície
+    de abuso, mas não comprovam a identidade de quem aumenta uma pontuação ou altera dados sociais.
+    A proteção forte dessas operações exige Firebase Authentication ou uma API de servidor.
 - **Sugestões → dev:** jogador manda ideia pela tela 💡 IDEIAS → grava em `/ideas` → `node ler-sugestoes.js`
   traz para `SUGESTOES.txt`/README a cada versão. O agente de programação deve LER `SUGESTOES.txt`
   antes de cada release.
