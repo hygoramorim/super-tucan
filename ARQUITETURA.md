@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.50` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.53` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -99,6 +99,20 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
 - **Amiguinhos:** aves equipadas seguem o tucano e têm hitbox apenas de coleta (ovos/power-ups);
   não colidem com galhos, inimigos ou projéteis. Desde v5.50, contribuem para o COMBO ao coletarem
   itens, tornando a mecânica mais colaborativa e recompensando o uso de pets na pontuação.
+  Desde v5.53 cada ave tem um **papel** (`role` em `PET_ITEMS`): `eggs` (raio extra p/ ovos),
+  `power` (raio extra p/ power-ups/itens bônus) e `guard` (protetor: absorve 1 colisão por partida
+  via `tryPetGuard()`/`shieldOrGuard()`, carga em `petGuardCharge` resetada no `resetGame`).
+  Há também **nível de amizade** por partidas jogadas com o pet (`superTucan_petRuns`): nível 2 com
+  10+ partidas (coração), nível 3 com 30+ (coração dourado + brilhos) — só visual, sem buff.
+- **Missões diárias + sequência (v5.53):** 3 missões por dia sorteadas com
+  `mulberry32(dayKey ^ 0x51CA0)` — seed **separado** do `rng()` do desafio, para não deslocar a
+  sequência de obstáculos. Progresso em `superTucan_daily` (reset automático na virada do dia),
+  recompensas pagas na hora em ovos da lojinha (nunca pontos de ranking). Sequência do Desafio do
+  Dia em `superTucan_dailyStreak` com marcos 3/7/30 (bônus de ovos). UI: `renderDailyPanel()` no
+  menu (`#dailyPanel`) e no fim de jogo (`#goMissions`). Tutorial e treino não progridem missões.
+- **Voo rasante (v5.53):** passar a menos de 12px da borda do galho (sem colidir) soma +1 no COMBO
+  (o "UFA!" cosmético continua entre 12 e 20px). Sem ponto direto — só acelera o multiplicador,
+  que já tem teto ×4, mantendo o ranking justo. Passagem com escudo/protetor (edge ≤ 0) não conta.
 - **Ranking:** duas leituras do nó `players/` — recordistas (ovos) e veteranos (XP). A publicação
   confirma a gravação no Firebase, preserva o maior `best`, usa chave própria para nomes genéricos
   por aparelho e guarda fila local de reenvio em `superTucan_rankPending` quando a rede falha.
@@ -360,3 +374,10 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
 - **v5.50** — amiguinhos (pets equipados) agora contribuem para o COMBO ao coletarem itens, ao invés
   de zerar o contador. Melhora a mecânica com pets sendo aliados de verdade na pontuação e torna o
   multiplicador de combo mais acessível em partidas com amigos ajudando.
+- **v5.51/v5.52** — placar limpo (sem caixas de marco) nas fases bônus e de boss; o brilho fica no HUD.
+- **v5.53** — três evoluções de engajamento: (1) **missões diárias + sequência** do Desafio do Dia
+  (3 missões determinísticas por dia com recompensa em ovos; streak com marcos 3/7/30); (2) **papéis
+  dos amiguinhos** (coletor de ovos, caça-prêmios e protetor que salva 1 colisão por partida) +
+  nível de amizade visual por partidas jogadas; (3) **voo rasante** alimenta o COMBO ao passar rente
+  ao galho. Novas conquistas: Voo Rasante e Salvo pelo Amiguinho. Ranking intocado: recompensas só
+  em ovos da lojinha e o rasante só acelera o multiplicador com teto ×4.

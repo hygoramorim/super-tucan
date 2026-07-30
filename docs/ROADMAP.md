@@ -24,15 +24,12 @@ Este roadmap organiza proximas evolucoes possiveis. Ele nao obriga implementar t
 
 ## Prioridade 3 - Amigos animais
 
-- Reavaliar a regra de amigos que seguem o tucano.
-- Definir papeis claros:
-  - coletor de ovos;
-  - coletor de alimentos;
-  - protetor ocasional;
-  - bonus cosmetico;
-  - companheiro raro.
-- Evitar que muitos amigos cubram a tela ou confundam colisao.
-- Criar limite de amigos ativos por partida.
+- [FEITO v5.53] Papeis claros por ave: coletor de ovos, caca-premios (power-ups) e protetor
+  (absorve 1 colisao por partida). Nivel de amizade visual por partidas jogadas (10/30).
+- Limite de 2 amigos ativos por partida ja existe desde v5.50.
+- Avaliar no futuro: bonus cosmetico e companheiro raro.
+- Observar em playtest se o protetor esta bem balanceado (hoje: 1 salvamento por partida,
+  mesmo com 2 protetores equipados).
 
 ## Prioridade 4 - Comunidade e progressao
 
@@ -45,6 +42,9 @@ Este roadmap organiza proximas evolucoes possiveis. Ele nao obriga implementar t
 - Mostrar creditos no jogo para ideias implementadas.
 - Criar tela simples de changelog para as criancas verem novidades.
 - Melhorar conquistas com metas mais claras.
+- [FEITO v5.53] Missoes diarias (3 por dia, deterministicas, recompensa em ovos) e
+  sequencia do Desafio do Dia com marcos 3/7/30.
+- Proximo passo natural: recompensa cosmetica exclusiva no marco de 30 dias.
 
 ## Prioridade 5 - Arquitetura
 

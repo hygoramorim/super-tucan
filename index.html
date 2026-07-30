@@ -289,6 +289,7 @@
         <button id="btnIdeas" class="sec">&#128161; IDEIAS</button>
         <button id="btnAch" class="sec">&#127942; CONQUISTAS</button>
       </div>
+      <div id="dailyPanel"></div>
       <div id="ranking">
         <h2>&#127942; RANKING GLOBAL &middot; TOP 10</h2>
         <div id="rankTabs" style="display:flex;gap:6px;justify-content:center;margin-bottom:8px">
@@ -359,6 +360,7 @@
       <div id="goRecord" class="newrec hidden">&#11088; NOVO RECORDE! &#11088;</div>
       <div id="goPB"></div>
       <div id="goXP"></div>
+      <div id="goMissions"></div>
       <div id="goRank" class="sub"></div>
       <button id="btnAgain">JOGAR DE NOVO</button>
       <button id="btnMenu" class="sec">MENU / RANKING</button>
@@ -403,7 +405,10 @@ const I18N = {
     noFriends: 'Seu bando ainda está vazio. Use CONVITE!', offline: 'Sem conexão.', friendUnavailable: 'Amigos online indisponíveis agora. Tente de novo mais tarde.', noRequests: 'Nenhum pedido de amizade pendente.', wantsFriend: 'quer entrar no seu bando!', accept: 'ACEITAR', typeCode: 'Digite um código de convite.', codeCreated: 'Código criado! Vale por 7 dias.', codeCopied: 'Código copiado!', codeCopyFail: 'Copie o código manualmente.', codeInvalid: 'Código inválido ou expirado.', codeSelf: 'Esse código é seu.', codeRequested: 'Pedido enviado ao bando de',
     search: 'BUSCAR', typeName: 'Digite parte do nome.', searching: 'Buscando...', nobodyFound: 'Ninguém encontrado com', askFriend: 'PEDIR', requested: 'PEDIDO ✓',
     active: 'ATIVO ✓', call: 'CHAMAR', equip: 'EQUIPAR', bought: '✅ Comprou! Já está ativo!', notEnoughEggs: '🥚 Ovos insuficientes — jogue mais pra comprar!', maxPets: 'Máximo 2 amiguinhos ativos.', record: 'RECORDE', reached: 'CHEGOU EM',
-    checkingName: 'VERIFICANDO NOME...', chooseOther: 'ESCOLHA OUTRO NOME', hardcoreSub: 'PANTANAL ∞ DIRETO', trainingSub: 'SÓ AMAZÔNIA · PONTOS PELA METADE', trainingNoRank: 'Modo treino: sem ranking global.', tutorialSub: 'SEM MORTE — SÓ APRENDER', tutorialDone: '🎓 TUTORIAL COMPLETO! +50 XP — AGORA JOGUE DE VERDADE!', now: 'AGORA'
+    checkingName: 'VERIFICANDO NOME...', chooseOther: 'ESCOLHA OUTRO NOME', hardcoreSub: 'PANTANAL ∞ DIRETO', trainingSub: 'SÓ AMAZÔNIA · PONTOS PELA METADE', trainingNoRank: 'Modo treino: sem ranking global.', tutorialSub: 'SEM MORTE — SÓ APRENDER', tutorialDone: '🎓 TUTORIAL COMPLETO! +50 XP — AGORA JOGUE DE VERDADE!', now: 'AGORA',
+    missionsTitle: '🎯 MISSÕES DE HOJE', missionDone: 'MISSÃO CUMPRIDA!', streakDays: 'DIAS SEGUIDOS', streakHint: 'JOGUE O DESAFIO DO DIA!',
+    mEggs: 'Colete {n} ovos hoje', mGolden: 'Pegue {n} ovos dourados hoje', mPower: 'Pegue {n} power-ups hoje', mRuns: 'Jogue {n} partidas hoje', mPhase: 'Chegue em {p} numa partida', mCombo: 'Faça COMBO ×{n} numa partida',
+    rasante: 'RASANTE!', petSaved: 'TE SALVOU!', roleEggs: 'COLETOR DE OVOS', rolePower: 'CAÇA-PRÊMIOS', roleGuard: 'PROTETOR · SALVA 1×'
   },
   en: {
     tagline: 'Flap your wings, dodge BRANCHES, dive into the CRYSTAL LAKE and collect EGGS across Brazil until the ENDLESS PANTANAL!',
@@ -432,7 +437,10 @@ const I18N = {
     noFriends: 'Your flock is empty. Use INVITE!', offline: 'No connection.', friendUnavailable: 'Online friends unavailable now. Try again later.', noRequests: 'No pending friend requests.', wantsFriend: 'wants to join your flock!', accept: 'ACCEPT', typeCode: 'Type an invite code.', codeCreated: 'Code created! Valid for 7 days.', codeCopied: 'Code copied!', codeCopyFail: 'Copy the code manually.', codeInvalid: 'Invalid or expired code.', codeSelf: 'This code is yours.', codeRequested: 'Request sent to',
     search: 'SEARCH', typeName: 'Type part of a name.', searching: 'Searching...', nobodyFound: 'Nobody found with', askFriend: 'ASK', requested: 'REQUESTED ✓',
     active: 'ACTIVE ✓', call: 'CALL', equip: 'EQUIP', bought: '✅ Bought! Already active!', notEnoughEggs: '🥚 Not enough eggs — play more to buy!', maxPets: 'Maximum 2 active buddies.', record: 'BEST', reached: 'REACHED',
-    checkingName: 'CHECKING NAME...', chooseOther: 'CHOOSE ANOTHER NAME', hardcoreSub: 'STRAIGHT TO PANTANAL ∞', trainingSub: 'ONLY AMAZON · HALF POINTS', trainingNoRank: 'Training mode: no global ranking.', tutorialSub: 'NO DEATHS — JUST LEARN', tutorialDone: '🎓 TUTORIAL COMPLETE! +50 XP — NOW PLAY FOR REAL!', now: 'NOW'
+    checkingName: 'CHECKING NAME...', chooseOther: 'CHOOSE ANOTHER NAME', hardcoreSub: 'STRAIGHT TO PANTANAL ∞', trainingSub: 'ONLY AMAZON · HALF POINTS', trainingNoRank: 'Training mode: no global ranking.', tutorialSub: 'NO DEATHS — JUST LEARN', tutorialDone: '🎓 TUTORIAL COMPLETE! +50 XP — NOW PLAY FOR REAL!', now: 'NOW',
+    missionsTitle: '🎯 TODAY’S MISSIONS', missionDone: 'MISSION COMPLETE!', streakDays: 'DAY STREAK', streakHint: 'PLAY THE DAILY CHALLENGE!',
+    mEggs: 'Collect {n} eggs today', mGolden: 'Grab {n} golden eggs today', mPower: 'Grab {n} power-ups today', mRuns: 'Play {n} runs today', mPhase: 'Reach {p} in one run', mCombo: 'Hit COMBO ×{n} in one run',
+    rasante: 'RAZOR PASS!', petSaved: 'SAVED YOU!', roleEggs: 'EGG COLLECTOR', rolePower: 'PRIZE HUNTER', roleGuard: 'GUARDIAN · SAVES 1×'
   },
   es: {
     tagline: '¡Bate las alas, esquiva RAMAS, sumérgete en el LAGO CRISTALINO y colecta HUEVOS por Brasil hasta el PANTANAL INFINITO!',
@@ -461,7 +469,10 @@ const I18N = {
     noFriends: 'Tu bando está vacío. ¡Usa INVITAR!', offline: 'Sin conexión.', friendUnavailable: 'Amigos online no disponibles ahora. Intenta más tarde.', noRequests: 'No hay pedidos de amistad pendientes.', wantsFriend: 'quiere entrar en tu bando!', accept: 'ACEPTAR', typeCode: 'Escribe un código de invitación.', codeCreated: '¡Código creado! Vale 7 días.', codeCopied: '¡Código copiado!', codeCopyFail: 'Copia el código manualmente.', codeInvalid: 'Código inválido o vencido.', codeSelf: 'Ese código es tuyo.', codeRequested: 'Pedido enviado al bando de',
     search: 'BUSCAR', typeName: 'Escribe parte del nombre.', searching: 'Buscando...', nobodyFound: 'Nadie encontrado con', askFriend: 'PEDIR', requested: 'PEDIDO ✓',
     active: 'ACTIVO ✓', call: 'LLAMAR', equip: 'EQUIPAR', bought: '✅ Comprado! Ya está activo!', notEnoughEggs: '🥚 Huevos insuficientes — juega más para comprar!', maxPets: 'Máximo 2 amiguitos activos.', record: 'RÉCORD', reached: 'LLEGÓ A',
-    checkingName: 'VERIFICANDO NOMBRE...', chooseOther: 'ELIGE OTRO NOMBRE', hardcoreSub: 'DIRECTO AL PANTANAL ∞', trainingSub: 'SOLO AMAZONÍA · MITAD DE PUNTOS', trainingNoRank: 'Modo entrenamiento: sin ranking global.', tutorialSub: 'SIN MUERTE — SOLO APRENDER', tutorialDone: '🎓 TUTORIAL COMPLETO! +50 XP — AHORA JUEGA DE VERDAD!', now: 'AHORA'
+    checkingName: 'VERIFICANDO NOMBRE...', chooseOther: 'ELIGE OTRO NOMBRE', hardcoreSub: 'DIRECTO AL PANTANAL ∞', trainingSub: 'SOLO AMAZONÍA · MITAD DE PUNTOS', trainingNoRank: 'Modo entrenamiento: sin ranking global.', tutorialSub: 'SIN MUERTE — SOLO APRENDER', tutorialDone: '🎓 TUTORIAL COMPLETO! +50 XP — AHORA JUEGA DE VERDAD!', now: 'AHORA',
+    missionsTitle: '🎯 MISIONES DE HOY', missionDone: '¡MISIÓN CUMPLIDA!', streakDays: 'DÍAS SEGUIDOS', streakHint: '¡JUEGA EL RETO DEL DÍA!',
+    mEggs: 'Colecta {n} huevos hoy', mGolden: 'Toma {n} huevos dorados hoy', mPower: 'Toma {n} power-ups hoy', mRuns: 'Juega {n} partidas hoy', mPhase: 'Llega a {p} en una partida', mCombo: 'Haz COMBO ×{n} en una partida',
+    rasante: '¡RASANTE!', petSaved: '¡TE SALVÓ!', roleEggs: 'COLECTOR DE HUEVOS', rolePower: 'CAZA-PREMIOS', roleGuard: 'PROTECTOR · SALVA 1×'
   },
   zh: {
     tagline: '扇动翅膀，躲避树枝，潜入水晶湖，在巴西一路收集鸡蛋直到无尽的潘塔纳尔！',
@@ -490,7 +501,10 @@ const I18N = {
     noFriends: '你的鸟群还是空的。使用邀请！', offline: '无连接。', friendUnavailable: '在线好友暂不可用，请稍后再试。', noRequests: '没有待处理好友请求。', wantsFriend: '想加入你的鸟群！', accept: '接受', typeCode: '输入邀请码。', codeCreated: '代码已生成！7天有效。', codeCopied: '代码已复制！', codeCopyFail: '请手动复制代码。', codeInvalid: '代码无效或已过期。', codeSelf: '这是你自己的代码。', codeRequested: '请求已发送给',
     search: '搜索', typeName: '输入部分名字。', searching: '搜索中...', nobodyFound: '没有找到', askFriend: '请求', requested: '已请求 ✓',
     active: '已启用 ✓', call: '召唤', equip: '装备', bought: '✅ 已购买！已启用！', notEnoughEggs: '🥚 鸡蛋不足 — 多玩几局再买！', maxPets: '最多2个伙伴。', record: '最佳', reached: '到达',
-    checkingName: '正在检查名字...', chooseOther: '请选择其他名字', hardcoreSub: '直接进入潘塔纳尔 ∞', trainingSub: '只在亚马逊 · 分数减半', trainingNoRank: '训练模式：不进全球排行。', tutorialSub: '不会死亡 — 只学习', tutorialDone: '🎓 教程完成！+50 XP — 现在认真玩吧！', now: '现在'
+    checkingName: '正在检查名字...', chooseOther: '请选择其他名字', hardcoreSub: '直接进入潘塔纳尔 ∞', trainingSub: '只在亚马逊 · 分数减半', trainingNoRank: '训练模式：不进全球排行。', tutorialSub: '不会死亡 — 只学习', tutorialDone: '🎓 教程完成！+50 XP — 现在认真玩吧！', now: '现在',
+    missionsTitle: '🎯 今日任务', missionDone: '任务完成！', streakDays: '天连续', streakHint: '玩每日挑战！',
+    mEggs: '今天收集 {n} 个蛋', mGolden: '今天拿 {n} 个金蛋', mPower: '今天拿 {n} 个道具', mRuns: '今天玩 {n} 局', mPhase: '一局内到达 {p}', mCombo: '一局内达到连击 ×{n}',
+    rasante: '贴地飞行！', petSaved: '救了你！', roleEggs: '捡蛋员', rolePower: '寻宝员', roleGuard: '守护者 · 救1次'
   }
 };
 let LANG = localStorage.getItem('superTucan_lang') || 'pt';
@@ -1008,16 +1022,27 @@ function equipItem(id) { toggleStoredId('superTucan_equipped', id); }
 // AVES COMPANHEIRAS (ideia 15 do Francisco): aves brasileiras que seguem o tucano.
 // Compradas com ovos, na aba "amiguinhos" da lojinha. São companheiras:
 // não colidem com perigos, mas têm hitbox de coleta para ovos e power-ups.
+// PAPÉIS (v5.53, roadmap Prioridade 3): cada ave tem uma especialidade clara.
+//   'eggs'  = coletor de ovos (raio de coleta maior para ovos)
+//   'power' = caça-prêmios (raio de coleta maior para power-ups e itens bônus)
+//   'guard' = protetor (salva de 1 colisão por partida, com festa e cooldown total)
 const PET_ITEMS = [
-  { id: 'bentevi',  emoji: '🐤', nome: 'BEM-TE-VI',   preco: 80,  cor: '#f5c542', peito: '#8a5a2a' },
-  { id: 'sabia',    emoji: '🐦', nome: 'SABIÁ-LARANJEIRA', preco: 150, cor: '#6a4a3a', peito: '#d9743a' },
-  { id: 'beijaflor',emoji: '🕊️', nome: 'BEIJA-FLOR',  preco: 250, cor: '#2e9e8a', peito: '#7ee0c0' },
-  { id: 'araraazul',emoji: '🦜', nome: 'ARARA-AZUL',  preco: 500, cor: '#1d4ed8', peito: '#ffd23f' },
-  { id: 'canario',  emoji: '🐥', nome: 'CANÁRIO-DA-TERRA', preco: 120, cor: '#facc15', peito: '#fef08a' },
-  { id: 'ararajuba',emoji: '🦜', nome: 'ARARAJUBA',    preco: 260, cor: '#facc15', peito: '#22c55e' },
-  { id: 'joaobarro',emoji: '🐦', nome: 'JOÃO-DE-BARRO', preco: 360, cor: '#a16207', peito: '#d97706' },
-  { id: 'saira',    emoji: '🐦', nome: 'SAÍRA-SETE-CORES', preco: 620, cor: '#22c55e', peito: '#38bdf8' }
+  { id: 'bentevi',  emoji: '🐤', nome: 'BEM-TE-VI',   preco: 80,  cor: '#f5c542', peito: '#8a5a2a', role: 'eggs' },
+  { id: 'sabia',    emoji: '🐦', nome: 'SABIÁ-LARANJEIRA', preco: 150, cor: '#6a4a3a', peito: '#d9743a', role: 'power' },
+  { id: 'beijaflor',emoji: '🕊️', nome: 'BEIJA-FLOR',  preco: 250, cor: '#2e9e8a', peito: '#7ee0c0', role: 'power' },
+  { id: 'araraazul',emoji: '🦜', nome: 'ARARA-AZUL',  preco: 500, cor: '#1d4ed8', peito: '#ffd23f', role: 'eggs' },
+  { id: 'canario',  emoji: '🐥', nome: 'CANÁRIO-DA-TERRA', preco: 120, cor: '#facc15', peito: '#fef08a', role: 'eggs' },
+  { id: 'ararajuba',emoji: '🦜', nome: 'ARARAJUBA',    preco: 260, cor: '#facc15', peito: '#22c55e', role: 'power' },
+  { id: 'joaobarro',emoji: '🐦', nome: 'JOÃO-DE-BARRO', preco: 360, cor: '#a16207', peito: '#d97706', role: 'guard' },
+  { id: 'saira',    emoji: '🐦', nome: 'SAÍRA-SETE-CORES', preco: 620, cor: '#22c55e', peito: '#38bdf8', role: 'guard' }
 ];
+function petRole(id) { const p = PET_ITEMS.find(x => x.id === id); return p ? p.role : ''; }
+// NÍVEL DE AMIZADE: partidas jogadas com o pet equipado (sem buff de gameplay,
+// só vínculo: coração no voo a partir do nível 2, brilho dourado no nível 3).
+function petRunsMap() { try { return JSON.parse(localStorage.getItem('superTucan_petRuns')) || {}; } catch (e) { return {}; } }
+function petRunsOf(id) { return petRunsMap()[id] || 0; }
+function addPetRun(id) { const m = petRunsMap(); m[id] = (m[id] || 0) + 1; localStorage.setItem('superTucan_petRuns', JSON.stringify(m)); }
+function petLevel(id) { const r = petRunsOf(id); return r >= 30 ? 3 : r >= 10 ? 2 : 1; }
 function ownedPets() { return storedList('superTucan_pets'); }
 function ownsPet(id) { return ownsStored('superTucan_pets', id); }
 function buyPet(id) { return buyStored('superTucan_pets', PET_ITEMS, id); }
@@ -1049,6 +1074,7 @@ function equipPet(id) {
   return true;
 }
 let petTrail = []; // buffer de posições do tucano p/ a companheira seguir com defesagem
+let petGuardCharge = 0; // PROTETOR (v5.53): 1 salvamento por partida se houver ave 'guard' ativa
 function petPosition(slot) {
   if (!bird) return null;
   const delay = slot === 1 ? 20 : 30;
@@ -1064,13 +1090,18 @@ function petCollectPoint(slot, id) {
   if (!id || !bird) return null;
   const p = petPosition(slot || 0);
   if (!p) return null;
-  return { x: p.x, y: p.y, r: id === 'araraazul' ? 20 : id === 'beijaflor' ? 15 : 17 };
+  return { x: p.x, y: p.y, r: id === 'araraazul' ? 20 : id === 'beijaflor' ? 15 : 17, role: petRole(id) };
 }
 function petCollectPoints() {
   return equippedPets().map((id, i) => petCollectPoint(i, id)).filter(Boolean);
 }
-function anyPetHit(points, x, y, r) {
-  return points.some(pc => dist2(pc.x, pc.y, x, y) < (pc.r + r) * (pc.r + r));
+// kind: 'egg' | 'power' — a ave especialista no tipo ganha raio extra de coleta
+function anyPetHit(points, x, y, r, kind) {
+  return points.some(pc => {
+    const extra = (kind === 'egg' && pc.role === 'eggs') || (kind === 'power' && pc.role === 'power') ? 6 : 0;
+    const rr = pc.r + r + extra;
+    return dist2(pc.x, pc.y, x, y) < rr * rr;
+  });
 }
 
 const ITEM_NAMES = {
@@ -1179,6 +1210,113 @@ function mulberry32(a) {
 }
 let rng = Math.random;    // modo normal usa aleatório de verdade
 let gameMode = 'normal';  // 'normal' | 'daily' | 'training' | 'tutorial' | 'hardcore'
+
+// ---------- MISSÕES DIÁRIAS + SEQUÊNCIA (v5.53) ----------
+// 3 missões por dia, iguais para todo mundo: sorteadas com seed da data,
+// mas num mulberry32 SEPARADO do rng() do jogo — assim o sorteio das missões
+// nunca desloca a sequência de obstáculos do desafio diário.
+// Recompensas só em OVOS da lojinha: engajamento sem mexer no ranking.
+const MISSION_DEFS = [
+  { id: 'eggs',   icon: '🥚', tiers: [40, 80, 150], reward: [20, 30, 50] },
+  { id: 'golden', icon: '🌟', tiers: [3, 5, 8],     reward: [25, 35, 50] },
+  { id: 'power',  icon: '🎁', tiers: [3, 5, 8],     reward: [20, 30, 45] },
+  { id: 'runs',   icon: '🎮', tiers: [2, 3, 5],     reward: [20, 30, 50] },
+  { id: 'phase',  icon: '🗺️', tiers: [1, 3, 5],     reward: [25, 40, 60] }, // índice do bioma a alcançar
+  { id: 'combo',  icon: '🔥', tiers: [8, 12],       reward: [30, 45] }      // ovos em sequência (×3, ×4)
+];
+function todayMissions() {
+  const r = mulberry32(parseInt(dayKey().replace(/-/g, ''), 10) ^ 0x51CA0);
+  const picks = [];
+  const pool = MISSION_DEFS.slice();
+  while (picks.length < 3 && pool.length) {
+    const def = pool.splice(Math.floor(r() * pool.length), 1)[0];
+    const ti = Math.floor(r() * def.tiers.length);
+    picks.push({ id: def.id, icon: def.icon, goal: def.tiers[ti], reward: def.reward[ti] });
+  }
+  return picks;
+}
+function dailyData() {
+  let d = {};
+  try { d = JSON.parse(localStorage.getItem('superTucan_daily')) || {}; } catch (e) { d = {}; }
+  if (d.day !== dayKey()) d = { day: dayKey(), prog: {}, done: [false, false, false] };
+  if (!d.prog) d.prog = {};
+  if (!Array.isArray(d.done)) d.done = [false, false, false];
+  return d;
+}
+function saveDaily(d) { localStorage.setItem('superTucan_daily', JSON.stringify(d)); }
+function missionProgressValue(m, d) { return d.prog[m.id] || 0; }
+function missionText(m) {
+  if (m.id === 'phase') return t('mPhase').replace('{p}', PHASES[m.goal].name);
+  if (m.id === 'combo') return t('mCombo').replace('{n}', String(comboMult(m.goal)));
+  const key = { eggs: 'mEggs', golden: 'mGolden', power: 'mPower', runs: 'mRuns' }[m.id];
+  return t(key).replace('{n}', String(m.goal));
+}
+// soma progresso e paga na hora a missão concluída (ovos pra lojinha + festa)
+function dailyProgress(kind, amt) {
+  if (gameMode === 'tutorial' || gameMode === 'training') return;
+  const d = dailyData();
+  if (kind === 'phase' || kind === 'combo') d.prog[kind] = Math.max(d.prog[kind] || 0, amt);
+  else d.prog[kind] = (d.prog[kind] || 0) + amt;
+  todayMissions().forEach((m, i) => {
+    if (d.done[i] || missionProgressValue(m, d) < m.goal) return;
+    d.done[i] = true;
+    addEggs(m.reward);
+    if (state === 'play' || state === 'dead') {
+      floater('🎯 ' + t('missionDone') + ' +' + m.reward + ' 🥚', '#ffd23f', W / 2, H / 2 - 96);
+      celebrate(['#ffd23f', '#7ee08a', '#ffffff'], 40);
+      sfx.milestone(3);
+    }
+  });
+  saveDaily(d);
+}
+function dailyCheckCombo(c) { if (c >= 8) dailyProgress('combo', c); }
+// SEQUÊNCIA do Desafio do Dia: jogar 1x por dia mantém o fogo aceso.
+// Marcos 3/7/30 pagam bônus de ovos (lojinha) — ranking intocado.
+const STREAK_MILESTONES = { 3: 50, 7: 150, 30: 500 };
+function streakData() {
+  try { return JSON.parse(localStorage.getItem('superTucan_dailyStreak')) || { last: '', count: 0 }; }
+  catch (e) { return { last: '', count: 0 }; }
+}
+function yesterdayKey() {
+  const d = new Date(Date.now() - 86400000);
+  return d.getUTCFullYear() + '-' + String(d.getUTCMonth() + 1).padStart(2, '0') + '-' + String(d.getUTCDate()).padStart(2, '0');
+}
+function bumpDailyStreak() {
+  const s = streakData();
+  if (s.last === dayKey()) return s;
+  s.count = s.last === yesterdayKey() ? s.count + 1 : 1;
+  s.last = dayKey();
+  localStorage.setItem('superTucan_dailyStreak', JSON.stringify(s));
+  const bonus = STREAK_MILESTONES[s.count];
+  if (bonus) {
+    addEggs(bonus);
+    floater('🔥 ' + s.count + ' ' + t('streakDays') + '! +' + bonus + ' 🥚', '#ff9f1c', W / 2, H / 2 - 70);
+    celebrate(['#ff9f1c', '#ffd23f', '#ffffff'], 60);
+    sfx.milestone(5);
+  }
+  return s;
+}
+// painel compacto de missões + sequência (menu e fim de jogo)
+function renderDailyPanel(elId) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  const d = dailyData();
+  const s = streakData();
+  const rows = todayMissions().map((m, i) => {
+    const done = d.done[i];
+    const val = Math.min(missionProgressValue(m, d), m.goal);
+    return '<div style="display:flex;justify-content:space-between;gap:8px;padding:2px 0;color:' + (done ? '#7ee08a' : '#e8f5ea') + '">'
+      + '<span>' + (done ? '✅' : m.icon) + ' ' + missionText(m) + '</span>'
+      + '<span style="color:' + (done ? '#7ee08a' : '#ffd23f') + ';white-space:nowrap">' + (done ? 'OK' : val + '/' + m.goal + ' · +' + m.reward + '🥚') + '</span></div>';
+  }).join('');
+  const streakTxt = s.count > 0
+    ? '🔥 ' + s.count + ' ' + t('streakDays') + (s.last === dayKey() ? ' ✓' : '')
+    : '🔥 ' + t('streakHint');
+  el.innerHTML = '<div style="max-width:360px;margin:6px auto 0;background:rgba(8,18,14,.92);border:1px solid #2e6e3e;border-radius:8px;padding:7px 10px;text-align:left;font-size:12px;line-height:1.35">'
+    + '<div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:3px"><b style="color:#ffd23f">' + t('missionsTitle') + '</b>'
+    + '<span style="color:' + (s.count > 0 ? '#ff9f1c' : '#9ab89f') + '">' + streakTxt + '</span></div>'
+    + rows + '</div>';
+}
 
 // ---------- Estado do jogo ----------
 let state = 'menu'; // menu | play | paused | dead
@@ -1551,7 +1689,9 @@ const ACHIEVEMENTS = [
   { id: 'meetSnake', icon: '🐍', pt: 'Conheceu a Cobra', en: 'Met the Snake', es: 'Conoció a la Serpiente', zh: '遇见蛇' },
   { id: 'beatSnake', icon: '🏆', pt: 'Sobreviveu à Cobra', en: 'Survived the Snake', es: 'Sobrevivió a la Serpiente', zh: '战胜蛇' },
   { id: 'idea', icon: '💡', pt: 'Mandou uma Ideia', en: 'Sent an Idea', es: 'Envió una Idea', zh: '发送点子' },
-  { id: 'shopper', icon: '🛍️', pt: 'Comprou na Lojinha', en: 'Bought at the Shop', es: 'Compró en la Tienda', zh: '在商店购买' }
+  { id: 'shopper', icon: '🛍️', pt: 'Comprou na Lojinha', en: 'Bought at the Shop', es: 'Compró en la Tienda', zh: '在商店购买' },
+  { id: 'rasante', icon: '⚡', pt: 'Voo Rasante', en: 'Razor Flight', es: 'Vuelo Rasante', zh: '贴地飞行' },
+  { id: 'petGuard', icon: '🐦', pt: 'Salvo pelo Amiguinho', en: 'Saved by a Buddy', es: 'Salvado por el Amiguito', zh: '被伙伴救了' }
 ];
 function achievementName(a) { return a[LANG] || a.pt; }
 function unlockedAchievements() {
@@ -1628,6 +1768,7 @@ function resetGame() {
   bossBonusTimer = 0; bossBadgeText = ''; urubuBonusDist = 0;
   bossAppearances = 0; bossQueued = 0; mandatorySnakeQueued = 0;
   petTrail = [];
+  petGuardCharge = equippedPets().some(id => petRole(id) === 'guard') ? 1 : 0;
   floaters = [];
   nextMilestone = 100;
   nextBigMilestone = 1000;
@@ -1995,6 +2136,7 @@ function circleRect(cx, cy, r, rx, ry, rw, rh) {
 
 function collectPowerup(pu, py, opts = {}) {
   pu.taken = true;
+  if (state === 'play') dailyProgress('power', 1); // missão do dia: power-ups
   sfx.power();
   if (pu.type === 'pena') { pena = 600; floater('🪶 ' + t('featherFx'), '#ff9f1c'); }
   else if (pu.type === 'escudo') { shield = 1; floater('🛡 ' + t('shieldFx'), '#7ee08a'); }
@@ -2050,6 +2192,12 @@ function collectEgg(e, ey, opts = {}) {
   }
   score += gained;
   unlockAchievement('firstEgg');
+  // progresso das missões do dia (ovos = pontos; dourado conta à parte)
+  if (state === 'play') {
+    dailyProgress('eggs', gained);
+    if (e.golden && !e.urubuSuper) dailyProgress('golden', 1);
+    dailyCheckCombo(combo);
+  }
   const scoreColor = e.foodScore ? FOODS[e.food].cor : e.urubuSuper ? '#8a3a2a' : e.jewel ? '#7dd3fc' : e.golden ? '#ffd23f' : '#ffffff';
   burst(e.x, ey, scoreColor, e.urubuSuper ? 24 : e.jewel ? 30 : e.golden ? 16 : e.foodScore ? 18 : 8);
   if (e.foodScore) { floater('+' + gained + ' PTS', scoreColor, e.x, ey - 32); sfx.comboUp(); }
@@ -2241,7 +2389,7 @@ function updateBonusPhase() {
     const r = it.type === 'food' ? 15 : it.jewel ? 14 : it.golden ? 12 : 10;
     const birdHit = dist2(bird.x, bird.y, it.x, iy) < (bird.r + bodyPad + r) * (bird.r + bodyPad + r);
     const beakHit = dist2(beakTip.x, beakTip.y, it.x, iy) < (beakR + r) * (beakR + r);
-    const petHit = anyPetHit(petCollectors, it.x, iy, r);
+    const petHit = anyPetHit(petCollectors, it.x, iy, r, 'power');
     if (birdHit || beakHit || petHit) collectBonusItem(it, iy, { byPet: petHit && !birdHit && !beakHit });
   }
   bonusItems = bonusItems.filter(it => it.x > -55 && !it.taken);
@@ -2632,7 +2780,7 @@ function update() {
         const dx = bird.x - bo.x, dy = bird.y - bo.y;
         if (dx * dx + dy * dy < (bird.r + (bo.superEgg ? 13 : 8)) * (bird.r + (bo.superEgg ? 13 : 8))) {
           if (bo.superEgg) { collectEgg(bo, bo.y); bo.x = -999; break; }
-          if (hasShield()) { useShield(); bo.x = -999; break; }
+          if (shieldOrGuard()) { bo.x = -999; break; }
           die(); return;
         }
       }
@@ -2645,7 +2793,7 @@ function update() {
       for (const v of venom) {
         const dx = bird.x - v.x, dy = bird.y - v.y;
         if (dx * dx + dy * dy < (bird.r + v.r) * (bird.r + v.r)) {
-          if (hasShield()) { useShield(); v.x = -999; break; }
+          if (shieldOrGuard()) { v.x = -999; break; }
           die(); return;
         }
       }
@@ -2664,7 +2812,7 @@ function update() {
         const dx = bird.x - se.x, dy = bird.y - se.y;
         if (dx * dx + dy * dy < (bird.r + se.r) * (bird.r + se.r)) {
           if (se.good) { collectEgg(se, se.y); se.x = -999; break; }
-          if (hasShield()) { useShield(); se.x = -999; break; }
+          if (shieldOrGuard()) { se.x = -999; break; }
           die(); return;
         }
       }
@@ -2680,7 +2828,7 @@ function update() {
         const px = sw.x1 + dx * t, py = sw.y1 + dy * t;
         const hitDx = bird.x - px, hitDy = bird.y - py;
         if (hitDx * hitDx + hitDy * hitDy < (bird.r + 14) * (bird.r + 14) && sw.life > 4) {
-          if (hasShield()) { useShield(); sw.life = 0; break; }
+          if (shieldOrGuard()) { sw.life = 0; break; }
           die(); return;
         }
       }
@@ -2698,7 +2846,7 @@ function update() {
         const inX = bird.x > sb.x - 52 && bird.x < sb.x + 52;
         const inY = Math.abs(bird.y - sb.y) < bird.r + 30;
         if (inX && inY) {
-          if (hasShield()) { useShield(); sb.life = 0; break; }
+          if (shieldOrGuard()) { sb.life = 0; break; }
           die(); return;
         }
       }
@@ -2772,6 +2920,7 @@ function update() {
     }
     if (phaseIdx === 1) unlockAchievement('amazon');
     if (phaseIdx === LAST) unlockAchievement('pantanal');
+    dailyProgress('phase', phaseIdx); // missão do dia: alcançar bioma
     bannerTimer = 130;
     bannerText = phaseIdx === LAGO_PHASE_IDX ? 'MERGULHE' : t('phase') + ' ' + (phaseIdx + 1);
     bannerSub = np.name;
@@ -2827,7 +2976,7 @@ function update() {
     for (const en of enemies) {
       const ex = bird.x - en.x, eyd = bird.y - en.y;
       if (ex * ex + eyd * eyd < (bird.r - 2 + 10) * (bird.r - 2 + 10)) {
-        if (hasShield() && invuln <= 0) { useShield(); en.x = -999; break; } // escudo espanta o pássaro (ideia 8)
+        if (invuln <= 0 && shieldOrGuard()) { en.x = -999; break; } // escudo/protetor espanta o pássaro (ideia 8)
         die();
         return;
       }
@@ -2863,19 +3012,30 @@ function update() {
     const py = pu.y + Math.sin(frames * 0.07 + pu.bob) * 5;
     const powerHitR = bird.r + 11 * birdScale();
     const birdHit = dist2(bird.x, bird.y, pu.x, py) < powerHitR * powerHitR;
-    const petHit = anyPetHit(petCollectors, pu.x, py, 14);
+    const petHit = anyPetHit(petCollectors, pu.x, py, 14, 'power');
     if (birdHit || petHit) collectPowerup(pu, py, { byPet: petHit && !birdHit });
   }
 
-  // "quase!" — passou raspando no galho
+  // VOO RASANTE (v5.53): passar BEM rente ao galho (sem colidir) alimenta o
+  // COMBO — risco consciente vira recompensa de habilidade. Sem ponto direto:
+  // o rasante só acelera o multiplicador (teto ×4), então o ranking segue justo.
+  // Entre 12 e 20px continua o "UFA!" cosmético de antes.
   obstacles.forEach(o => {
     if (!o.passed && o.x + o.w / 2 < bird.x - bird.r) {
       o.passed = true;
       const edge = Math.min(bird.y - (o.gapY - o.gap / 2), (o.gapY + o.gap / 2) - bird.y);
-      if (edge < 20 && state === 'play') {
+      if (state !== 'play' || edge <= 0) return; // atravessou com escudo/protetor: não conta
+      if (edge < 12) {
+        combo++;
+        const m = comboMult(combo);
+        floater('⚡ ' + t('rasante'), '#7dd3fc');
+        if (m > comboMult(combo - 1) && m > 1) { floater('🔥 COMBO ×' + m + '!', '#ff2e93'); sfx.comboUp(); }
+        else sfx.chirp();
+        unlockAchievement('rasante');
+        dailyCheckCombo(combo);
+      } else if (edge < 20) {
         floater(t('phew'), '#ffffff');
         sfx.chirp();
-        score += 0; // só celebração — sem ponto, para não virar farm
       }
     }
   });
@@ -2885,10 +3045,10 @@ function update() {
   obstacles = obstacles.filter(o => o.x > -80);
   eggs = eggs.filter(e => e.x > -30 && !e.taken);
 
-  // colisão com o chão — salvo pelo escudo (ideia 8)
+  // colisão com o chão — salvo pelo escudo ou pelo protetor (ideia 8 + v5.53)
   if (bird.y + bird.r >= H - GROUND_H) {
     bird.y = H - GROUND_H - bird.r;
-    if (hasShield() && invuln <= 0) { useShield(-7); } // repique pra cima
+    if (invuln <= 0 && shieldOrGuard(-7)) { /* repique pra cima */ }
     else { die(); return; }
   }
 
@@ -2901,8 +3061,8 @@ function update() {
       const botY = o.gapY + o.gap / 2;
       if (circleRect(bird.x, bird.y, hitR, rx, 0, o.w, topH) ||
           circleRect(bird.x, bird.y, hitR, rx, botY, o.w, H - GROUND_H - botY)) {
-        if (hasShield()) {
-          useShield(); break; // ESCUDO: atravessa este tronco (ideia 8) — para de checar após gastar
+        if (shieldOrGuard()) {
+          break; // ESCUDO ou PROTETOR: atravessa este tronco — para de checar após gastar
         } else {
           die();
           return;
@@ -2919,7 +3079,7 @@ function update() {
     const ey = e.y + Math.sin(frames * 0.08 + e.bob) * 4; // mesma posição do desenho
     const birdHit = dist2(bird.x, bird.y, e.x, ey) < (bird.r + eggBodyPad) * (bird.r + eggBodyPad);
     const beakHit = dist2(beakTip.x, beakTip.y, e.x, ey) < beakHitR * beakHitR;
-    const petHit = anyPetHit(petCollectors, e.x, ey, 11);
+    const petHit = anyPetHit(petCollectors, e.x, ey, 11, 'egg');
     if (birdHit || beakHit || petHit) collectEgg(e, ey, { byPet: petHit && !birdHit && !beakHit });
   }
 }
@@ -2945,6 +3105,30 @@ function useShield(pushVy) {
   sfx.shieldPop();
   burst(bird.x, bird.y, '#7ee08a', 18);
   if (pushVy !== undefined) { bird.vy = pushVy; shake = 4; }
+}
+// PROTETOR (v5.53): a ave 'guard' equipada absorve 1 colisão por partida.
+// Momento "meu amiguinho me salvou!" — festa grande, invencibilidade breve,
+// mesma leitura do escudo (o jogador nunca morre sem entender por quê).
+function tryPetGuard(pushVy) {
+  if (petGuardCharge <= 0) return false;
+  petGuardCharge = 0;
+  invuln = 50;
+  const list = equippedPets();
+  const gid = list.find(id => petRole(id) === 'guard');
+  const pet = PET_ITEMS.find(p => p.id === gid);
+  const pos = petPosition(Math.max(0, list.indexOf(gid))) || bird;
+  floater('🐦 ' + (pet ? itemName(pet) : '') + ' ' + t('petSaved'), '#7ee08a');
+  sfx.shieldPop();
+  burst(pos.x, pos.y, '#7ee08a', 18);
+  burst(bird.x, bird.y, '#ffd23f', 10);
+  unlockAchievement('petGuard');
+  if (pushVy !== undefined) { bird.vy = pushVy; shake = 4; }
+  return true;
+}
+// escudo primeiro (item consumível), depois o protetor (1x por partida)
+function shieldOrGuard(pushVy) {
+  if (hasShield()) { useShield(pushVy); return true; }
+  return tryPetGuard(pushVy);
 }
 function die() {
   // no tutorial não se morre: só um susto e segue o voo
@@ -5712,7 +5896,36 @@ function drawPetOne(id, slot) {
   ctx.restore();
 }
 function drawPet() {
-  equippedPets().forEach((id, i) => drawPetOne(id, i));
+  equippedPets().forEach((id, i) => {
+    drawPetOne(id, i);
+    // NÍVEL DE AMIZADE (v5.53): detalhe visual barato, sem buff de gameplay.
+    // nível 2 (10+ partidas): coraçãozinho; nível 3 (30+): coração dourado + brilhos.
+    const lv = petLevel(id);
+    if (lv < 2 || state !== 'play') return;
+    const pos = petPosition(i);
+    if (!pos) return;
+    ctx.save();
+    ctx.globalAlpha = 0.7 + 0.3 * Math.sin(frames * 0.1 + i);
+    ctx.fillStyle = lv >= 3 ? '#ffd23f' : '#ff5c8a';
+    drawMiniHeart(pos.x, pos.y - 22 + Math.sin(frames * 0.07 + i * 2) * 2.5, lv >= 3 ? 4 : 3);
+    if (lv >= 3) {
+      for (let s = 0; s < 3; s++) {
+        const a = frames * 0.05 + s * 2.09 + i;
+        ctx.fillRect(pos.x + Math.cos(a) * 16 - 1, pos.y + Math.sin(a) * 12 - 1, 2, 2);
+      }
+    }
+    ctx.restore();
+  });
+}
+function drawMiniHeart(x, y, s) {
+  ctx.beginPath();
+  ctx.arc(x - s * 0.55, y, s * 0.62, 0, 7);
+  ctx.arc(x + s * 0.55, y, s * 0.62, 0, 7);
+  ctx.moveTo(x - s * 1.1, y + s * 0.25);
+  ctx.lineTo(x, y + s * 1.5);
+  ctx.lineTo(x + s * 1.1, y + s * 0.25);
+  ctx.closePath();
+  ctx.fill();
 }
 function drawPetCollectAura() {
   const pcs = petCollectPoints();
@@ -6615,6 +6828,11 @@ function draw() {
       ctx.fillStyle = '#ffd23f';
       ctx.font = "12px Bungee, 'Courier New', monospace";
       ctx.fillText(t('dailyLabel') + ' · ' + dayKey(), W / 2, H / 2 - 120);
+      const sd = streakData();
+      if (sd.count > 0) {
+        ctx.fillStyle = '#ff9f1c';
+        ctx.fillText('🔥 ' + sd.count + ' ' + t('streakDays'), W / 2, H / 2 - 142);
+      }
     }
     ctx.globalAlpha = 1;
   }
@@ -6664,6 +6882,7 @@ document.getElementById('btnQuit').addEventListener('click', () => {
   state = 'menu';
   resetGame();
   renderRanking();
+  renderDailyPanel('dailyPanel');
   elPause.classList.add('hidden');
   elBtnPause.style.display = 'none';
   elMenu.classList.remove('hidden');
@@ -6701,6 +6920,8 @@ async function startGame(mode) {
     : Math.random;
   audio();
   resetGame();
+  // nível de amizade: cada partida com o pet equipado aprofunda o vínculo
+  if (gameMode !== 'tutorial') equippedPets().forEach(addPetRun);
   if (gameMode === 'hardcore') {
     phaseIdx = LAST; // direto no Pantanal, sem power-ups
     bannerText = t('hardcore');
@@ -6745,6 +6966,10 @@ function showGameOver() {
   document.getElementById('goScore').textContent = score;
   // os ovos coletados vão pra carteira da lojinha (ideia 17 do Francisco)
   if (score > 0 && gameMode !== 'tutorial') addEggs(score);
+  // missões do dia: partida jogada conta; desafio diário mantém a sequência
+  dailyProgress('runs', 1);
+  if (gameMode === 'daily') bumpDailyStreak();
+  renderDailyPanel('goMissions');
   if (gameMode === 'training') {
     document.getElementById('goPB').textContent = t('trainingSub');
     document.getElementById('goXP').textContent = '+0 XP';
@@ -6820,6 +7045,7 @@ document.getElementById('btnMenu').addEventListener('click', () => {
   resetGame();
   renderRanking();
   updateMenuPB();
+  renderDailyPanel('dailyPanel');
   elGO.classList.add('hidden');
   elMenu.classList.remove('hidden');
 });
@@ -7075,10 +7301,20 @@ function renderShop() {
     const isEq = isPet ? eq.includes(it.id) : eq === it.id;
     const cor = isEq ? '#ffd23f' : owned ? '#7ee08a' : '#2e6e3e';
     const acao = owned ? (isEq ? t('active') : (isPet ? t('call') : t('equip'))) : ('🥚 ' + it.preco);
+    // papel do amiguinho + nível de amizade (corações por partidas jogadas juntos)
+    const roleLine = isPet
+      ? '<div style="font-size:9px;font-weight:800;color:#7dd3fc;line-height:1.2">'
+        + (it.role === 'guard' ? '🛡 ' + t('roleGuard') : it.role === 'power' ? '🎁 ' + t('rolePower') : '🥚 ' + t('roleEggs')) + '</div>'
+      : '';
+    const loveLine = isPet && owned
+      ? '<div style="font-size:10px;color:#ff5c8a">' + '♥'.repeat(petLevel(it.id))
+        + '<span style="color:#9ab89f"> ' + petRunsOf(it.id) + '🎮</span></div>'
+      : '';
     return '<button class="shopItem" data-id="' + it.id + '" style="width:112px;padding:9px 5px;border-radius:10px;'
       + 'background:#10281a;border:2px solid ' + cor + ';color:#e8f5ea;cursor:pointer;font-family:inherit">'
       + '<div style="font-size:26px">' + it.emoji + '</div>'
       + '<div style="font-size:12px;font-weight:800;margin:3px 0;line-height:1.05">' + itemName(it) + '</div>'
+      + roleLine + loveLine
       + '<div style="font-size:13px;font-weight:800;color:' + cor + '">' + acao + '</div></button>';
   }).join('');
   list.querySelectorAll('.shopItem').forEach(b => b.addEventListener('click', () => {
@@ -7156,6 +7392,7 @@ function applyLang() {
   const shopTitle = document.querySelector('#shop h1'); if (shopTitle) shopTitle.innerHTML = t('shopTitle') + '<small>' + t('shopSub') + '</small>';
   const eggsLbl = document.querySelector('#gameover .hint'); if (eggsLbl) eggsLbl.textContent = t('eggsCollected');
   renderAchievements();
+  renderDailyPanel('dailyPanel');
   // destaca a bandeira ativa
   document.querySelectorAll('.langBtn').forEach(b => {
     b.style.borderColor = b.dataset.lang === LANG ? '#ffd23f' : '#2e6e3e';
@@ -7211,7 +7448,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.52';
+const GAME_VERSION = '5.53';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)

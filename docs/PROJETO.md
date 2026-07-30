@@ -33,6 +33,12 @@ O jogo precisa parecer vivo, alegre e brasileiro, mas sem perder a leitura imedi
   - acessorios e amigos animais comprados com ovos.
   - ate 2 amiguinhos podem estar ativos por partida.
   - amiguinhos coletam itens proximo ao tucano e contribuem para o COMBO (v5.50+).
+  - cada ave tem um papel (v5.53+): coletor de ovos, caca-premios ou protetor (salva 1x por partida).
+  - nivel de amizade por partidas jogadas com a ave (10/30 partidas), so visual.
+- Engajamento diario (v5.53+):
+  - 3 missoes por dia, iguais para todos (seed da data), pagas em ovos da lojinha.
+  - sequencia de dias jogando o Desafio do Dia, com marcos em 3/7/30 dias.
+  - voo rasante: passar rente ao galho alimenta o COMBO (sem pontos diretos).
 - Comunidade:
   - jogadores enviam ideias pela tela de sugestoes.
 
