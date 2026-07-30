@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.53` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.54` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -93,6 +93,11 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
     entrar já, para o jogador ver primeiro o banner do novo bioma.
 - **Power-ups:** pena (leve veloc.+pontos), escudo, relógio (câmera lenta), água (leve desaceleração,
   escudo e pontos `×2`), Livro Mágico (4 bônus positivos), 6 comidas.
+  Desde v5.54 o **escudo acumula até 3** (coleta soma `Math.min(3, shield+1)`; `useShield` gasta 1
+  por vez, água/`aguaShield` continua separado). A bolha do tucano desenha 1 anel por escudo e o HUD
+  mostra `×N`. Perder cada escudo dispara `shieldBreakBlast()`: ondas de choque (`shieldRings`),
+  flash de tela (`shieldFlash`, decrementados no `update()`), estilhaços, shake, floater com a
+  contagem restante e `sfx.shieldBreak(left)` (pitch cai conforme restam menos escudos).
 - **Eventos:** tempestade, vulcão, noite de 30s, terremoto e eventos do ET. +
   nave do ET e clique no ET (noite mágica 15s + ovos `×2` por 15s).
 - **Economia de ovos:** carteira persistente (`superTucan_eggBank`) → loja de acessórios e pets.
@@ -381,3 +386,6 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
   nível de amizade visual por partidas jogadas; (3) **voo rasante** alimenta o COMBO ao passar rente
   ao galho. Novas conquistas: Voo Rasante e Salvo pelo Amiguinho. Ranking intocado: recompensas só
   em ovos da lojinha e o rasante só acelera o multiplicador com teto ×4.
+- **v5.54** — escudo acumula até ×3 (bolha com anéis empilhados e HUD `×N`) e perder cada escudo
+  virou um momento: onda de choque dupla, flash verde, estilhaços, tremor e som de vidro estalando
+  com pitch que cai conforme restam menos escudos.
