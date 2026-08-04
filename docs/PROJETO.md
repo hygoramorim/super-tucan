@@ -39,6 +39,12 @@ O jogo precisa parecer vivo, alegre e brasileiro, mas sem perder a leitura imedi
   - 3 missoes por dia, iguais para todos (seed da data), pagas em ovos da lojinha.
   - sequencia de dias jogando o Desafio do Dia, com marcos em 3/7/30 dias.
   - voo rasante: passar rente ao galho alimenta o COMBO (sem pontos diretos).
+- Engajamento social e maestria (v5.55+, foco ~12 anos):
+  - Liga do Bando: ranking semanal entre amigos, coroa pro campeao, zera toda segunda.
+  - Contrato do Dia: dificuldade opcional (modificador + meta de bioma), ovos x2 ao cumprir,
+    sem ranking global.
+  - Skins lendarias: 4 skins desbloqueadas so por feito (bosses, streak 30, rasantes, combo
+    sustentado), com selo publico no ranking e na Liga.
 - Comunidade:
   - jogadores enviam ideias pela tela de sugestoes.
 

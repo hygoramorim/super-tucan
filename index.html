@@ -284,6 +284,7 @@
         <button id="btnTraining" class="sec">&#127919; TREINO</button>
         <button id="btnTutorial" class="sec">&#127891; TUTORIAL</button>
         <button id="btnHardcore" class="sec">&#128128; HARDCORE</button>
+        <button id="btnContract" class="sec">&#9997;&#65039; CONTRATO</button>
         <button id="btnFriends" class="sec">&#10084;&#65039; AMIGOS</button>
         <button id="btnShop" class="sec">&#128717;&#65039; LOJINHA</button>
         <button id="btnIdeas" class="sec">&#128161; IDEIAS</button>
@@ -345,6 +346,7 @@
       <div style="display:flex;gap:6px;justify-content:center;margin:4px 0">
         <button class="tab active" id="shopTabAcc">&#128083; ACESS&Oacute;RIOS</button>
         <button class="tab" id="shopTabPet">&#128038; AMIGUINHOS</button>
+        <button class="tab" id="shopTabSkin">&#128038;&#8205;&#128293; SKINS</button>
       </div>
       <p class="hint">Colete ovos jogando e compre coisas pro seu tucano!</p>
       <div id="shopList" style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:360px;max-height:40vh;overflow-y:auto"></div>
@@ -409,7 +411,12 @@ const I18N = {
     missionsTitle: '🎯 MISSÕES DE HOJE', missionDone: 'MISSÃO CUMPRIDA!', streakDays: 'DIAS SEGUIDOS', streakHint: 'JOGUE O DESAFIO DO DIA!',
     mEggs: 'Colete {n} ovos hoje', mGolden: 'Pegue {n} ovos dourados hoje', mPower: 'Pegue {n} power-ups hoje', mRuns: 'Jogue {n} partidas hoje', mPhase: 'Chegue em {p} numa partida', mCombo: 'Faça COMBO ×{n} numa partida',
     rasante: 'RASANTE!', petSaved: 'TE SALVOU!', roleEggs: 'COLETOR DE OVOS', rolePower: 'CAÇA-PRÊMIOS', roleGuard: 'PROTETOR · SALVA 1×',
-    shieldBroke: 'ESCUDO QUEBROU!'
+    shieldBroke: 'ESCUDO QUEBROU!',
+    ligaTitle: '🏆 LIGA DA SEMANA', ligaReset: 'zera na 2ª!',
+    contract: '✍️ CONTRATO', contractTitle: 'CONTRATO DO DIA', contractGoal: 'chegue em {p}', contractDone: 'CONTRATO CUMPRIDO! OVOS ×2',
+    contractFailed: 'Contrato não cumprido — sem bônus. Tente de novo!', contractNoRank: 'Contrato: ovos em dobro, sem ranking global.',
+    cNoPower: 'SEM POWER-UPS', cNarrow: 'VÃO 15% MENOR', cTurbo: 'VELOCIDADE +25%',
+    tabSkin: '🐦‍🔥 SKINS', skinUnlock: 'SKIN DESBLOQUEADA!'
   },
   en: {
     tagline: 'Flap your wings, dodge BRANCHES, dive into the CRYSTAL LAKE and collect EGGS across Brazil until the ENDLESS PANTANAL!',
@@ -442,7 +449,12 @@ const I18N = {
     missionsTitle: '🎯 TODAY’S MISSIONS', missionDone: 'MISSION COMPLETE!', streakDays: 'DAY STREAK', streakHint: 'PLAY THE DAILY CHALLENGE!',
     mEggs: 'Collect {n} eggs today', mGolden: 'Grab {n} golden eggs today', mPower: 'Grab {n} power-ups today', mRuns: 'Play {n} runs today', mPhase: 'Reach {p} in one run', mCombo: 'Hit COMBO ×{n} in one run',
     rasante: 'RAZOR PASS!', petSaved: 'SAVED YOU!', roleEggs: 'EGG COLLECTOR', rolePower: 'PRIZE HUNTER', roleGuard: 'GUARDIAN · SAVES 1×',
-    shieldBroke: 'SHIELD SHATTERED!'
+    shieldBroke: 'SHIELD SHATTERED!',
+    ligaTitle: '🏆 WEEKLY LEAGUE', ligaReset: 'resets Monday!',
+    contract: '✍️ CONTRACT', contractTitle: 'DAILY CONTRACT', contractGoal: 'reach {p}', contractDone: 'CONTRACT FULFILLED! EGGS ×2',
+    contractFailed: 'Contract failed — no bonus. Try again!', contractNoRank: 'Contract: double eggs, no global ranking.',
+    cNoPower: 'NO POWER-UPS', cNarrow: 'GAP 15% SMALLER', cTurbo: 'SPEED +25%',
+    tabSkin: '🐦‍🔥 SKINS', skinUnlock: 'SKIN UNLOCKED!'
   },
   es: {
     tagline: '¡Bate las alas, esquiva RAMAS, sumérgete en el LAGO CRISTALINO y colecta HUEVOS por Brasil hasta el PANTANAL INFINITO!',
@@ -475,7 +487,12 @@ const I18N = {
     missionsTitle: '🎯 MISIONES DE HOY', missionDone: '¡MISIÓN CUMPLIDA!', streakDays: 'DÍAS SEGUIDOS', streakHint: '¡JUEGA EL RETO DEL DÍA!',
     mEggs: 'Colecta {n} huevos hoy', mGolden: 'Toma {n} huevos dorados hoy', mPower: 'Toma {n} power-ups hoy', mRuns: 'Juega {n} partidas hoy', mPhase: 'Llega a {p} en una partida', mCombo: 'Haz COMBO ×{n} en una partida',
     rasante: '¡RASANTE!', petSaved: '¡TE SALVÓ!', roleEggs: 'COLECTOR DE HUEVOS', rolePower: 'CAZA-PREMIOS', roleGuard: 'PROTECTOR · SALVA 1×',
-    shieldBroke: '¡ESCUDO ROTO!'
+    shieldBroke: '¡ESCUDO ROTO!',
+    ligaTitle: '🏆 LIGA DE LA SEMANA', ligaReset: '¡se reinicia el lunes!',
+    contract: '✍️ CONTRATO', contractTitle: 'CONTRATO DEL DÍA', contractGoal: 'llega a {p}', contractDone: '¡CONTRATO CUMPLIDO! HUEVOS ×2',
+    contractFailed: 'Contrato no cumplido — sin bono. ¡Inténtalo de nuevo!', contractNoRank: 'Contrato: huevos dobles, sin ranking global.',
+    cNoPower: 'SIN POWER-UPS', cNarrow: 'HUECO 15% MENOR', cTurbo: 'VELOCIDAD +25%',
+    tabSkin: '🐦‍🔥 SKINS', skinUnlock: '¡SKIN DESBLOQUEADA!'
   },
   zh: {
     tagline: '扇动翅膀，躲避树枝，潜入水晶湖，在巴西一路收集鸡蛋直到无尽的潘塔纳尔！',
@@ -508,7 +525,12 @@ const I18N = {
     missionsTitle: '🎯 今日任务', missionDone: '任务完成！', streakDays: '天连续', streakHint: '玩每日挑战！',
     mEggs: '今天收集 {n} 个蛋', mGolden: '今天拿 {n} 个金蛋', mPower: '今天拿 {n} 个道具', mRuns: '今天玩 {n} 局', mPhase: '一局内到达 {p}', mCombo: '一局内达到连击 ×{n}',
     rasante: '贴地飞行！', petSaved: '救了你！', roleEggs: '捡蛋员', rolePower: '寻宝员', roleGuard: '守护者 · 救1次',
-    shieldBroke: '护盾碎了！'
+    shieldBroke: '护盾碎了！',
+    ligaTitle: '🏆 每周联赛', ligaReset: '周一重置！',
+    contract: '✍️ 契约', contractTitle: '每日契约', contractGoal: '到达 {p}', contractDone: '契约完成！鸡蛋 ×2',
+    contractFailed: '契约未完成 — 没有奖励。再试一次！', contractNoRank: '契约：双倍鸡蛋，不进全球排行。',
+    cNoPower: '没有道具', cNarrow: '缺口小15%', cTurbo: '速度 +25%',
+    tabSkin: '🐦‍🔥 皮肤', skinUnlock: '皮肤解锁！'
   }
 };
 let LANG = localStorage.getItem('superTucan_lang') || 'pt';
@@ -638,6 +660,10 @@ function currentDiff() {
     gap: Math.max(132, p.gap - p3Level * 0.6),
     spacing: Math.max(206, p.spacing - p3Level * 0.8)
   };
+  // CONTRATO DO DIA (v5.55): aperto opcional escolhido pelo jogador
+  const cm = contractMods();
+  if (cm.gapMult) d.gap = Math.max(126, d.gap * cm.gapMult);
+  if (cm.speedMult) d.speed *= cm.speedMult;
   // modificadores ativos: relógio (câmera lenta), água turbinada, pena (mais rápido), vulcão
   let k = 1;
   if (slowmo > 0) k *= 0.55;
@@ -843,6 +869,14 @@ function dayKey() {
   const d = new Date();
   return d.getUTCFullYear() + '-' + String(d.getUTCMonth() + 1).padStart(2, '0') + '-' + String(d.getUTCDate()).padStart(2, '0');
 }
+// LIGA DO BANDO (v5.55): a semana é identificada pela data da segunda-feira (UTC).
+// Quando a chave muda, o recorde semanal "zera" sozinho — sem cron, sem limpeza.
+function weekKey() {
+  const d = new Date();
+  const day = (d.getUTCDay() + 6) % 7; // 0 = segunda-feira
+  const m = new Date(Date.now() - day * 86400000);
+  return m.getUTCFullYear() + '-' + String(m.getUTCMonth() + 1).padStart(2, '0') + '-' + String(m.getUTCDate()).padStart(2, '0');
+}
 // RANKING: uma entrada por pessoa (ideias 6 e 20 do Francisco). Lê o nó /players
 // (único por nome, com {best, xp}) e ordena no cliente por OVOS ou por XP.
 // Duas abas: RECORDISTAS (recorde de ovos) e VETERANOS (XP acumulado).
@@ -858,7 +892,7 @@ async function fetchPlayers() {
     if (!r.ok) throw new Error(r.status);
     const data = await r.json();
     const list = data
-      ? Object.keys(data).map(key => ({ key, name: data[key].name || key, best: data[key].best || 0, xp: data[key].xp || 0 }))
+      ? Object.keys(data).map(key => ({ key, name: data[key].name || key, best: data[key].best || 0, xp: data[key].xp || 0, skin: data[key].skin || '', wk: data[key].wk || '', wb: data[key].wb || 0 }))
       : [];
     localStorage.setItem('superTucan_players', JSON.stringify(list));
     return { list, online: true };
@@ -873,8 +907,9 @@ function rankTop(list, mode) {
 function rankHTML(list, mode) {
   const key = mode === 'xp' ? 'xp' : 'best';
   const icon = mode === 'xp' ? '&#11088;' : '&#129370;';
+  // v5.55: selo da skin lendária ao lado do nome — o ranking vira vitrine de feitos
   return list.map((e, i) =>
-    `<li><span>${String(i + 1).padStart(2, '0')}. ${e.name}</span><span class="pts">${e[key]} ${icon}</span></li>`
+    `<li><span>${String(i + 1).padStart(2, '0')}. ${skinBadge(e.skin)}${e.name}</span><span class="pts">${e[key]} ${icon}</span></li>`
   ).join('');
 }
 // submitScore agora GRAVA o recorde único por nome (PUT em /players) via publishPlayer,
@@ -1053,6 +1088,48 @@ function petRunsMap() { try { return JSON.parse(localStorage.getItem('superTucan
 function petRunsOf(id) { return petRunsMap()[id] || 0; }
 function addPetRun(id) { const m = petRunsMap(); m[id] = (m[id] || 0) + 1; localStorage.setItem('superTucan_petRuns', JSON.stringify(m)); }
 function petLevel(id) { const r = petRunsOf(id); return r >= 30 ? 3 : r >= 10 ? 2 : 1; }
+
+// ---------- SKINS LENDÁRIAS (v5.55) ----------
+// Desbloqueadas por FEITO, nunca por ovos: são prova pública de habilidade.
+// A skin equipada troca a paleta do tucano (por cima da paleta do bioma) e o
+// selo (emoji) aparece no ranking global e na Liga do Bando.
+const SKINS = [
+  { id: 'dourado', emoji: '🌟', body: '#c9971a', wing: '#a87908', beak: ['#fff1b8', '#e0a92f'], eye: '#ffffff', fx: 'sparkle',
+    nome: { pt: 'TUCANO DOURADO', en: 'GOLDEN TOUCAN', es: 'TUCÁN DORADO', zh: '黄金巨嘴鸟' },
+    cond: { pt: 'Vença a Cobra E o Urubu na mesma partida', en: 'Beat Snake AND Vulture in one run', es: 'Vence a la Cobra Y al Buitre en una partida', zh: '一局内击败蛇和秃鹫' } },
+  { id: 'fantasma', emoji: '👻', body: '#dfe8f2', wing: '#b9c8da', beak: ['#9fb4cc', '#7e93ab'], eye: '#3b82f6', fx: 'ghost',
+    nome: { pt: 'TUCANO FANTASMA', en: 'GHOST TOUCAN', es: 'TUCÁN FANTASMA', zh: '幽灵巨嘴鸟' },
+    cond: { pt: '30 dias seguidos no Desafio do Dia', en: '30-day Daily Challenge streak', es: '30 días seguidos en el Reto del Día', zh: '每日挑战连续30天' } },
+  { id: 'relampago', emoji: '⚡', body: '#101430', wing: '#2a3480', beak: ['#ffe94a', '#ffc21a'], eye: '#ffffff', fx: 'bolt',
+    nome: { pt: 'TUCANO RELÂMPAGO', en: 'LIGHTNING TOUCAN', es: 'TUCÁN RELÁMPAGO', zh: '闪电巨嘴鸟' },
+    cond: { pt: '20 voos rasantes numa partida', en: '20 razor passes in one run', es: '20 vuelos rasantes en una partida', zh: '一局内20次贴地飞行' } },
+  { id: 'fogo', emoji: '🔥', body: '#7a1608', wing: '#b3300f', beak: ['#ffd23f', '#ff7a1a'], eye: '#ffe94a', fx: 'ember',
+    nome: { pt: 'TUCANO DE FOGO', en: 'FIRE TOUCAN', es: 'TUCÁN DE FUEGO', zh: '火焰巨嘴鸟' },
+    cond: { pt: 'Segure COMBO ×4 por 30s numa partida', en: 'Hold COMBO ×4 for 30s in one run', es: 'Mantén COMBO ×4 por 30s en una partida', zh: '一局内保持连击×4达30秒' } }
+];
+function skinName(s) { return s.nome[LANG] || s.nome.pt; }
+function skinCond(s) { return s.cond[LANG] || s.cond.pt; }
+function skinBadge(id) { const s = SKINS.find(x => x.id === id); return s ? s.emoji + ' ' : ''; }
+function unlockedSkins() { try { return JSON.parse(localStorage.getItem('superTucan_skins')) || {}; } catch (e) { return {}; } }
+function ownsSkin(id) { return !!unlockedSkins()[id]; }
+function unlockSkin(id) {
+  const all = unlockedSkins();
+  if (all[id]) return;
+  all[id] = new Date().toISOString().slice(0, 10);
+  localStorage.setItem('superTucan_skins', JSON.stringify(all));
+  const s = SKINS.find(x => x.id === id);
+  if (s) {
+    floater(s.emoji + ' ' + t('skinUnlock') + ' ' + skinName(s), '#ffd23f', W / 2, H / 2 - 130);
+    celebrate(['#ffd23f', '#ffffff', '#ff2e93', '#7ee08a'], 120);
+    sfx.milestone(9);
+  }
+}
+function equippedSkin() { const id = localStorage.getItem('superTucan_skinEquipped') || ''; return SKINS.find(s => s.id === id) || null; }
+function equipSkin(id) { toggleStoredId('superTucan_skinEquipped', id); }
+function skinPalette(p) {
+  const s = equippedSkin();
+  return s ? Object.assign({}, p, { body: s.body, wing: s.wing, beak: s.beak, eye: s.eye }) : p;
+}
 function ownedPets() { return storedList('superTucan_pets'); }
 function ownsPet(id) { return ownsStored('superTucan_pets', id); }
 function buyPet(id) { return buyStored('superTucan_pets', PET_ITEMS, id); }
@@ -1085,6 +1162,8 @@ function equipPet(id) {
 }
 let petTrail = []; // buffer de posições do tucano p/ a companheira seguir com defesagem
 let petGuardCharge = 0; // PROTETOR (v5.53): 1 salvamento por partida se houver ave 'guard' ativa
+// contadores de FEITO da partida p/ desbloquear skins lendárias (v5.55)
+let runRasantes = 0, runBossWins = {}, comboX4Frames = 0;
 function petPosition(slot) {
   if (!bird) return null;
   const delay = slot === 1 ? 20 : 30;
@@ -1139,9 +1218,17 @@ function itemName(it) { return (ITEM_NAMES[it.id] && (ITEM_NAMES[it.id][LANG] ||
 async function putPlayerCard(name, st) {
   const key = rankKeyForName(name);
   const current = await fbJson(['players', key]).catch(() => null);
+  // v5.55: o cartão ganha campos extras — wk/wb (Liga do Bando: melhor da semana)
+  // e skin (selo da skin lendária no ranking). As regras do Firebase validam só
+  // best/xp via hasChildren, então os extras passam sem mudar as regras.
+  const wk = weekKey();
+  const curWb = current && current.wk === wk ? (Number(current.wb) || 0) : 0;
+  const stWb = st.wk === wk ? (Number(st.wb) || 0) : 0;
   const card = {
     best: Math.max(Number(st.pb) || 0, Number(current && current.best) || 0),
-    xp: Math.max(Number(st.xp) || 0, Number(current && current.xp) || 0)
+    xp: Math.max(Number(st.xp) || 0, Number(current && current.xp) || 0),
+    wk, wb: Math.max(stWb, curWb),
+    skin: localStorage.getItem('superTucan_skinEquipped') || ''
   };
   await fbJson(['players', key], { method: 'PUT', body: JSON.stringify(card) });
   const saved = await fbJson(['players', key]);
@@ -1161,7 +1248,9 @@ function queueRankPublication(name, st) {
   pending[key] = {
     name,
     pb: Math.max(Number(st.pb) || 0, Number(prev.pb) || 0),
-    xp: Math.max(Number(st.xp) || 0, Number(prev.xp) || 0)
+    xp: Math.max(Number(st.xp) || 0, Number(prev.xp) || 0),
+    wk: st.wk || prev.wk || '',
+    wb: st.wk === prev.wk ? Math.max(Number(st.wb) || 0, Number(prev.wb) || 0) : (Number(st.wb) || 0)
   };
   localStorage.setItem(LS_RANK_PENDING, JSON.stringify(pending));
 }
@@ -1200,7 +1289,7 @@ function getStats(name) {
       if (old[name]) s.pb = old[name];
     } catch (e) { /* sem dados antigos */ }
   }
-  return { pb: s.pb || 0, phase: s.phase === undefined ? -1 : s.phase, level: s.level || 0, xp: s.xp || 0 };
+  return { pb: s.pb || 0, phase: s.phase === undefined ? -1 : s.phase, level: s.level || 0, xp: s.xp || 0, wk: s.wk || '', wb: s.wb || 0 };
 }
 function saveStats(name, st) {
   let m = {};
@@ -1280,6 +1369,32 @@ function dailyProgress(kind, amt) {
   saveDaily(d);
 }
 function dailyCheckCombo(c) { if (c >= 8) dailyProgress('combo', c); }
+// ---------- CONTRATO DO DIA (v5.55) ----------
+// Dificuldade opcional em forma de aposta: 1 contrato por dia, igual pra todos
+// (seed da data, separado do rng() do desafio). Cumpriu a meta → OVOS ×2 pra
+// lojinha. A pontuação NÃO vai pro ranking global (como o treino), então o
+// TOP 10 continua comparável — a recompensa é economia + bragging.
+const CONTRACT_DEFS = [
+  { id: 'noPower', icon: '🚫', key: 'cNoPower', mods: { noPower: true } },
+  { id: 'narrow',  icon: '🥅', key: 'cNarrow',  mods: { gapMult: 0.85 } },
+  { id: 'turbo',   icon: '💨', key: 'cTurbo',   mods: { speedMult: 1.25 } }
+];
+const CONTRACT_GOALS = [3, 4, 5]; // MATA ATLÂNTICA, CAATINGA, PAMPAS
+function todayContract() {
+  const r = mulberry32(parseInt(dayKey().replace(/-/g, ''), 10) ^ 0xC07A0);
+  const def = CONTRACT_DEFS[Math.floor(r() * CONTRACT_DEFS.length)];
+  return { id: def.id, icon: def.icon, key: def.key, mods: def.mods, goal: CONTRACT_GOALS[Math.floor(r() * CONTRACT_GOALS.length)] };
+}
+function contractMods() { return gameMode === 'contract' ? todayContract().mods : {}; }
+function contractText(c) { return t(c.key) + ' → ' + t('contractGoal').replace('{p}', PHASES[c.goal].name); }
+function contractData() {
+  let c = {};
+  try { c = JSON.parse(localStorage.getItem('superTucan_contract')) || {}; } catch (e) { c = {}; }
+  if (c.day !== dayKey()) c = { day: dayKey(), done: false };
+  return c;
+}
+function saveContract(c) { localStorage.setItem('superTucan_contract', JSON.stringify(c)); }
+let contractMet = false; // cumpriu a meta do contrato nesta partida
 // SEQUÊNCIA do Desafio do Dia: jogar 1x por dia mantém o fogo aceso.
 // Marcos 3/7/30 pagam bônus de ovos (lojinha) — ranking intocado.
 const STREAK_MILESTONES = { 3: 50, 7: 150, 30: 500 };
@@ -1297,6 +1412,7 @@ function bumpDailyStreak() {
   s.count = s.last === yesterdayKey() ? s.count + 1 : 1;
   s.last = dayKey();
   localStorage.setItem('superTucan_dailyStreak', JSON.stringify(s));
+  if (s.count >= 30) unlockSkin('fantasma'); // skin lendária (v5.55)
   const bonus = STREAK_MILESTONES[s.count];
   if (bonus) {
     addEggs(bonus);
@@ -1322,10 +1438,16 @@ function renderDailyPanel(elId) {
   const streakTxt = s.count > 0
     ? '🔥 ' + s.count + ' ' + t('streakDays') + (s.last === dayKey() ? ' ✓' : '')
     : '🔥 ' + t('streakHint');
+  // CONTRATO DO DIA (v5.55): aparece junto das missões, com estado de hoje
+  const c = todayContract();
+  const cd = contractData();
+  const contractRow = '<div style="display:flex;justify-content:space-between;gap:8px;padding:2px 0;border-top:1px dashed #2e6e3e;margin-top:3px;color:' + (cd.done ? '#7ee08a' : '#ffb020') + '">'
+    + '<span>' + (cd.done ? '✅' : c.icon) + ' ' + t('contractTitle') + ': ' + contractText(c) + '</span>'
+    + '<span style="white-space:nowrap">' + (cd.done ? 'OK' : '🥚×2') + '</span></div>';
   el.innerHTML = '<div style="max-width:360px;margin:6px auto 0;background:rgba(8,18,14,.92);border:1px solid #2e6e3e;border-radius:8px;padding:7px 10px;text-align:left;font-size:12px;line-height:1.35">'
     + '<div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:3px"><b style="color:#ffd23f">' + t('missionsTitle') + '</b>'
     + '<span style="color:' + (s.count > 0 ? '#ff9f1c' : '#9ab89f') + '">' + streakTxt + '</span></div>'
-    + rows + '</div>';
+    + rows + contractRow + '</div>';
 }
 
 // ---------- Estado do jogo ----------
@@ -1537,6 +1659,11 @@ function finishBossArena() {
   floater('✨ +' + clearBonus + ' PTS ✨', '#fff7dd', W / 2, H / 2 - 55);
   if (kind === 'urubu') urubuBonusDist = 4200;
   unlockAchievement(kind === 'cobra' ? 'beatSnake' : 'beatUrubu');
+  // skin lendária (v5.55): os DOIS bosses na mesma partida (tutorial não vale)
+  if (gameMode !== 'tutorial') {
+    runBossWins[kind] = true;
+    if (runBossWins.cobra && runBossWins.urubu) unlockSkin('dourado');
+  }
   celebrate(['#ffd23f', '#ff2e93', '#ffffff', '#7ee08a', '#fff7dd'], 150);
   sfx.milestone(8);
   boss = null; bossArena = null; bones = []; venom = []; snakeEggs = []; snakeWhips = []; snakeBites = [];
@@ -1781,6 +1908,8 @@ function resetGame() {
   bossAppearances = 0; bossQueued = 0; mandatorySnakeQueued = 0;
   petTrail = [];
   petGuardCharge = equippedPets().some(id => petRole(id) === 'guard') ? 1 : 0;
+  runRasantes = 0; runBossWins = {}; comboX4Frames = 0;
+  contractMet = false;
   floaters = [];
   nextMilestone = 100;
   nextBigMilestone = 1000;
@@ -2032,7 +2161,7 @@ function spawnObstacle() {
   const itemReady = gameMode === 'tutorial'
     ? obsSinceItem >= 1
     : obsSinceItem >= ITEM_MIN_GAP && rng() < ITEM_SPAWN_CHANCE;
-  if (gameMode !== 'hardcore' && !jewelBetween && itemReady) {
+  if (gameMode !== 'hardcore' && !contractMods().noPower && !jewelBetween && itemReady) {
     let powerupPlaced = false;
     if (gameMode === 'tutorial') {
       const tutorialItems = [
@@ -2935,6 +3064,14 @@ function update() {
     if (phaseIdx === 1) unlockAchievement('amazon');
     if (phaseIdx === LAST) unlockAchievement('pantanal');
     dailyProgress('phase', phaseIdx); // missão do dia: alcançar bioma
+    // CONTRATO DO DIA (v5.55): bateu a meta de bioma → contrato cumprido
+    if (gameMode === 'contract' && !contractMet && phaseIdx >= todayContract().goal) {
+      contractMet = true;
+      const cd = contractData(); cd.done = true; saveContract(cd);
+      floater('✍️ ' + t('contractDone'), '#ffd23f', W / 2, H / 2 - 96);
+      celebrate(['#ffd23f', '#7ee08a', '#ffffff'], 80);
+      sfx.milestone(6);
+    }
     bannerTimer = 130;
     bannerText = phaseIdx === LAGO_PHASE_IDX ? 'MERGULHE' : t('phase') + ' ' + (phaseIdx + 1);
     bannerSub = np.name;
@@ -3047,12 +3184,32 @@ function update() {
         else sfx.chirp();
         unlockAchievement('rasante');
         dailyCheckCombo(combo);
+        if (++runRasantes >= 20) unlockSkin('relampago'); // skin lendária (v5.55)
       } else if (edge < 20) {
         floater(t('phew'), '#ffffff');
         sfx.chirp();
       }
     }
   });
+
+  // skin TUCANO DE FOGO (v5.55): segurar COMBO ×4 por 30s acumulados na partida
+  if (state === 'play' && comboMult(combo) >= 4 && ++comboX4Frames === 1800) unlockSkin('fogo');
+  // rastro da skin lendária equipada (cosmético: Math.random permitido)
+  const skFx = equippedSkin();
+  if (skFx && state === 'play' && frames % (PERF_LOW ? 8 : 5) === 0) {
+    const col = skFx.fx === 'sparkle' ? '#ffd23f'
+      : skFx.fx === 'bolt' ? '#ffe94a'
+      : skFx.fx === 'ember' ? (Math.random() < 0.5 ? '#ff7a1a' : '#ff3a1a')
+      : '#dfe8f2';
+    particles.push({
+      x: bird.x - 18 - Math.random() * 8,
+      y: bird.y + (Math.random() * 16 - 8),
+      vx: -1 - Math.random(),
+      vy: skFx.fx === 'ember' ? -0.8 - Math.random() : (Math.random() - 0.5),
+      life: 22 + Math.random() * 14,
+      color: col
+    });
+  }
 
   // marco de pontos: a cada 100 há festa; a cada 1000, festa maior no placar.
   triggerScoreMilestones(true);
@@ -5619,8 +5776,11 @@ function drawDeadToucan(p) {
 }
 
 function drawToucan(p) {
+  p = skinPalette(p); // skin lendária equipada troca a paleta do bioma (v5.55)
   if (state === 'dead' && landed) { drawDeadToucan(p); return; }
   ctx.save();
+  const skGhost = equippedSkin();
+  if (skGhost && skGhost.fx === 'ghost') ctx.globalAlpha = 0.75; // fantasma: translúcido
   ctx.translate(bird.x, bird.y);
   ctx.rotate(bird.rot);
   if (foodSize !== 1) ctx.scale(foodSize, foodSize); // COMIDAS: brigadeiro/alface mudam o tamanho
@@ -6180,6 +6340,10 @@ function drawHUD(p) {
   if (urubuBonusDist > 0 && fxY < 156) { ctx.fillStyle = '#ffd23f'; ctx.fillText('💀 URUBU ×3 · ' + Math.ceil(urubuBonusDist) + 'm', 14, fxY); fxY += 18; }
   if (bossBonusTimer > 0) { ctx.fillStyle = '#ffd23f'; ctx.fillText('🏆 ' + (bossBadgeText || t('bossClear')) + ' · ' + Math.ceil(bossBonusTimer / 60) + 's', 14, fxY); fxY += 18; }
   if (bossArena && fxY < 156) { ctx.fillStyle = '#ffb020'; ctx.fillText('⚔ ' + t('noEggsBoss'), 14, fxY); fxY += 18; }
+  if (gameMode === 'contract' && fxY < 156) {
+    ctx.fillStyle = contractMet ? '#7ee08a' : '#ffb020';
+    ctx.fillText((contractMet ? '✅ ' : '✍️ ') + t(todayContract().key), 14, fxY); fxY += 18;
+  }
   if (event && alertTimer <= 0 && fxY < 156) {
     const icon = event === 'NOITE' ? '🌙 ' + t('nightEvent') : event === 'VULCÃO' ? '🌋 ' + (eventTimer > 480 ? 'TREMOR...' : t('volcanoEvent')) : event === 'TERREMOTO' ? '🌎 ' + t('earthquakeEvent') : event === 'NEVE' ? '❄ ' + t('snowEvent') : '⚠ ' + event;
     ctx.fillStyle = event === 'NOITE' ? '#d8b4fe' : event === 'VULCÃO' ? '#ffb020' : event === 'TERREMOTO' ? '#ffd23f' : event === 'NEVE' ? '#ffffff' : '#ffffff';
@@ -6878,6 +7042,10 @@ function draw() {
         ctx.fillStyle = '#ff9f1c';
         ctx.fillText('🔥 ' + sd.count + ' ' + t('streakDays'), W / 2, H / 2 - 142);
       }
+    } else if (gameMode === 'contract') {
+      ctx.fillStyle = '#ffb020';
+      ctx.font = "12px Bungee, 'Courier New', monospace";
+      ctx.fillText('✍️ ' + contractText(todayContract()), W / 2, H / 2 - 120);
     }
     ctx.globalAlpha = 1;
   }
@@ -6974,6 +7142,9 @@ async function startGame(mode) {
   } else if (gameMode === 'training') {
     bannerText = t('training');
     bannerSub = t('trainingSub');
+  } else if (gameMode === 'contract') {
+    bannerText = t('contractTitle');
+    bannerSub = contractText(todayContract());
   } else if (gameMode === 'tutorial') {
     bannerText = t('tutorial');
     bannerSub = PHASES[0].name + ' · ' + tutorialFaunaText(PHASES[0]);
@@ -7024,9 +7195,28 @@ function showGameOver() {
     elGO.classList.remove('hidden');
     return;
   }
+  // CONTRATO DO DIA (v5.55): cumpriu → dobra os ovos da partida na carteira.
+  // Sem XP e sem ranking global (mesma regra do treino) — o TOP 10 fica justo.
+  if (gameMode === 'contract') {
+    const c = todayContract();
+    if (contractMet && score > 0) addEggs(score); // segunda metade = total ×2
+    document.getElementById('goPB').textContent = (contractMet ? '✅ ' : '✍️ ') + contractText(c);
+    document.getElementById('goXP').textContent = contractMet
+      ? '🥚 ' + t('contractDone') + ' (+' + (score * 2) + ')'
+      : t('contractFailed');
+    document.getElementById('goRecord').classList.add('hidden');
+    document.getElementById('goRank').textContent = t('contractNoRank') + level;
+    if (contractMet) celebrate(['#ffd23f', '#7ee08a', '#ffffff'], 60);
+    elGO.classList.remove('hidden');
+    return;
+  }
 
   // status do jogador: recorde e maior distância (neste aparelho)
   const st = getStats(playerName);
+  // LIGA DO BANDO (v5.55): melhor pontuação da semana — a chave da segunda-feira
+  // muda toda semana, então o placar semanal zera sozinho
+  if (st.wk !== weekKey()) { st.wk = weekKey(); st.wb = 0; }
+  if (score > st.wb) st.wb = score;
   const pb = st.pb;
   const elPB = document.getElementById('goPB');
   if (score > pb) {
@@ -7101,6 +7291,7 @@ elInitials.addEventListener('keydown', e => {
 // modos extra
 document.getElementById('btnTutorial').addEventListener('click', () => startGame('tutorial'));
 document.getElementById('btnHardcore').addEventListener('click', () => startGame('hardcore'));
+document.getElementById('btnContract').addEventListener('click', () => startGame('contract'));
 
 // ---------- Painel de amigos ♥ ----------
 const elFriends = document.getElementById('friends');
@@ -7164,20 +7355,41 @@ async function openFriends() {
   fSetTab('list');
 }
 async function fLoadFriends() {
+  // LIGA DO BANDO (v5.55): a aba de amigos virou a liga semanal — todo mundo do
+  // bando ordenado pela melhor pontuação DA SEMANA, com coroa pro líder.
+  // A disputa reabre toda segunda (weekKey muda e os placares antigos valem 0).
   const box = document.getElementById('fList');
   try {
     const data = await fbJson(['friends', playerName]) || {};
     const names = Object.keys(data);
     if (!names.length) { box.innerHTML = '<div class="fempty">' + t('noFriends') + '</div>'; return; }
-    let html = '';
     let reward = 0;
+    const wk = weekKey();
+    const me = getStats(playerName);
+    const rows = [{
+      n: playerName, me: true, best: me.pb, xp: me.xp,
+      wb: me.wk === wk ? me.wb : 0,
+      skin: localStorage.getItem('superTucan_skinEquipped') || ''
+    }];
     for (const n of names) {
       reward += grantFriendReward(n);
       let info = null;
       try { info = await fbJson(['players', n]); } catch (e) { /* segue sem info */ }
-      const lv = levelLabel((info && info.xp) || 0);
-      html += frow('<span>' + lv.emoji + ' <b>' + n + '</b> <small>' + lv.name + '</small></span><span class="pts">' + ((info && info.best) || 0) + ' 🥚</span>');
+      rows.push({
+        n, best: (info && info.best) || 0, xp: (info && info.xp) || 0,
+        wb: info && info.wk === wk ? (Number(info.wb) || 0) : 0,
+        skin: (info && info.skin) || ''
+      });
     }
+    rows.sort((a, b) => b.wb - a.wb);
+    const kingWb = rows[0].wb;
+    let html = frow('<span><b>' + t('ligaTitle') + '</b></span><span class="pts">' + t('ligaReset') + '</span>');
+    html += rows.map(r => {
+      const lv = levelLabel(r.xp);
+      const crown = kingWb > 0 && r.wb === kingWb ? '👑 ' : '';
+      return frow('<span>' + crown + skinBadge(r.skin) + lv.emoji + ' <b>' + r.n + '</b>' + (r.me ? ' <small>(' + t('you') + ')</small>' : '') + '</span>'
+        + '<span class="pts">' + r.wb + ' 🥚 <small>· ' + t('record') + ' ' + r.best + '</small></span>');
+    }).join('');
     box.innerHTML = (reward ? frow('<span><b>+' + reward + ' 🥚</b> ' + t('friendsList') + '</span><span>✓</span>') : '') + html;
   } catch (e) { box.innerHTML = '<div class="fempty">' + friendErrText(e) + '</div>'; }
 }
@@ -7337,6 +7549,26 @@ let shopTab = 'acc'; // 'acc' (acessórios) | 'pet' (amiguinhos)
 function renderShop() {
   document.getElementById('shopBank').innerHTML = '🥚 ' + eggBank();
   const list = document.getElementById('shopList');
+  // aba SKINS (v5.55): lendárias, desbloqueadas por feito — não se compram
+  if (shopTab === 'skin') {
+    list.innerHTML = SKINS.map(s => {
+      const owned = ownsSkin(s.id);
+      const isEq = !!(equippedSkin() && equippedSkin().id === s.id);
+      const cor = isEq ? '#ffd23f' : owned ? '#7ee08a' : '#2e6e3e';
+      const acao = owned ? (isEq ? t('active') : t('equip')) : '🔒';
+      return '<button class="shopItem" data-id="' + s.id + '" style="width:112px;padding:9px 5px;border-radius:10px;'
+        + 'background:#10281a;border:2px solid ' + cor + ';color:#e8f5ea;cursor:pointer;font-family:inherit">'
+        + '<div style="font-size:26px">' + (owned ? s.emoji : '🔒') + '</div>'
+        + '<div style="font-size:12px;font-weight:800;margin:3px 0;line-height:1.05">' + skinName(s) + '</div>'
+        + '<div style="font-size:9px;color:#9ab89f;line-height:1.2">' + skinCond(s) + '</div>'
+        + '<div style="font-size:13px;font-weight:800;color:' + cor + '">' + acao + '</div></button>';
+    }).join('');
+    list.querySelectorAll('.shopItem').forEach(b => b.addEventListener('click', () => {
+      if (ownsSkin(b.dataset.id)) { equipSkin(b.dataset.id); renderShop(); }
+      else document.getElementById('shopMsg').textContent = '🔒 ' + skinCond(SKINS.find(s => s.id === b.dataset.id));
+    }));
+    return;
+  }
   const isPet = shopTab === 'pet';
   const items = isPet ? PET_ITEMS : SHOP_ITEMS;
   const eq = isPet ? equippedPets() : equippedItem();
@@ -7383,6 +7615,7 @@ function shopSetTab(t) {
   shopTab = t;
   document.getElementById('shopTabAcc').classList.toggle('active', t === 'acc');
   document.getElementById('shopTabPet').classList.toggle('active', t === 'pet');
+  document.getElementById('shopTabSkin').classList.toggle('active', t === 'skin');
   document.getElementById('shopMsg').textContent = '';
   renderShop();
 }
@@ -7393,6 +7626,7 @@ document.getElementById('btnShop').addEventListener('click', () => {
 });
 document.getElementById('shopTabAcc').addEventListener('click', () => shopSetTab('acc'));
 document.getElementById('shopTabPet').addEventListener('click', () => shopSetTab('pet'));
+document.getElementById('shopTabSkin').addEventListener('click', () => shopSetTab('skin'));
 document.getElementById('shopClose').addEventListener('click', () => {
   elShop.classList.add('hidden'); elMenu.classList.remove('hidden');
 });
@@ -7415,7 +7649,8 @@ function applyLang() {
   document.documentElement.lang = LANG === 'pt' ? 'pt-BR' : LANG;
   [
     ['btnPlay','play'], ['btnDaily','daily'], ['btnTraining','training'], ['btnTutorial','tutorial'], ['btnHardcore','hardcore'],
-    ['btnFriends','friends'], ['btnShop','shop'], ['btnIdeas','ideas'], ['btnAch','achievements'],
+    ['btnContract','contract'], ['btnFriends','friends'], ['btnShop','shop'], ['btnIdeas','ideas'], ['btnAch','achievements'],
+    ['shopTabSkin','tabSkin'],
     ['rankTabEggs','tabEggs'], ['rankTabXp','tabXp'], ['hintControls','controls'], ['creditFrancisco','credit'],
     ['btnAgain','playAgain'], ['btnMenu','menuRanking'], ['shopClose','back'], ['ideaClose','back'], ['achClose','back'],
     ['shopTabAcc','tabAcc'], ['shopTabPet','tabPet'], ['btnResume','resume'], ['btnQuit','quit'], ['btnIdeaSend','sendIdea'],
@@ -7493,7 +7728,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.54';
+const GAME_VERSION = '5.55';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)

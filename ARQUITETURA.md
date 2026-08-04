@@ -3,7 +3,7 @@
 > Documento técnico para **retomar o desenvolvimento** com segurança. Leia isto antes
 > de mexer no jogo. O README.md é o guia público/da comunidade; este aqui é o mapa interno.
 
-**Versão atual:** `v5.54` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
+**Versão atual:** `v5.55` · **Studio:** CISCO GAMES · **Game Designer:** Cisco (Francisco, 9 anos)
 **Repo:** https://github.com/hygoramorim/super-tucan · **Jogo no ar:** https://hygoramorim.github.io/super-tucan/
 
 ---
@@ -118,6 +118,24 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
 - **Voo rasante (v5.53):** passar a menos de 12px da borda do galho (sem colidir) soma +1 no COMBO
   (o "UFA!" cosmético continua entre 12 e 20px). Sem ponto direto — só acelera o multiplicador,
   que já tem teto ×4, mantendo o ranking justo. Passagem com escudo/protetor (edge ≤ 0) não conta.
+- **Liga do Bando (v5.55):** a aba BANDO do painel de amigos virou liga semanal — membros ordenados
+  pela melhor pontuação DA SEMANA, coroa 👑 no líder. A semana é `weekKey()` (data da segunda, UTC):
+  quando a chave muda, os placares antigos valem 0 — reset implícito, sem cron. O cartão em
+  `players/` ganhou campos extras `wk`/`wb`/`skin` — as regras do Firebase validam só `best`/`xp`
+  via `hasChildren`, então extras passam SEM deploy de regras. `putPlayerCard` preserva o maior
+  `wb` da mesma semana; semanas diferentes descartam o valor antigo.
+- **Contrato do Dia (v5.55):** modo `contract` — 1 contrato diário determinístico
+  (`mulberry32(dayKey ^ 0xC07A0)`, separado do rng() do desafio): modificador (sem power-ups /
+  vão ×0.85 / velocidade ×1.25, aplicado em `currentDiff()` e no spawn de itens) + meta de bioma
+  (fase 3/4/5). Cumpriu → ovos da partida ×2 na carteira. SEM XP e SEM ranking global (mesma regra
+  do treino). Estado do dia em `superTucan_contract`; linha no painel diário, HUD e tela de fim.
+- **Skins lendárias (v5.55):** `SKINS` — 4 skins desbloqueadas por FEITO (nunca por ovos):
+  dourado (Cobra E Urubu na mesma partida, `runBossWins`), fantasma (streak 30), relâmpago
+  (20 rasantes numa partida, `runRasantes`), fogo (COMBO ×4 por 30s acumulados, `comboX4Frames`).
+  Guardadas em `superTucan_skins`, equipada em `superTucan_skinEquipped`. A skin troca a paleta em
+  `drawToucan` via `skinPalette(p)` (fantasma fica translúcido) + rastro cosmético de partículas.
+  Aba SKINS na lojinha (só desbloqueio, sem compra). O selo (emoji) publica no cartão e aparece no
+  ranking global (`rankHTML`) e na Liga — o ranking vira vitrine de feitos.
 - **Ranking:** duas leituras do nó `players/` — recordistas (ovos) e veteranos (XP). A publicação
   confirma a gravação no Firebase, preserva o maior `best`, usa chave própria para nomes genéricos
   por aparelho e guarda fila local de reenvio em `superTucan_rankPending` quando a rede falha.
@@ -389,3 +407,8 @@ curl -s https://hygoramorim.github.io/super-tucan/ | grep -o "GAME_VERSION = '[^
 - **v5.54** — escudo acumula até ×3 (bolha com anéis empilhados e HUD `×N`) e perder cada escudo
   virou um momento: onda de choque dupla, flash verde, estilhaços, tremor e som de vidro estalando
   com pitch que cai conforme restam menos escudos.
+- **v5.55** — três evoluções para o público de ~12 anos: (1) **Liga do Bando** — ranking semanal
+  entre amigos com coroa pro campeão, zerando toda segunda; (2) **Contrato do Dia** — dificuldade
+  opcional em forma de aposta (modificador + meta de bioma), ovos ×2 ao cumprir, sem ranking;
+  (3) **Skins lendárias** — 4 skins desbloqueadas só por feito, com selo público no ranking global
+  e na Liga. Cartão do jogador ganhou `wk`/`wb`/`skin` (compatível com as regras atuais do Firebase).

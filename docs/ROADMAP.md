@@ -44,7 +44,10 @@ Este roadmap organiza proximas evolucoes possiveis. Ele nao obriga implementar t
 - Melhorar conquistas com metas mais claras.
 - [FEITO v5.53] Missoes diarias (3 por dia, deterministicas, recompensa em ovos) e
   sequencia do Desafio do Dia com marcos 3/7/30.
-- Proximo passo natural: recompensa cosmetica exclusiva no marco de 30 dias.
+- [FEITO v5.55] Recompensa cosmetica exclusiva no marco de 30 dias (skin Tucano Fantasma).
+- [FEITO v5.55] Liga do Bando (ranking semanal entre amigos), Contrato do Dia (dificuldade
+  opcional com ovos x2) e skins lendarias por feito com selo no ranking.
+- Observar em playtest: balanceamento dos contratos e se as metas das skins estao atingiveis.
 
 ## Prioridade 5 - Arquitetura
 
