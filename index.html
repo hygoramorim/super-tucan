@@ -3433,12 +3433,45 @@ function drawLakeBackground() {
   }
 }
 
+function toRGB(c) {
+  // aceita '#rgb', '#rrggbb' ou 'rgb(r,g,b)' — permite encadear lerpHex()
+  if (c[0] === '#') {
+    let hex = c.slice(1);
+    if (hex.length === 3) hex = hex.split('').map(x => x + x).join('');
+    return [parseInt(hex.slice(0, 2), 16), parseInt(hex.slice(2, 4), 16), parseInt(hex.slice(4, 6), 16)];
+  }
+  const m = c.match(/\d+/g);
+  return [+m[0], +m[1], +m[2]];
+}
+function lerpHex(a, b, t) {
+  const A = toRGB(a), B = toRGB(b);
+  return 'rgb(' + Math.round(A[0] + (B[0] - A[0]) * t) + ',' + Math.round(A[1] + (B[1] - A[1]) * t) + ',' + Math.round(A[2] + (B[2] - A[2]) * t) + ')';
+}
 function drawBackground(p) {
   if (p.deco === 'lago') { drawLakeBackground(); return; }
-  // céu
+  // ---- Céu Vivo: "hora dourada" nos últimos 30% de cada bioma finito ----
+  // Céu, sol, nuvens e silhuetas derretem suavemente para o próximo bioma, com
+  // um pico quente dourado no meio da transição (sensação de pôr do sol). Puro
+  // cosmético: nada de rng(), então o desafio diário continua determinístico.
+  const nextP = p.dist === Infinity ? p : PHASES[Math.min(phaseIdx + 1, LAST)];
+  const transT = p.dist === Infinity ? 0 : Math.max(0, Math.min(1, (phaseDist - p.dist * 0.7) / (p.dist * 0.3)));
+  const goldenWarm = (!isNight() && transT > 0) ? Math.sin(transT * Math.PI) : 0;
+  const farCol = transT > 0 ? lerpHex(p.far, nextP.far, transT) : p.far;
+  const midCol = transT > 0 ? lerpHex(p.mid, nextP.mid, transT) : p.mid;
+  // céu (gradiente com banda dourada baixa no auge da transição)
+  let skyTopCol = p.skyTop, skyBotCol = p.skyBot;
+  if (transT > 0) {
+    skyTopCol = lerpHex(p.skyTop, nextP.skyTop, transT);
+    skyBotCol = lerpHex(p.skyBot, nextP.skyBot, transT);
+    if (goldenWarm > 0) {
+      skyTopCol = lerpHex(skyTopCol, '#ffb15a', goldenWarm * 0.5);
+      skyBotCol = lerpHex(skyBotCol, '#ff9166', goldenWarm * 0.72);
+    }
+  }
   const sky = ctx.createLinearGradient(0, 0, 0, H);
-  sky.addColorStop(0, p.skyTop);
-  sky.addColorStop(1, p.skyBot);
+  sky.addColorStop(0, skyTopCol);
+  if (goldenWarm > 0.02) sky.addColorStop(0.66, lerpHex(lerpHex(skyTopCol, skyBotCol, 0.6), '#ffd479', goldenWarm * 0.5));
+  sky.addColorStop(1, skyBotCol);
   ctx.fillStyle = sky;
   ctx.fillRect(0, 0, W, H);
 
@@ -3502,19 +3535,35 @@ function drawBackground(p) {
     }
     ctx.globalAlpha = 1;
   } else {
-    // sol (cada bioma tem o seu)
+    // sol (cada bioma tem o seu) — na hora dourada mergulha, avermelha e brilha
     const sun = p.deco === 'cerrado' ? ['rgba(255,120,40,.85)', 46]
       : p.deco === 'pampas' ? ['rgba(255,110,160,.9)', 52]
       : p.deco === 'caatinga' ? ['rgba(255,252,230,.95)', 40]
       : ['rgba(255,240,180,.8)', 34];
+    const sunX = W - 90, sunY = 85 + goldenWarm * 116, sunR = sun[1] + goldenWarm * 12;
+    // halo radial quente ao redor do disco
+    const haloR = sunR * (2.4 + goldenWarm * 1.8);
+    const halo = ctx.createRadialGradient(sunX, sunY, sunR * 0.4, sunX, sunY, haloR);
+    halo.addColorStop(0, goldenWarm > 0 ? 'rgba(255,178,92,' + (0.42 + goldenWarm * 0.4) + ')' : 'rgba(255,236,176,.34)');
+    halo.addColorStop(1, 'rgba(255,178,92,0)');
+    ctx.fillStyle = halo;
+    ctx.beginPath(); ctx.arc(sunX, sunY, haloR, 0, 7); ctx.fill();
+    // disco do sol
     ctx.fillStyle = sun[0];
-    ctx.beginPath();
-    ctx.arc(W - 90, 85, sun[1], 0, 7);
-    ctx.fill();
+    ctx.beginPath(); ctx.arc(sunX, sunY, sunR, 0, 7); ctx.fill();
+    if (goldenWarm > 0) {
+      ctx.save();
+      ctx.globalAlpha = goldenWarm * 0.6;
+      ctx.fillStyle = '#ff5e3a';
+      ctx.beginPath(); ctx.arc(sunX, sunY, sunR, 0, 7); ctx.fill();
+      ctx.restore();
+    }
   }
 
-  // nuvens
-  ctx.fillStyle = 'rgba(255,255,255,.75)';
+  // nuvens — pegam luz quente na hora dourada
+  ctx.fillStyle = goldenWarm > 0.02
+    ? 'rgba(255,' + Math.round(255 - goldenWarm * 44) + ',' + Math.round(255 - goldenWarm * 96) + ',.82)'
+    : 'rgba(255,255,255,.75)';
   clouds.forEach(c => {
     ctx.beginPath();
     ctx.ellipse(c.x, c.y, 34 * c.s, 13 * c.s, 0, 0, 7);
@@ -3561,7 +3610,7 @@ function drawBackground(p) {
 
   // camada distante (parallax) — silhuetas por bioma
   const off1 = (totalDist * 0.25) % 220;
-  ctx.fillStyle = p.far;
+  ctx.fillStyle = farCol;
   ctx.globalAlpha = 0.55;
   for (let x = -off1 - 220; x < W + 220; x += 220) {
     if (p.deco === 'jungle' || p.deco === 'mata') {
@@ -3591,7 +3640,7 @@ function drawBackground(p) {
 
   // camada média (parallax) — árvores características
   const off2 = (totalDist * 0.5) % 180;
-  ctx.fillStyle = p.mid;
+  ctx.fillStyle = midCol;
   ctx.globalAlpha = 0.7;
   for (let x = -off2 - 180; x < W + 180; x += 180) {
     const baseY = H - GROUND_H;
@@ -3649,7 +3698,7 @@ function drawBackground(p) {
     }
     // moradores fixos desta árvore (preguiça, gavião, macaquinho)
     drawTreeDweller(Math.round((x + totalDist * 0.5) / 180), x, baseY, p);
-    ctx.fillStyle = p.mid;
+    ctx.fillStyle = midCol;
   }
   ctx.globalAlpha = 1;
 
@@ -7728,7 +7777,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.55';
+const GAME_VERSION = '5.56';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
