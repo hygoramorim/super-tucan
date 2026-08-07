@@ -3433,6 +3433,7 @@ function drawLakeBackground() {
   }
 }
 
+let skyGolden = 0; // intensidade da hora dourada (0..1); lida pelo beijo de luz no tucano
 function toRGB(c) {
   // aceita '#rgb', '#rrggbb' ou 'rgb(r,g,b)' — permite encadear lerpHex()
   if (c[0] === '#') {
@@ -3456,6 +3457,7 @@ function drawBackground(p) {
   const nextP = p.dist === Infinity ? p : PHASES[Math.min(phaseIdx + 1, LAST)];
   const transT = p.dist === Infinity ? 0 : Math.max(0, Math.min(1, (phaseDist - p.dist * 0.7) / (p.dist * 0.3)));
   const goldenWarm = (!isNight() && transT > 0) ? Math.sin(transT * Math.PI) : 0;
+  skyGolden = goldenWarm; // exposto para o beijo de luz no tucano
   const farCol = transT > 0 ? lerpHex(p.far, nextP.far, transT) : p.far;
   const midCol = transT > 0 ? lerpHex(p.mid, nextP.mid, transT) : p.mid;
   // céu (gradiente com banda dourada baixa no auge da transição)
@@ -3556,6 +3558,28 @@ function drawBackground(p) {
       ctx.globalAlpha = goldenWarm * 0.6;
       ctx.fillStyle = '#ff5e3a';
       ctx.beginPath(); ctx.arc(sunX, sunY, sunR, 0, 7); ctx.fill();
+      ctx.restore();
+    }
+    // raios crepusculares (god rays) irradiando do sol no auge da hora dourada
+    if (goldenWarm > 0.05) {
+      ctx.save();
+      ctx.translate(sunX, sunY);
+      ctx.globalCompositeOperation = 'lighter';
+      const rays = PERF_LOW ? 5 : 9;
+      const rayLen = Math.max(W, H) * 0.95;
+      const spin = frames * 0.0016; // giro muito lento = cintilância suave
+      for (let i = 0; i < rays; i++) {
+        const ang = spin + (i / rays) * Math.PI * 2;
+        const half = 0.045 + (i % 2) * 0.02; // largura angular alternada
+        const a = goldenWarm * (0.045 + (i % 2) * 0.03); // alpha baixo, brilho alternado
+        ctx.fillStyle = 'rgba(255,206,122,' + a.toFixed(3) + ')';
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(Math.cos(ang - half) * rayLen, Math.sin(ang - half) * rayLen);
+        ctx.lineTo(Math.cos(ang + half) * rayLen, Math.sin(ang + half) * rayLen);
+        ctx.closePath();
+        ctx.fill();
+      }
       ctx.restore();
     }
   }
@@ -6832,6 +6856,7 @@ function draw() {
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0); // desenha na densidade nativa (nítido)
   ctx.save();
   if (shake > 0) ctx.translate((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake);
+  skyGolden = 0; // resetado por frame; drawBackground o redefine durante a hora dourada
 
   if (bonusActive) {
     drawBonusBackground();
@@ -6864,6 +6889,19 @@ function draw() {
 
   if (state === 'play' || state === 'ready') { drawPetCollectAura(); drawPet(); } // ave companheira atrás do tucano (ideia 15)
   drawToucan(p);
+
+  // hora dourada: um beijo de luz quente do sol no tucano (lado alto/direita)
+  if (skyGolden > 0.05 && !bossArena && !boss && (state === 'play' || state === 'ready')) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    const gx = bird.x + 7, gy = bird.y - 7, gr = (bird.r || 15) * 2.1;
+    const glow = ctx.createRadialGradient(gx, gy, 1, gx, gy, gr);
+    glow.addColorStop(0, 'rgba(255,201,120,' + (skyGolden * 0.5).toFixed(3) + ')');
+    glow.addColorStop(1, 'rgba(255,201,120,0)');
+    ctx.fillStyle = glow;
+    ctx.beginPath(); ctx.arc(gx, gy, gr, 0, 7); ctx.fill();
+    ctx.restore();
+  }
 
   // bolha do escudo / piscada de invencibilidade — 1 anel por escudo acumulado (v5.54)
   if ((hasShield() || invuln > 0) && state === 'play') {
@@ -7777,7 +7815,7 @@ document.getElementById('rankTabXp').addEventListener('click', () => {
   renderRanking();
 });
 
-const GAME_VERSION = '5.56';
+const GAME_VERSION = '5.57';
 document.getElementById('ver').textContent = 'v' + GAME_VERSION;
 document.getElementById('menuVer').textContent = 'version ' + GAME_VERSION;
 applyLang(); // aplica o idioma salvo (ideia 23 do Francisco)
